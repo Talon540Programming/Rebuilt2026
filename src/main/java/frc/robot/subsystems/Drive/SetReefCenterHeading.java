@@ -14,7 +14,6 @@ public class SetReefCenterHeading{
     
     private boolean faceReefEnabled = false;
     private Rotation2d targetHeading = new Rotation2d();
-    private Pose2d lastUpdatePose = new Pose2d();
 
     public SetReefCenterHeading(VisionBase vision) {
         this.vision = vision;
@@ -22,15 +21,11 @@ public class SetReefCenterHeading{
 
     public void enableFaceReef() {
         faceReefEnabled = true;
-        lastUpdatePose = new Pose2d();  // Reset so heading calculates immediately
         Logger.recordOutput("FaceReefCenter/Enabled", faceReefEnabled);
     }
     
     public void toggleFaceReef() {
         faceReefEnabled = !faceReefEnabled;
-        if (faceReefEnabled) {
-            lastUpdatePose = new Pose2d();  // Reset so heading calculates immediately
-        }
         Logger.recordOutput("FaceReefCenter/Enabled", faceReefEnabled);
     }
 
@@ -50,8 +45,6 @@ public class SetReefCenterHeading{
      * @param currentPose The current pose of the robot
      */
     public void updateTargetHeading(Pose2d currentPose) {
-        
-        lastUpdatePose = currentPose;
         
         Pose2d reefCenter = vision.isRedAlliance() 
             ? FieldPoses.redCenterOfReef 
