@@ -8,18 +8,16 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants.IntakeConstants;
 
-public class PivotIOKraken implements PivotIO {
+public class RollerIOKraken implements RollerIO {
     
-    private final TalonFX pivot;
+    private final TalonFX roller;
     
-    private final StatusSignal<Angle> position;
     private final StatusSignal<AngularVelocity> velocity;
     private final StatusSignal<Voltage> appliedVolts;
     private final StatusSignal<Current> current;
@@ -27,8 +25,10 @@ public class PivotIOKraken implements PivotIO {
     
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
-    public PivotIOKraken() {
-        pivot = new TalonFX(IntakeConstants.kPivotMotorId);
+    private boolean isRunning = false;
+    
+    public RollerIOKraken() {
+        roller = new TalonFX(IntakeConstants.kRollerMotorId);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         
@@ -42,43 +42,48 @@ public class PivotIOKraken implements PivotIO {
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
-        pivot.getConfigurator().apply(config);
+        roller.getConfigurator().apply(config);
         
         // Get status signals
-        position = pivot.getPosition();
-        velocity = pivot.getVelocity();
-        appliedVolts = pivot.getMotorVoltage();
-        current = pivot.getStatorCurrent();
-        temp = pivot.getDeviceTemp();
+        velocity = roller.getVelocity();
+        appliedVolts = roller.getMotorVoltage();
+        current = roller.getStatorCurrent();
+        temp = roller.getDeviceTemp();
         
         // Set update frequencies
-        BaseStatusSignal.setUpdateFrequencyForAll(50, position, velocity, appliedVolts, current, temp);
-        pivot.optimizeBusUtilization();
+        BaseStatusSignal.setUpdateFrequencyForAll(50, velocity, appliedVolts, current, temp);
+        roller.optimizeBusUtilization();
     }
     
     @Override
-    public void updateInputs(PivotIOInputs inputs) {
-        BaseStatusSignal.refreshAll(position, velocity, appliedVolts, current, temp);
+    public void updateInputs(RollerIOInputs inputs) {
+        BaseStatusSignal.refreshAll(velocity, appliedVolts, current, temp);
         
-        inputs.positionRotations = position.getValueAsDouble();
         inputs.velocityRotPerSec = velocity.getValueAsDouble();
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = current.getValueAsDouble();
         inputs.tempCelsius = temp.getValueAsDouble();
+        
+        // Detect game piece via current spike while running
+        // Current will spike when a game piece loads into the rollers
+        inputs.hasGamePiece = isRunning && 
+            inputs.currentAmps > IntakeConstants.kGamePieceCurrentThreshold;
     }
     
     @Override
     public void setDutyCycle(double dutyCycle) {
-        pivot.setControl(dutyCycleControl.withOutput(dutyCycle));
+        isRunning = Math.abs(dutyCycle) > 0.01;
+        roller.setControl(dutyCycleControl.withOutput(dutyCycle));
     }
     
     @Override
     public void stop() {
-        pivot.stopMotor();
+        isRunning = false;
+        roller.stopMotor();
     }
     
     @Override
     public void setBrakeMode(boolean brake) {
-        pivot.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+        roller.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
     }
 }

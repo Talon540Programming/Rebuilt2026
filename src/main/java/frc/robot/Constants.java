@@ -110,4 +110,33 @@ public final class Constants {
     public static final double bumperWidth = -0.1;
 
   }
+
+  public static final class IntakeConstants {
+    // CAN IDs
+    public static final int kPivotMotorId = 13;
+    public static final int kRollerMotorId = 14;
+    
+    // Pivot duty cycles
+    public static final double kDeployDutyCycle = 0.3;   // Duty cycle to deploy (positive = down)
+    public static final double kRetractDutyCycle = -0.3; // Duty cycle to retract (negative = up)
+    
+    // Roller duty cycles
+    public static final double kRollerIntakeDutyCycle = 0.8;  // Duty cycle for intaking
+    public static final double kRollerEjectDutyCycle = -0.5;  // Duty cycle for ejecting
+    
+    // Game piece detection
+    public static final double kGamePieceCurrentThreshold = 25.0; // Amps - tune this value
+  }
+
+  public static final class IndexConstants {
+    public static final int kIndexMotorId = 15;
+    public static final int kCANRangeId = 22;
+    
+    public static final double kIndexDutyCycle = 0.5;      // Normal indexing speed
+    public static final double kReverseDutyCycle = -0.3;   // Reverse/eject speed
+    public static final double kFeedDutyCycle = 0.8;       // Fast feed during shooting
+    
+    // CANRange detection threshold in meters - tune on real robot
+    public static final double kGamePieceDetectionThreshold = 0.15;
+  }
 }
