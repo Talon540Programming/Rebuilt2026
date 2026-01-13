@@ -119,7 +119,7 @@ public class RobotContainer {
             (driveToPose.createStationPathCommand().until(() -> driveToPose.haveStationConditionsChanged()).repeatedly()));
 
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
-        headingDrive.HeadingController.setPID(11, 0.1, 0.5);
+        headingDrive.HeadingController.setPID(6, .5, 0);
 
         drivetrain.setDefaultCommand(
             drivetrain.run(() -> {

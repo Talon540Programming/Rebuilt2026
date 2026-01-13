@@ -15,7 +15,6 @@ public class SetReefCenterHeading{
     private boolean faceReefEnabled = false;
     private Rotation2d targetHeading = new Rotation2d();
     private Pose2d lastUpdatePose = new Pose2d();
-    private static final double UPDATE_DISTANCE_THRESHOLD = 0.1;
 
     public SetReefCenterHeading(VisionBase vision) {
         this.vision = vision;
@@ -51,10 +50,6 @@ public class SetReefCenterHeading{
      * @param currentPose The current pose of the robot
      */
     public void updateTargetHeading(Pose2d currentPose) {
-        // Only recalculate if robot has moved significantly
-        if (currentPose.getTranslation().getDistance(lastUpdatePose.getTranslation()) < UPDATE_DISTANCE_THRESHOLD) {
-            return;  // Keep using the existing targetHeading
-        }
         
         lastUpdatePose = currentPose;
         
