@@ -5,9 +5,12 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KickupConstants;
-import frc.robot.subsystems.Shooter.FlywheelIO.FlywheelIOInputs;
-import frc.robot.subsystems.Shooter.HoodIO.HoodIOInputs;
-import frc.robot.subsystems.Shooter.KickupIO.KickupIOInputs;
+import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
+import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
+import frc.robot.subsystems.Shooter.Hood.HoodIO;
+import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
+import frc.robot.subsystems.Shooter.Kickup.KickupIO;
+import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
 
 public class ShooterBase extends SubsystemBase {
     

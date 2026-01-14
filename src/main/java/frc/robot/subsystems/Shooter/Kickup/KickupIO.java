@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Shooter;
+package frc.robot.subsystems.Shooter.Kickup;
 
 public interface KickupIO {
     

@@ -5,8 +5,10 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.subsystems.Intake.PivotIO.PivotIOInputs;
-import frc.robot.subsystems.Intake.RollerIO.RollerIOInputs;
+import frc.robot.subsystems.Intake.Pivot.PivotIO;
+import frc.robot.subsystems.Intake.Pivot.PivotIO.PivotIOInputs;
+import frc.robot.subsystems.Intake.Roller.RollerIO;
+import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
 
 public class IntakeBase extends SubsystemBase {
     
