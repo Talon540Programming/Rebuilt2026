@@ -16,14 +16,15 @@ public class IntakeBase extends SubsystemBase {
         STOWED,
         DEPLOYING,
         DEPLOYED,
-        RETRACTING,
-        COLLISION_DETECTED
+        RETRACTING
     }
     
     private final PivotIO pivotIO;
     private final RollerIO rollerIO;
     private double deployTimer = 0.0;
     private static final double DEPLOY_TIME_SECONDS = 0.5;
+    private double retractTimer = 0.0;
+    private static final double RETRACT_TIME_SECONDS = 0.5;
     
     // Use the base inputs class instead of AutoLogged
     private final PivotIOInputs pivotInputs = new PivotIOInputs();
@@ -56,13 +57,23 @@ public class IntakeBase extends SubsystemBase {
 
         if (currentState == IntakeState.DEPLOYING) {
             deployTimer += 0.02;
-            
+
             if (deployTimer >= DEPLOY_TIME_SECONDS) {
                 currentState = IntakeState.DEPLOYED;
                 pivotIO.stop();
                 pivotIO.setBrakeMode(true);
             }
+
+        if (currentState == IntakeState.RETRACTING) {
+            retractTimer += 0.02;
+            
+            if (retractTimer >= RETRACT_TIME_SECONDS) {
+                currentState = IntakeState.STOWED;
+                pivotIO.stop();
+                pivotIO.setBrakeMode(true);
+            }
         }
+    }
 
         // Log inputs manually
         Logger.recordOutput("Intake/Pivot/PositionRotations", pivotInputs.positionRotations);
@@ -109,8 +120,7 @@ private void handleCollision() {
     public void retract() {
         intakeEnabled = false;
         currentState = IntakeState.RETRACTING;
-        pivotIO.setDutyCycle(IntakeConstants.kRetractDutyCycle);
-        rollerIO.stop();
+        retractTimer = 0.0;
     }
     
     /**
@@ -130,6 +140,8 @@ private void handleCollision() {
     public void stop() {
         intakeEnabled = false;
         currentState = IntakeState.STOWED;
+        deployTimer = 0.0;  
+        retractTimer = 0.0;  
         pivotIO.stop();
         rollerIO.stop();
     }
