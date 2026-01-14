@@ -160,8 +160,9 @@ public final class Constants {
 
 
   public static final class ClimberConstants {
-    public static final int kLeftClimberMotorId = 20;
-    public static final int kRightClimberMotorId = 21;
+    // Single climber with 2x X60 (leader/follower)
+    public static final int kLeaderMotorId = 20;
+    public static final int kFollowerMotorId = 21;
     
     public static final double kClimbUpDutyCycle = 0.8;
     public static final double kClimbDownDutyCycle = -0.5;
