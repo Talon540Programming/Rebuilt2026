@@ -11,6 +11,11 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO;
 import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+import edu.wpi.first.math.geometry.Pose2d;
+import frc.robot.Util.ShootingCalculator;
+import frc.robot.Util.ShootingCalculator.ShootingSolution;
 
 public class ShooterBase extends SubsystemBase {
     
@@ -302,4 +307,58 @@ public class ShooterBase extends SubsystemBase {
     public Command zeroHoodCommand() {
         return runOnce(this::zeroHood).withName("Shooter Zero Hood");
     }
+
+    /**
+ * Continuously update shooter based on distance to hub.
+ * Use this while driving to keep shooter ready.
+ */
+public Command autoAimCommand(Supplier<Pose2d> poseSupplier, BooleanSupplier isRedAllianceSupplier) {
+    return run(() -> {
+        ShootingSolution solution = ShootingCalculator.calculateSolution(
+            poseSupplier.get(), 
+            isRedAllianceSupplier.getAsBoolean()
+        );
+        
+        setFlywheelVelocity(solution.flywheelRPM);
+        setHoodAngle(solution.hoodAngleRadians);
+        
+        Logger.recordOutput("Shooter/AutoAim/Distance", solution.distanceMeters);
+        Logger.recordOutput("Shooter/AutoAim/HoodAngleDeg", solution.getHoodAngleDegrees());
+        Logger.recordOutput("Shooter/AutoAim/FlywheelRPM", solution.flywheelRPM);
+    })
+    .withName("Shooter Auto Aim");
+}
+
+/**
+ * Auto-aim and shoot when ready.
+ */
+public Command autoAimAndShootCommand(
+        Supplier<Pose2d> poseSupplier, 
+        BooleanSupplier isRedAllianceSupplier,
+        double shootDurationSeconds) {
+    return run(() -> {
+        ShootingSolution solution = ShootingCalculator.calculateSolution(
+            poseSupplier.get(), 
+            isRedAllianceSupplier.getAsBoolean()
+        );
+        
+        setFlywheelVelocity(solution.flywheelRPM);
+        setHoodAngle(solution.hoodAngleRadians);
+        
+        Logger.recordOutput("Shooter/AutoAim/Distance", solution.distanceMeters);
+        Logger.recordOutput("Shooter/AutoAim/HoodAngleDeg", solution.getHoodAngleDegrees());
+        Logger.recordOutput("Shooter/AutoAim/FlywheelRPM", solution.flywheelRPM);
+    })
+    .until(this::isReadyToShoot)
+    .andThen(shootForTimeCommand(shootDurationSeconds))
+    .finallyDo((interrupted) -> stopAll())
+    .withName("Shooter Auto Aim and Shoot");
+}
+
+/**
+ * Get shooting solution for current position.
+ */
+public ShootingSolution getShootingSolution(Pose2d robotPose, boolean isRedAlliance) {
+    return ShootingCalculator.calculateSolution(robotPose, isRedAlliance);
+}
 }

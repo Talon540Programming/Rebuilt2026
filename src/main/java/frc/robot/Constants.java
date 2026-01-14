@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.pathplanner.lib.path.PathConstraints;
@@ -64,38 +61,10 @@ public final class Constants {
 
     public static final double[] fieldSize = {17.55, 8.05};
     // Wall thickness is 0.051
-    public static final Pose2d blueCenterOfReef = new Pose2d(4.487, 4.025, new Rotation2d()); // blue
-    public static final Pose2d redCenterOfReef = new Pose2d(13.065, 4.025, new Rotation2d()); // red
-
-    public static final List<Pose2d> blueReefPoses = new ArrayList<Pose2d>(){{
-      add(new Pose2d(3.301, 4.026, new Rotation2d(Units.degreesToRadians(0))));      // Face 0 - Left
-      add(new Pose2d(3.896, 2.999, new Rotation2d(Units.degreesToRadians(60.0))));   // Face 1
-      add(new Pose2d(5.082, 2.999, new Rotation2d(Units.degreesToRadians(120.0))));  // Face 2
-      add(new Pose2d(5.675, 4.026, new Rotation2d(Units.degreesToRadians(180.0))));  // Face 3 - Right
-      add(new Pose2d(5.082, 5.053, new Rotation2d(Units.degreesToRadians(240.0))));  // Face 4
-      add(new Pose2d(3.896, 5.053, new Rotation2d(Units.degreesToRadians(300.0))));  // Face 5
-    }};
-
-  public static final List<Pose2d> blueStationPoses = new ArrayList<Pose2d>(){{
-    add(new Pose2d(1.38, 6.8, new Rotation2d(Units.degreesToRadians(-54)))); // Left Station
-    add(new Pose2d(1.38, 1.19, new Rotation2d(Units.degreesToRadians(54)))); // Red Station
-  }};
-
+    // Hub positions for 2026 REBUILT game - TODO: Update with actual field coordinates
     
-  public static final List<Pose2d> redReefPoses = new ArrayList<Pose2d>(){{
-      add(new Pose2d(11.877, 4.026, new Rotation2d(Units.degreesToRadians(0))));     // Face 0
-      add(new Pose2d(12.472, 2.999, new Rotation2d(Units.degreesToRadians(60))));  // Face 1
-      add(new Pose2d(13.658, 2.999, new Rotation2d(Units.degreesToRadians(120.0)))); // Face 2
-      add(new Pose2d(14.251, 4.026, new Rotation2d(Units.degreesToRadians(180.0)))); // Face 3
-      add(new Pose2d(13.658, 5.053, new Rotation2d(Units.degreesToRadians(240.0)))); // Face 4
-      add(new Pose2d(12.472, 5.053, new Rotation2d(Units.degreesToRadians(300.0)))); // Face 5
-  }};
-
-  public static final List<Pose2d> redStationPoses = new ArrayList<Pose2d>(){{
-    add(new Pose2d(16.34, 1.19, new Rotation2d(Units.degreesToRadians(126)))); // Left Station
-    add(new Pose2d(16.34, 6.8, new Rotation2d(Units.degreesToRadians(-126)))); // Red Station
-  }};
-
+    public static final Pose2d blueHub = new Pose2d(4.5, 4.0, new Rotation2d()); // Placeholder
+    public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  // Placeholder
   
     
     public static LoggedNetworkNumber reefLateralOffset = 
@@ -163,6 +132,32 @@ public final class Constants {
     public static final double kHoodkI = 0.0;
     public static final double kHoodkD = 0.0;
   }
+
+   public static final class ShootingConstants {
+    // Physical measurements (in inches for trajectory calculation)
+    public static final double kBackDistanceInches = 20.0;      // Distance from shooter exit to robot center
+    public static final double kShooterHeightInches = 20.0;     // Height of shooter exit from ground
+    public static final double kHeightOfHubInches = 72.0;       // Height of hub opening
+    public static final double kClearanceInches = 12.0;         // Desired clearance over hub rim
+    
+    // Derived value
+    public static final double kMaxHeightInches = (kHeightOfHubInches + kClearanceInches) - kShooterHeightInches;
+    
+    // Physics
+    public static final double kGravityInchesPerSecSq = 386.09; // Gravity in inches/sec^2
+    
+    // Flywheel physical properties
+    public static final double kFlywheelRadiusInches = 2.0;     // Radius of flywheel wheel (Colson)
+    
+    // Flywheel RPM limits
+    public static final double kMinFlywheelRPM = 1000.0;        // Minimum safe RPM
+    public static final double kMaxFlywheelRPM = 6000.0;        // Maximum safe RPM
+    
+    // Hood angle limits (same as ShooterConstants for reference)
+    public static final double kHoodMinAngle = Math.PI / 8;     // 22.5 degrees
+    public static final double kHoodMaxAngle = Math.PI / 2;     // 90 degrees
+  }
+
 
   public static final class ClimberConstants {
     public static final int kLeftClimberMotorId = 20;

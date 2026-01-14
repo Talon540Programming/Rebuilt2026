@@ -10,8 +10,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Util.Telemetry;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.DriveToPose;
-import frc.robot.subsystems.Drive.SetReefCenterHeading;
-import frc.robot.subsystems.Drive.SetReefSideHeading;
+import frc.robot.subsystems.Drive.SetHubHeading;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -43,8 +42,7 @@ public class RobotContainer {
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
     private DriveToPose driveToPose = new DriveToPose(drivetrain, vision);
-    private final SetReefSideHeading autoHeading = new SetReefSideHeading(vision);
-    private final SetReefCenterHeading faceReefCenter = new SetReefCenterHeading(vision);
+    private final SetHubHeading autoHeading = new SetHubHeading(vision);
 
     private final SendableChooser<Command> autoChooser;
 
@@ -93,19 +91,13 @@ public class RobotContainer {
         // Y button toggles face reef center - also disables auto heading if it's on
         m_driverController.povRight().onTrue(Commands.runOnce(() -> {
             if (autoHeading.isEnabled()) {
-                autoHeading.disableAutoHeading();
+                autoHeading.disableFaceHub();
             }
-            faceReefCenter.toggleFaceReef();
-        }));
-
-        // Update the existing povDown binding to also disable face reef
-        m_driverController.povDown().onTrue(Commands.runOnce(() -> {
-            if (faceReefCenter.isEnabled()) {
-                faceReefCenter.disableFaceReef();
+            else{
+            autoHeading.toggleFaceHub();
             }
-            autoHeading.toggleAutoHeading();
         }));
-
+        /* 
         m_driverController.povUp().whileTrue(
             (driveToPose.createReefPathCommand(DriveToPose.Side.Middle).until(() -> driveToPose.haveReefConditionsChanged()).repeatedly()));
 
@@ -117,7 +109,7 @@ public class RobotContainer {
 
         m_driverController.leftTrigger().whileTrue(
             (driveToPose.createStationPathCommand().until(() -> driveToPose.haveStationConditionsChanged()).repeatedly()));
-
+        */
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(6, .5, 0);
 
@@ -140,11 +132,9 @@ public class RobotContainer {
                 
                 // Check if driver is manually rotating - this always takes priority
                 boolean driverRotating = autoHeading.isDriverRotating(rotSpeed);
-                boolean atSetpoint = driveToPose.isAtSetpoint(0.3);
                 
                 // Determine which auto-heading mode to use (if any)
-                boolean useAutoHeading = autoHeading.isEnabled() && !faceReefCenter.isEnabled() && !driverRotating && !atSetpoint;
-                boolean useFaceReef = faceReefCenter.isEnabled() && !autoHeading.isEnabled() && !driverRotating && !atSetpoint;
+                boolean useAutoHeading = autoHeading.isEnabled() && !driverRotating;
 
                 if (useAutoHeading) {
                     autoHeading.updateTargetHeading(drivetrain.getPose());
@@ -154,15 +144,6 @@ public class RobotContainer {
                             .withVelocityX(xSpeed * MaxSpeed)
                             .withVelocityY(ySpeed * MaxSpeed)
                             .withTargetDirection(autoHeading.getTargetHeading())
-                    );
-                } else if (useFaceReef) {
-                    faceReefCenter.updateTargetHeading(drivetrain.getPose());
-                    
-                    drivetrain.setControl(
-                        headingDrive
-                            .withVelocityX(xSpeed * MaxSpeed)
-                            .withVelocityY(ySpeed * MaxSpeed)
-                            .withTargetDirection(faceReefCenter.getTargetHeading())
                     );
                 } else {
                     drivetrain.setControl(

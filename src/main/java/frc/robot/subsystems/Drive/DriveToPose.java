@@ -40,23 +40,6 @@ public class DriveToPose{
             this.vision = vision;
         }
         
-        public Pose2d calculateNearestReefSide(){
-            if(vision.isRedAlliance()){
-                return drivetrain.getPose().nearest(FieldPoses.redReefPoses);
-            }
-            else{
-                return drivetrain.getPose().nearest(FieldPoses.blueReefPoses);
-            }
-        }
-
-        public Pose2d calculateNearestStation(){
-            if(vision.isRedAlliance()){
-                return drivetrain.getPose().nearest(FieldPoses.redStationPoses);
-            }
-            else{
-                return drivetrain.getPose().nearest(FieldPoses.blueStationPoses);
-            }
-        }
     
         private Pose2d calculateReefPath(Side side, Pose2d nearestSide){
             double x = nearestSide.getX();
@@ -98,17 +81,6 @@ public class DriveToPose{
             return new Pose2d(x, y, new Rotation2d(rot));
     }  
 
-    public boolean haveReefConditionsChanged(){
-        Pose2d nearSide = calculateNearestReefSide();
-        
-        return !nearSide.equals(nearestReefSide);
-    }
-
-    public boolean haveStationConditionsChanged(){
-        Pose2d station = calculateNearestStation();
-        
-        return !station.equals(nearestStation);
-    }
     
     private Command getPathFromWaypoint(Pose2d waypoint){
         // Calculate approach direction (from robot toward target)
@@ -152,6 +124,7 @@ public class DriveToPose{
         return new Rotation2d(cs.vxMetersPerSecond, cs.vyMetersPerSecond);
     }
 
+    /* 
     public boolean isAtSetpoint(double toleranceMeters) {
         Pose2d currentPose = drivetrain.getPose();
         
@@ -165,6 +138,7 @@ public class DriveToPose{
         
         return reefDistance < toleranceMeters || stationDistance < toleranceMeters;
     }
+    
 
     public boolean isAtTargetPose(Pose2d target, double toleranceMeters) {
         return drivetrain.getPose().getTranslation().getDistance(target.getTranslation()) < toleranceMeters;
@@ -195,4 +169,5 @@ public class DriveToPose{
             return getPathFromWaypoint(align);
         }, Set.of(drivetrain));
     }
+    */
 }
