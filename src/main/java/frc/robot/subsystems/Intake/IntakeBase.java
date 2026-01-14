@@ -16,11 +16,14 @@ public class IntakeBase extends SubsystemBase {
         STOWED,
         DEPLOYING,
         DEPLOYED,
-        RETRACTING
+        RETRACTING,
+        COLLISION_DETECTED
     }
     
     private final PivotIO pivotIO;
     private final RollerIO rollerIO;
+    private double deployTimer = 0.0;
+    private static final double DEPLOY_TIME_SECONDS = 0.5;
     
     // Use the base inputs class instead of AutoLogged
     private final PivotIOInputs pivotInputs = new PivotIOInputs();
@@ -39,7 +42,28 @@ public class IntakeBase extends SubsystemBase {
         // Update inputs from IO layers
         pivotIO.updateInputs(pivotInputs);
         rollerIO.updateInputs(rollerInputs);
-        
+
+        // Collision detection using velocity - cleaner than position delta
+        if (intakeEnabled) {
+            // Velocity negative = moving backward, high current = motor fighting something
+            boolean beingBackdriven = pivotInputs.velocityRotPerSec < -0.5 
+                                    && pivotInputs.currentAmps > IntakeConstants.kCollisionCurrentThreshold;
+            
+            if (beingBackdriven) {
+                handleCollision();
+            }
+        }
+
+        if (currentState == IntakeState.DEPLOYING) {
+            deployTimer += 0.02;
+            
+            if (deployTimer >= DEPLOY_TIME_SECONDS) {
+                currentState = IntakeState.DEPLOYED;
+                pivotIO.stop();
+                pivotIO.setBrakeMode(true);
+            }
+        }
+
         // Log inputs manually
         Logger.recordOutput("Intake/Pivot/PositionRotations", pivotInputs.positionRotations);
         Logger.recordOutput("Intake/Pivot/VelocityRotPerSec", pivotInputs.velocityRotPerSec);
@@ -62,12 +86,22 @@ public class IntakeBase extends SubsystemBase {
     /**
      * Deploy the intake and run rollers
      */
-    public void deploy() {
-        intakeEnabled = true;
-        currentState = IntakeState.DEPLOYING;
-        pivotIO.setDutyCycle(IntakeConstants.kDeployDutyCycle);
-        rollerIO.setDutyCycle(IntakeConstants.kRollerIntakeDutyCycle);
-    }
+   public void deploy() {
+    intakeEnabled = true;
+    currentState = IntakeState.DEPLOYING;
+    deployTimer = 0.0;
+    pivotIO.setBrakeMode(true);  // Brake mode during motion is fine
+    pivotIO.setDutyCycle(IntakeConstants.kDeployDutyCycle);
+    rollerIO.setDutyCycle(IntakeConstants.kRollerIntakeDutyCycle);
+}
+
+    /**
+ * Handle detected collision - retract intake to protect mechanism
+ */
+private void handleCollision() {
+    Logger.recordOutput("Intake/CollisionDetected", true);
+    retract();  // Just retract - driver can re-deploy when safe
+}
     
     /**
      * Retract the intake and stop rollers

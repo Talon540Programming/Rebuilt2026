@@ -86,8 +86,11 @@ public final class Constants {
     public static final int kRollerMotorId = 14;
     
     // Pivot duty cycles
-    public static final double kDeployDutyCycle = 0.3;   // Duty cycle to deploy (positive = down)
-    public static final double kRetractDutyCycle = -0.3; // Duty cycle to retract (negative = up)
+    public static final double kDeployDutyCycle = 0.25;   // Duty cycle to deploy (positive = down)
+    public static final double kRetractDutyCycle = -0.25; // Duty cycle to retract (negative = up)
+
+  public static final double kCollisionCurrentThreshold = 30.0; // Amps - pivot motor
+  public static final double kCollisionPositionThreshold = 0.1; // Rotations backward movement
     
     // Roller duty cycles
     public static final double kRollerIntakeDutyCycle = 0.8;  // Duty cycle for intaking
