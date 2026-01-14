@@ -1,5 +1,6 @@
 package frc.robot.Util;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.FieldPoses;
@@ -34,8 +35,7 @@ public class ShootingCalculator {
         double theta = Math.atan(numerator / denominator);
         
         // Clamp to hood limits
-        theta = Math.max(ShootingConstants.kHoodMinAngle, 
-                Math.min(ShootingConstants.kHoodMaxAngle, theta));
+        theta = MathUtil.clamp(theta, ShootingConstants.kHoodMinAngle, ShootingConstants.kHoodMaxAngle);
         
         return theta;
     }
@@ -84,8 +84,7 @@ public class ShootingCalculator {
         double rpm = (omegaRadPerSec * 60.0) / (2.0 * Math.PI);
         
         // Clamp to safe RPM range
-        rpm = Math.max(ShootingConstants.kMinFlywheelRPM, 
-              Math.min(ShootingConstants.kMaxFlywheelRPM, rpm));
+        rpm = MathUtil.clamp(rpm, ShootingConstants.kMinFlywheelRPM, ShootingConstants.kMaxFlywheelRPM);
         
         return rpm;
     }

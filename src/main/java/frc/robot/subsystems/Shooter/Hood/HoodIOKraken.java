@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -116,8 +117,7 @@ public class HoodIOKraken implements HoodIO {
     @Override
     public void setPosition(double positionRadians) {
         // Clamp to valid range
-        positionRadians = Math.max(ShooterConstants.kHoodMinAngle, 
-                         Math.min(ShooterConstants.kHoodMaxAngle, positionRadians));
+        positionRadians = MathUtil.clamp(positionRadians, ShooterConstants.kHoodMinAngle, ShooterConstants.kHoodMaxAngle);
         targetPositionRadians = positionRadians;
         
         // Convert hood radians to motor rotations

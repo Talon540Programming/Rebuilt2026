@@ -41,7 +41,6 @@ public class RobotContainer {
     private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
-    private DriveToPose driveToPose = new DriveToPose(drivetrain, vision);
     private final SetHubHeading autoHeading = new SetHubHeading(vision);
 
     private final SendableChooser<Command> autoChooser;
