@@ -213,6 +213,10 @@ public class IntakeBase extends SubsystemBase {
     public double getRollerCurrent() {
         return rollerInputs.currentAmps;
     }
+
+    public boolean isHomed(){
+        return homed;
+    }
     
       public void setGoal(Goal newGoal) {
         if (newGoal != goal) {
@@ -226,22 +230,6 @@ public class IntakeBase extends SubsystemBase {
             ? IntakeConstants.kPivotDeployedPosRot
             : IntakeConstants.kPivotStowedPosRot;
     }
-
-
-    /** Zero pivot assuming we are physically stowed right now. Call on autoInit + teleopInit. */
-    public void zeroPivotFromStowed() {
-        pivotIO.setPosition(IntakeConstants.kPivotStowedPosRot); // recommend kPivotStowedPosRot = 0.0
-        homed = true;
-        crashLatched = false;
-        crashDebouncer.calculate(false);
-
-        // Ensure internal goal/state matches reality
-        setGoal(Goal.STOWED);
-        intakeEnabled = false;
-        currentState = IntakeState.STOWED;
-    }
-
-
 
     // ==================== COMMANDS ====================
     

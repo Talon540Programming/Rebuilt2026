@@ -11,6 +11,8 @@ import frc.robot.Util.Telemetry;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
 import frc.robot.subsystems.Intake.IntakeBase;
+import frc.robot.subsystems.Intake.Pivot.PivotIOKraken;
+import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -42,7 +44,9 @@ public class RobotContainer {
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
     private final SetHubHeading autoHeading = new SetHubHeading(vision);
-    private final IntakeBase intakeBase = new IntakeBase(null, null);
+    private final PivotIOKraken pivotIO = new PivotIOKraken();
+    private final RollerIOKraken rollerIOKraken = new RollerIOKraken();
+    private final IntakeBase intakeBase = new IntakeBase(pivotIO, rollerIOKraken);
 
 
     private final SendableChooser<Command> autoChooser;
@@ -184,6 +188,13 @@ public class RobotContainer {
         }
     }
 
+    public Command getIntakeHomingCommand() {
+        if(intakeBase.isHomed()){
+            return intakeBase.homingSequence();
+        }
+
+        return Commands.none();
+    }
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();

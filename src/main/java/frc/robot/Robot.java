@@ -76,6 +76,8 @@ public class Robot extends LoggedRobot {
      // Final attempt to initialize gyro from vision if not already done
      m_robotContainer.finalGyroCheck();
 
+     m_robotContainer.getIntakeHomingCommand();
+
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
@@ -97,6 +99,8 @@ public class Robot extends LoggedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+    m_robotContainer.getIntakeHomingCommand();
   }
 
   /** This function is called periodically during operator control. */

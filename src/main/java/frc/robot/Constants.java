@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
-
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -65,18 +63,6 @@ public final class Constants {
     
     public static final Pose2d blueHub = new Pose2d(4.5, 4.0, new Rotation2d()); // Placeholder
     public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  // Placeholder
-  
-    
-    public static LoggedNetworkNumber reefLateralOffset = 
-        new LoggedNetworkNumber("ReefAlign/LateralOffset", 0.2);
-    public static LoggedNetworkNumber reefDistanceOffset = 
-        new LoggedNetworkNumber("ReefAlign/ReefDistanceOffset", -0.05);
-        public static LoggedNetworkNumber stationLateralOffset = 
-        new LoggedNetworkNumber("ReefAlign/LateralOffset", 0.2);
-    public static LoggedNetworkNumber stationDistanceOffset = 
-        new LoggedNetworkNumber("ReefAlign/ReefDistanceOffset", 0.0);
-        
-    public static final double bumperWidth = -0.1;
 
   }
 

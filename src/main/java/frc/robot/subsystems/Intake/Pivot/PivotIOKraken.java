@@ -59,7 +59,7 @@ public class PivotIOKraken implements PivotIO {
         config.Slot0.kG = IntakeConstants.kPivotkG;
         config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 
-        // Motion Magic constraints :contentReference[oaicite:14]{index=14}
+        // Motion Magic constraints:
         config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.kPivotMMCruiseVelRotPerSec;
         config.MotionMagic.MotionMagicAcceleration = IntakeConstants.kPivotMMAccelRotPerSec2;
         config.MotionMagic.MotionMagicJerk = IntakeConstants.kPivotMMJerkRotPerSec3;
