@@ -40,6 +40,8 @@ public class PivotIOSim implements PivotIO {
             true,  // Simulate gravity
             kMinAngleRad  // Start at stowed position
         );
+
+        positionOffsetRot = kMinAngleRad / (2 * Math.PI);
     }
     
     @Override

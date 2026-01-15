@@ -114,7 +114,7 @@ public class RobotContainer {
             autoHeading.toggleFaceHub();
             }
         }));
-        
+
         m_driverController.rightTrigger(0.2).whileTrue(
             Commands.run(() -> {
                 var pose = drivetrain.getPose();
@@ -149,6 +149,12 @@ public class RobotContainer {
             ).onFalse(
                 Commands.runOnce(() -> simulateGamePiece(false))
             );
+
+            // A button to deploy intake, release to retract
+            m_driverController.a().whileTrue(intake.deployCommand());
+
+            // Or use left bumper for toggle
+            m_driverController.leftBumper().onTrue(intake.toggleCommand());
         }
         /* 
         m_driverController.povUp().whileTrue(

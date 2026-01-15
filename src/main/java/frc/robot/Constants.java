@@ -82,15 +82,15 @@ public final class Constants {
 
   /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
   public static final double kPivotStowedPosRot = 0; /* TODO */
-  public static final double kPivotDeployedPosRot = 15; /* TODO */
+  public static final double kPivotDeployedPosRot = 0.215; /* TODO */
 
   public static final double kDeployDutyCycle = 0.5;
   public static final double kRollerIntakeDutyCycle = 0.8;
   public static final double kRollerEjectDutyCycle = -0.5;
 
   /** How close is “at goal” */
-  public static final double kPivotPosToleranceRot = 0.05; /* TODO e.g. 0.01 */
-  public static final double kPivotVelToleranceRotPerSec = 0.05; /* TODO e.g. 0.05 */
+  public static final double kPivotPosToleranceRot = 0.01; /* TODO e.g. 0.01 */
+  public static final double kPivotVelToleranceRotPerSec = 0.5; /* TODO e.g. 0.05 */
 
   // Motion Magic constraints (mechanism units if SensorToMechanismRatio is set)
   public static final double kPivotMMCruiseVelRotPerSec = 15; /* TODO */
@@ -99,7 +99,7 @@ public final class Constants {
 
   // Slot0 PID (tune on real robot)
   public static final double kPivotkP = 100; /* TODO */
-  public static final double kPivotkI = 0; 
+  public static final double kPivotkI = 0.1; 
   public static final double kPivotkD = 0; /* TODO */
   public static final double kPivotkS = 0.0;  // TODO - tune: voltage to overcome static friction
   public static final double kPivotkV = 0.0;  // TODO - tune: voltage per rotation per second
@@ -115,7 +115,7 @@ public final class Constants {
   public static final double kPivotCrashMaxVelRotPerSec = 0.1; /* TODO e.g. 0.1 */;
   public static final double kPivotCrashDebounceSecs = 0.15; /* TODO e.g. 0.15 */;
 
-  public static final double kPivotAllowedErrorRot = 0;
+  public static final double kPivotAllowedErrorRot = 0.1;
   public static final double kPivotAllowedVelRotPerSec = 5;
   public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0.5;
 

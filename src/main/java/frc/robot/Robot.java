@@ -26,6 +26,7 @@ public class Robot extends LoggedRobot {
 
   private final RobotContainer m_robotContainer;
   private final PowerDistribution pDHDistribution = new PowerDistribution(Constants.PDHCanId, ModuleType.kRev);
+  
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -74,9 +75,15 @@ public class Robot extends LoggedRobot {
   public void autonomousInit() {
 
      // Final attempt to initialize gyro from vision if not already done
+
+
      m_robotContainer.finalGyroCheck();
 
-     m_robotContainer.getIntakeHomingCommand();
+    final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
+
+    if(homingCommand != null){
+      CommandScheduler.getInstance().schedule(homingCommand);
+    }
 
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -100,7 +107,11 @@ public class Robot extends LoggedRobot {
       m_autonomousCommand.cancel();
     }
 
-    m_robotContainer.getIntakeHomingCommand();
+    final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
+
+    if(homingCommand != null){
+      CommandScheduler.getInstance().schedule(homingCommand);
+    }
   }
 
   /** This function is called periodically during operator control. */
