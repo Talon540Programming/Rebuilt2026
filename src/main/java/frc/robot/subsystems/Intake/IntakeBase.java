@@ -3,6 +3,7 @@ package frc.robot.subsystems.Intake;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.subsystems.Intake.Pivot.PivotIO;
@@ -66,7 +67,10 @@ public class IntakeBase extends SubsystemBase {
         rollerIO.updateInputs(rollerInputs);
 
         if (edu.wpi.first.wpilibj.DriverStation.isEnabled() && homed) {
-            pivotIO.runMotionMagicPosition(goalPosRot, 0.0 /* FF volts optional */);
+            pivotIO.runMotionMagicPosition(goalPosRot, 0.0);
+            } 
+            else if (!edu.wpi.first.wpilibj.DriverStation.isEnabled()) {
+                pivotIO.stop();
         }
 
         final double errorRot = goalPosRot - pivotInputs.positionRotations;
@@ -93,7 +97,8 @@ public class IntakeBase extends SubsystemBase {
             && settledAfterGoalChange
             && Math.abs(errorRot) > IntakeConstants.kPivotCrashMinErrorRot
             && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotCrashMaxVelRotPerSec
-            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps;
+            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps
+            && currentState == IntakeState.DEPLOYED;
 
         boolean crashed = crashDebouncer.calculate(crashCondition);
 
@@ -265,5 +270,30 @@ public class IntakeBase extends SubsystemBase {
             .andThen(run(() -> {}))
             .finallyDo((interrupted) -> stop())
             .withName("Intake Eject");
+    }
+
+    public Command homingSequence() {
+        return Commands.sequence(
+            // Disable normal control, reset state
+            runOnce(() -> {
+                homed = false;
+                crashLatched = false;
+            }),
+            // Run toward hard stop until stalled
+            run(() -> {
+                pivotIO.setDutyCycle(IntakeConstants.kPivotHomingDutyCycle);  // e.g., -0.15
+            })
+            .until(() -> 
+                Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotHomingVelThreshold
+                && Math.abs(pivotInputs.currentAmps) > IntakeConstants.kPivotHomingCurrentThreshold
+            )
+            .withTimeout(2.0),  // Safety timeout
+            // Zero encoder at hard stop
+            runOnce(() -> {
+                pivotIO.setPosition(IntakeConstants.kPivotStowedPosRot);
+                homed = true;
+                setGoal(Goal.STOWED);
+            })
+        ).withName("Intake Homing");
     }
 }

@@ -85,6 +85,11 @@ public final class Constants {
   public static final int kPivotMotorId = 13;
   public static final int kRollerMotorId = 14;
 
+  // Homing
+  public static final double kPivotHomingDutyCycle = -0.15;       // Slow, toward stowed
+  public static final double kPivotHomingVelThreshold = 0.05;     // rad/sec - "stopped"
+  public static final double kPivotHomingCurrentThreshold = 5.0;  // Amps - confirms stall
+
   // ===================== Pivot Motion Magic =====================
   /** Rotor rotations per 1 mechanism rotation (gear ratio). REQUIRED for correct units. */
   public static final double kPivotSensorToMechanismRatio = 0; /* TODO */;
@@ -114,6 +119,8 @@ public final class Constants {
 
   // Optional gravity/feedforward support (if you use it)
   public static final double kPivotkG = 0; /* TODO maybe 0 to start */
+
+  public static final double kGamePieceCurrentThreshold  = 25;
 
   // ===================== Crash / stall detection =====================
   public static final double kPivotCrashCurrentAmps = 0; // you already have collision threshold

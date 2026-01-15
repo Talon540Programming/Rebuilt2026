@@ -10,6 +10,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Util.Telemetry;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
+import frc.robot.subsystems.Intake.IntakeBase;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -41,6 +42,8 @@ public class RobotContainer {
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
     private final SetHubHeading autoHeading = new SetHubHeading(vision);
+    private final IntakeBase intakeBase = new IntakeBase(null, null);
+
 
     private final SendableChooser<Command> autoChooser;
 
@@ -180,6 +183,7 @@ public class RobotContainer {
             }
         }
     }
+
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();

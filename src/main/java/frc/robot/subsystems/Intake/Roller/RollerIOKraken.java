@@ -61,6 +61,9 @@ public class RollerIOKraken implements RollerIO {
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = current.getValueAsDouble();
         inputs.tempCelsius = temp.getValueAsDouble();
+
+         inputs.hasGamePiece = Math.abs(inputs.velocityRotPerSec) > 0.1  // motor is running
+        && inputs.currentAmps > IntakeConstants.kGamePieceCurrentThreshold;
     }
     
     @Override

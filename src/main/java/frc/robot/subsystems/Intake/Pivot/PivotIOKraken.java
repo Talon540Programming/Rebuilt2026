@@ -5,6 +5,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -55,8 +56,8 @@ public class PivotIOKraken implements PivotIO {
         config.Slot0.kD = IntakeConstants.kPivotkD;
 
         // Optional gravity compensation (only if you decide to use it)
-        // config.Slot0.kG = IntakeConstants.kPivotkG;
-        // config.Feedback.GravityType = GravityTypeValue.Arm_Cosine;  (verify your mechanism model) :contentReference[oaicite:13]{index=13}
+        config.Slot0.kG = IntakeConstants.kPivotkG;
+        config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 
         // Motion Magic constraints :contentReference[oaicite:14]{index=14}
         config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.kPivotMMCruiseVelRotPerSec;

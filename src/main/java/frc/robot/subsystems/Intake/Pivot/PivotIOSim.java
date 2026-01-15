@@ -33,6 +33,7 @@ public class PivotIOSim implements PivotIO {
         inputs.appliedVolts = appliedVolts;
         inputs.currentAmps = sim.getCurrentDrawAmps();
         inputs.tempCelsius = 25.0;
+
         if (closedLoop) {
             double errorRot = targetRot - (sim.getAngleRads() / (2 * Math.PI));
             double volts = (10) * errorRot * 12.0; // keep bounded
@@ -45,12 +46,14 @@ public class PivotIOSim implements PivotIO {
     
     @Override
     public void setDutyCycle(double dutyCycle) {
+        closedLoop = false;
         appliedVolts = dutyCycle * 12.0;
         sim.setInputVoltage(appliedVolts);
     }
     
     @Override
     public void stop() {
+        closedLoop = false;
         appliedVolts = 0.0;
         sim.setInputVoltage(0.0);
     }
