@@ -82,24 +82,23 @@ public final class Constants {
 
   /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
   public static final double kPivotStowedPosRot = 0; /* TODO */
-  public static final double kPivotDeployedPosRot = 0; /* TODO */
+  public static final double kPivotDeployedPosRot = Math.PI; /* TODO */
 
   public static final double kDeployDutyCycle = 0.5;
   public static final double kRollerIntakeDutyCycle = 0.8;
   public static final double kRollerEjectDutyCycle = -0.5;
-  public static final double kCollisionCurrentThreshold = 25;
 
   /** How close is “at goal” */
-  public static final double kPivotPosToleranceRot = 0; /* TODO e.g. 0.01 */
-  public static final double kPivotVelToleranceRotPerSec = 0; /* TODO e.g. 0.05 */
+  public static final double kPivotPosToleranceRot = 0.05; /* TODO e.g. 0.01 */
+  public static final double kPivotVelToleranceRotPerSec = 0.05; /* TODO e.g. 0.05 */
 
   // Motion Magic constraints (mechanism units if SensorToMechanismRatio is set)
-  public static final double kPivotMMCruiseVelRotPerSec = 0; /* TODO */
-  public static final double kPivotMMAccelRotPerSec2 = 0; /* TODO */
+  public static final double kPivotMMCruiseVelRotPerSec = 15; /* TODO */
+  public static final double kPivotMMAccelRotPerSec2 = 30; /* TODO */
   public static final double kPivotMMJerkRotPerSec3 = 0; /* TODO (optional) */
 
   // Slot0 PID (tune on real robot)
-  public static final double kPivotkP = 0; /* TODO */
+  public static final double kPivotkP = 100; /* TODO */
   public static final double kPivotkI = 0; 
   public static final double kPivotkD = 0; /* TODO */
 
@@ -109,14 +108,14 @@ public final class Constants {
   public static final double kGamePieceCurrentThreshold  = 25;
 
   // ===================== Crash / stall detection =====================
-  public static final double kPivotCrashCurrentAmps = 0; // you already have collision threshold
-  public static final double kPivotCrashMinErrorRot = 0; /* TODO e.g. 0.05 */;
-  public static final double kPivotCrashMaxVelRotPerSec = 0; /* TODO e.g. 0.1 */;
-  public static final double kPivotCrashDebounceSecs = 0; /* TODO e.g. 0.15 */;
+  public static final double kPivotCrashCurrentAmps = 50; 
+  public static final double kPivotCrashMinErrorRot = 1; /* TODO e.g. 0.05 */;
+  public static final double kPivotCrashMaxVelRotPerSec = 0.1; /* TODO e.g. 0.1 */;
+  public static final double kPivotCrashDebounceSecs = 0.15; /* TODO e.g. 0.15 */;
 
   public static final double kPivotAllowedErrorRot = 0;
-  public static final double kPivotAllowedVelRotPerSec = 0;
-  public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0;
+  public static final double kPivotAllowedVelRotPerSec = 5;
+  public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0.5;
 
 }
 
