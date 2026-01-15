@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Util.ShootingCalculator;
 import frc.robot.Util.Telemetry;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
@@ -25,7 +26,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import frc.robot.generated.TunerConstants;
-
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -112,6 +114,25 @@ public class RobotContainer {
             autoHeading.toggleFaceHub();
             }
         }));
+        
+        m_driverController.rightTrigger(0.2).whileTrue(
+            Commands.run(() -> {
+                var pose = drivetrain.getPose();
+                boolean isRed = DriverStation.getAlliance()
+                    .map(a -> a == Alliance.Red)
+                    .orElse(false);
+
+                var sol = ShootingCalculator.calculateSolution(pose, isRed);
+                double initialVelFPS = ShootingCalculator.calculateInitialVelocityFPS(sol.distanceMeters);
+
+                System.out.printf(
+                    "[ShooterCalc] dist=%.2fm angle=%.2fdeg flywheel=%.0fRPM initialVel=%.2fft/s%n",
+                    sol.distanceMeters, sol.getHoodAngleDegrees(), sol.flywheelRPM, initialVelFPS
+                );
+            })
+        );
+
+
 
         // Simulation test triggers
         if (Robot.isSimulation()) {
