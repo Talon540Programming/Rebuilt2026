@@ -78,7 +78,7 @@ public final class Constants {
 
   // ===================== Pivot Motion Magic =====================
   /** Rotor rotations per 1 mechanism rotation (gear ratio). REQUIRED for correct units. */
-  public static final double kPivotSensorToMechanismRatio = 0; /* TODO */;
+  public static final double kPivotSensorToMechanismRatio = 12; /* TODO */;
 
   /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
   public static final double kPivotStowedPosRot = 0; /* TODO */

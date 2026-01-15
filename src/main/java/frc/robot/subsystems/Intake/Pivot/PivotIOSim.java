@@ -13,7 +13,7 @@ public class PivotIOSim implements PivotIO {
     private static final double kArmLength = 0.3;  // meters
     
     // Sim hard stops (in radians for the sim, will convert to rotations for output)
-    private static final double kMinAngleRad = 0.0;                    // Stowed
+    private static final double kMinAngleRad = Math.PI/8;                    // Stowed
     private static final double kMaxAngleRad = Math.toRadians(100);    // Deployed
     
     private final SingleJointedArmSim sim;
