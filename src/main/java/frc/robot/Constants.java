@@ -24,16 +24,8 @@ public final class Constants {
     public static final double deadband = 0.1;
   }
 
-  public static final String kLimelightOne = "limelight-one";
-  public static final String kLimelightTwo = "limelight-two";
-
+ 
   public static final int PDHCanId = 1;
-
-  public static enum Reef {
-    left,
-    right,
-    forward;
-  }
 
 
   public static final class PathPlannerConstants {
@@ -66,96 +58,6 @@ public final class Constants {
 
   }
 
-  public static final class IntakeConstants {
-  // existing IDs...
-  public static final int kPivotMotorId = 13;
-  public static final int kRollerMotorId = 14;
-
-  // Homing
-  public static final double kPivotHomingDutyCycle = -0.15;       // Slow, toward stowed
-  public static final double kPivotHomingVelThreshold = 0.05;     // rad/sec - "stopped"
-  public static final double kPivotHomingCurrentThreshold = 5.0;  // Amps - confirms stall
-
-  // ===================== Pivot Motion Magic =====================
-  /** Rotor rotations per 1 mechanism rotation (gear ratio). REQUIRED for correct units. */
-  public static final double kPivotSensorToMechanismRatio = 12; /* TODO */;
-
-  /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
-  public static final double kPivotStowedPosRot = 0; /* TODO */
-  public static final double kPivotDeployedPosRot = 0.215; /* TODO */
-
-  public static final double kDeployDutyCycle = 0.5;
-  public static final double kRollerIntakeDutyCycle = 0.8;
-  public static final double kRollerEjectDutyCycle = -0.5;
-
-  /** How close is “at goal” */
-  public static final double kPivotPosToleranceRot = 0.01; /* TODO e.g. 0.01 */
-  public static final double kPivotVelToleranceRotPerSec = 0.5; /* TODO e.g. 0.05 */
-
-  // Motion Magic constraints (mechanism units if SensorToMechanismRatio is set)
-  public static final double kPivotMMCruiseVelRotPerSec = 15; /* TODO */
-  public static final double kPivotMMAccelRotPerSec2 = 30; /* TODO */
-  public static final double kPivotMMJerkRotPerSec3 = 0; /* TODO (optional) */
-
-  // Slot0 PID (tune on real robot)
-  public static final double kPivotkP = 100; /* TODO */
-  public static final double kPivotkI = 0.1; 
-  public static final double kPivotkD = 0; /* TODO */
-  public static final double kPivotkS = 0.0;  // TODO - tune: voltage to overcome static friction
-  public static final double kPivotkV = 0.0;  // TODO - tune: voltage per rotation per second
-
-  // Optional gravity/feedforward support (if you use it)
-  public static final double kPivotkG = 0; /* TODO maybe 0 to start */
-
-  public static final double kGamePieceCurrentThreshold  = 25;
-
-  // ===================== Crash / stall detection =====================
-  public static final double kPivotCrashCurrentAmps = 50; 
-  public static final double kPivotCrashMinErrorRot = 1; /* TODO e.g. 0.05 */;
-  public static final double kPivotCrashMaxVelRotPerSec = 0.1; /* TODO e.g. 0.1 */;
-  public static final double kPivotCrashDebounceSecs = 0.15; /* TODO e.g. 0.15 */;
-
-  public static final double kPivotAllowedErrorRot = 0.1;
-  public static final double kPivotAllowedVelRotPerSec = 5;
-  public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0.5;
-
-}
-
-  public static final class IndexConstants {
-    public static final int kIndexMotorId = 15;
-    public static final int kCANRangeId = 22;
-    
-    public static final double kIndexDutyCycle = 0.5;      // Normal indexing speed
-    public static final double kReverseDutyCycle = -0.3;   // Reverse/eject speed
-    public static final double kFeedDutyCycle = 0.8;       // Fast feed during shooting
-    
-    // CANRange detection threshold in meters - tune on real robot
-    public static final double kGamePieceDetectionThreshold = 0.15;
-  }
-
-   public static final class ShooterConstants {
-    // Flywheel motors (2x X60 on same mechanism)
-    public static final int kFlywheelMotor1Id = 17;
-    public static final int kFlywheelMotor2Id = 18;
-    
-    // Hood motor (X44 rack and pinion)
-    public static final int kHoodMotorId = 19;
-    
-    // Hood angle limits (radians)
-    public static final double kHoodMinAngle = Math.PI / 8;  // 22.5 degrees
-    public static final double kHoodMaxAngle = Math.PI / 2;  // 90 degrees
-    
-    // Flywheel PID constants - tune on real robot
-    public static final double kFlywheelkP = 0.1;
-    public static final double kFlywheelkI = 0.0;
-    public static final double kFlywheelkD = 0.0;
-    public static final double kFlywheelkV = 0.12; // Feedforward
-    
-    // Hood PID constants - tune on real robot
-    public static final double kHoodkP = 1.0;
-    public static final double kHoodkI = 0.0;
-    public static final double kHoodkD = 0.0;
-  }
 
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
@@ -192,11 +94,6 @@ public final class Constants {
     public static final double kClimbDownDutyCycle = -0.5;
   }
 
-   public static final class KickupConstants {
-    public static final int kKickupMotorId = 16;
-    
-    public static final double kFeedDutyCycle = 0.8;
-    public static final double kReverseDutyCycle = -0.3;
-  }
+
 
 }

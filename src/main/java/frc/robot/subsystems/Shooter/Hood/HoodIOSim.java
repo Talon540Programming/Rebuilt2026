@@ -2,7 +2,7 @@ package frc.robot.subsystems.Shooter.Hood;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class HoodIOSim implements HoodIO {
     

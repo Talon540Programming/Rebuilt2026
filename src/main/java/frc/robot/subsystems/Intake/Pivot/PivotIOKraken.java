@@ -14,7 +14,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.Constants.IntakeConstants;
+import frc.robot.subsystems.Intake.IntakeConstants;
+
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 

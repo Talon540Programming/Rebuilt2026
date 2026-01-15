@@ -1,13 +1,12 @@
 package frc.robot.subsystems.Vision;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants;
 import frc.robot.Util.LimelightHelpers;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 
 public class VisionIOLimelight implements VisionIO {
-    private final String limelightOne = Constants.kLimelightOne;
-    private final String limelightTwo = Constants.kLimelightTwo;
+    private final String limelightOne = VisionConstants.kLimelightOne;
+    private final String limelightTwo = VisionConstants.kLimelightTwo;
 
     public VisionIOLimelight(){
         //sets mode for Metatag 2 and mode 0 uses robot gyro for orentation 
