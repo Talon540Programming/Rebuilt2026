@@ -12,7 +12,9 @@ import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
 import frc.robot.subsystems.Intake.IntakeBase;
 import frc.robot.subsystems.Intake.Pivot.PivotIOKraken;
+import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
 import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
+import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -46,8 +48,9 @@ public class RobotContainer {
     private final SetHubHeading autoHeading = new SetHubHeading(vision);
     private final PivotIOKraken pivotIO = new PivotIOKraken();
     private final RollerIOKraken rollerIOKraken = new RollerIOKraken();
-    private final IntakeBase intakeBase = new IntakeBase(pivotIO, rollerIOKraken);
-
+    private final RollerIOSim rollerIOSim = new RollerIOSim();
+    private final PivotIOSim pivotIOSim = new PivotIOSim();
+    private final IntakeBase intake;
 
     private final SendableChooser<Command> autoChooser;
 
@@ -79,6 +82,13 @@ public class RobotContainer {
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
 
+        if (Robot.isSimulation()) {
+        intake = new IntakeBase(pivotIOSim, rollerIOSim);
+        } 
+        else {
+        intake = new IntakeBase(pivotIO, rollerIOKraken);
+        }
+
         configureBindings();
         
         autoChooser = AutoBuilder.buildAutoChooser("default auto"); //pick a default
@@ -102,6 +112,23 @@ public class RobotContainer {
             autoHeading.toggleFaceHub();
             }
         }));
+
+        // Simulation test triggers
+        if (Robot.isSimulation()) {
+            // Press Y to simulate collision
+            m_driverController.y().whileTrue(
+                Commands.runOnce(() -> simulateIntakeCollision(true))
+            ).onFalse(
+                Commands.runOnce(() -> simulateIntakeCollision(false))
+            );
+            
+            // Press X to simulate game piece
+            m_driverController.x().whileTrue(
+                Commands.runOnce(() -> simulateGamePiece(true))
+            ).onFalse(
+                Commands.runOnce(() -> simulateGamePiece(false))
+            );
+        }
         /* 
         m_driverController.povUp().whileTrue(
             (driveToPose.createReefPathCommand(DriveToPose.Side.Middle).until(() -> driveToPose.haveReefConditionsChanged()).repeatedly()));
@@ -187,10 +214,21 @@ public class RobotContainer {
             }
         }
     }
+    private void simulateIntakeCollision(boolean colliding) {
+        if (pivotIOSim != null) {
+        pivotIOSim.simulateCollision(colliding);
+        }
+    }
+
+    private void simulateGamePiece(boolean contact) {
+        if (rollerIOSim != null) {
+            rollerIOSim.simulateGamePieceContact(contact);
+        }
+    }
 
     public Command getIntakeHomingCommand() {
-        if(intakeBase.isHomed()){
-            return intakeBase.homingSequence();
+        if(intake.isHomed()){
+            return intake.homingSequence();
         }
 
         return Commands.none();

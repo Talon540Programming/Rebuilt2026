@@ -6,12 +6,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Robot;
 import frc.robot.subsystems.Intake.Pivot.PivotIO;
 import frc.robot.subsystems.Intake.Pivot.PivotIO.PivotIOInputs;
+import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
 import frc.robot.subsystems.Intake.Roller.RollerIO;
 import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
+import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 public class IntakeBase extends SubsystemBase {
@@ -134,6 +138,21 @@ public class IntakeBase extends SubsystemBase {
         Logger.recordOutput("Intake/State", currentState.toString());
         Logger.recordOutput("Intake/Enabled", intakeEnabled);
         Logger.recordOutput("Intake/HasGamePiece", hasGamePiece());
+
+        // Simulation controls (only in sim)
+        if (Robot.isSimulation()) {
+            // Read collision trigger from dashboard
+            boolean triggerCollision = SmartDashboard.getBoolean("Sim/TriggerIntakeCollision", false);
+            if (pivotIO instanceof PivotIOSim) {
+                    ((PivotIOSim) pivotIO).simulateCollision(triggerCollision);
+            }
+    
+            // Read game piece trigger
+            boolean triggerGamePiece = SmartDashboard.getBoolean("Sim/TriggerGamePiece", false);
+            if (rollerIO instanceof RollerIOSim) {
+                ((RollerIOSim) rollerIO).simulateGamePieceContact(triggerGamePiece);
+            }
+        }
     }
     
     /**

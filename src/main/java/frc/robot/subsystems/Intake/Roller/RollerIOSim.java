@@ -6,7 +6,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 
-public class RollerSim implements RollerIO {
+public class RollerIOSim implements RollerIO {
     
     // Constants for simulation
     private static final double kGearing = 3.0; // Gear ratio
@@ -29,16 +29,25 @@ public class RollerSim implements RollerIO {
     private boolean isRunning = false;
     private boolean simulatedGamePiece = false;
     
+    public void simulateGamePieceContact(boolean contact) {
+        this.simulatedGamePiece = contact;
+    }
+
     @Override
     public void updateInputs(RollerIOInputs inputs) {
         sim.update(0.02);
         
         inputs.velocityRotPerSec = sim.getAngularVelocityRPM() / 60.0;
         inputs.appliedVolts = appliedVolts;
-        inputs.currentAmps = sim.getCurrentDrawAmps();
-        inputs.tempCelsius = 25.0;
         
-        // Simulate game piece detection
+        // Simulate current spike when game piece contacts
+        if (isRunning && simulatedGamePiece) {
+            inputs.currentAmps = sim.getCurrentDrawAmps() + 20.0;  // Extra load
+        } else {
+            inputs.currentAmps = sim.getCurrentDrawAmps();
+        }
+        
+        inputs.tempCelsius = 25.0;
         inputs.hasGamePiece = isRunning && simulatedGamePiece;
     }
     
