@@ -82,7 +82,7 @@ public final class Constants {
 
   /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
   public static final double kPivotStowedPosRot = 0; /* TODO */
-  public static final double kPivotDeployedPosRot = Math.PI; /* TODO */
+  public static final double kPivotDeployedPosRot = 15; /* TODO */
 
   public static final double kDeployDutyCycle = 0.5;
   public static final double kRollerIntakeDutyCycle = 0.8;
@@ -101,6 +101,8 @@ public final class Constants {
   public static final double kPivotkP = 100; /* TODO */
   public static final double kPivotkI = 0; 
   public static final double kPivotkD = 0; /* TODO */
+  public static final double kPivotkS = 0.0;  // TODO - tune: voltage to overcome static friction
+  public static final double kPivotkV = 0.0;  // TODO - tune: voltage per rotation per second
 
   // Optional gravity/feedforward support (if you use it)
   public static final double kPivotkG = 0; /* TODO maybe 0 to start */

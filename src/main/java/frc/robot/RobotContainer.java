@@ -248,7 +248,7 @@ public class RobotContainer {
     }
 
     public Command getIntakeHomingCommand() {
-        if(intake.isHomed()){
+        if(!intake.isHomed()){
             return intake.homingSequence();
         }
 

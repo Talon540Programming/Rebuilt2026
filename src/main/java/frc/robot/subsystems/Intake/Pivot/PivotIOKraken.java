@@ -48,14 +48,22 @@ public class PivotIOKraken implements PivotIO {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Scale rotor -> mechanism rotations
-        config.Feedback.SensorToMechanismRatio = IntakeConstants.kPivotSensorToMechanismRatio; // :contentReference[oaicite:12]{index=12}
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.kPivotSensorToMechanismRatio; //
 
         // Slot0 PID
         config.Slot0.kP = IntakeConstants.kPivotkP;
         config.Slot0.kI = IntakeConstants.kPivotkI;
         config.Slot0.kD = IntakeConstants.kPivotkD;
+        config.Slot0.kS = IntakeConstants.kPivotkS;
+        config.Slot0.kV = IntakeConstants.kPivotkV;
 
-        // Optional gravity compensation (only if you decide to use it)
+        // Software limits to prevent over-travel
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.kPivotDeployedPosRot + 0.05;  // Small buffer
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.kPivotStowedPosRot - 0.05;
+
+        // Optional gravity compensation 
         config.Slot0.kG = IntakeConstants.kPivotkG;
         config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 

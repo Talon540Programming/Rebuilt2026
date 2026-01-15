@@ -101,8 +101,7 @@ public class IntakeBase extends SubsystemBase {
             && settledAfterGoalChange
             && Math.abs(errorRot) > IntakeConstants.kPivotCrashMinErrorRot
             && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotCrashMaxVelRotPerSec
-            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps
-            && currentState == IntakeState.DEPLOYED;
+            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps;
 
         boolean crashed = crashDebouncer.calculate(crashCondition);
 
