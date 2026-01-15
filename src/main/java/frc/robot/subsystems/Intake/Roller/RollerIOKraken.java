@@ -25,8 +25,6 @@ public class RollerIOKraken implements RollerIO {
     
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
-    private boolean isRunning = false;
-    
     public RollerIOKraken() {
         roller = new TalonFX(IntakeConstants.kRollerMotorId);
         
@@ -63,22 +61,15 @@ public class RollerIOKraken implements RollerIO {
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = current.getValueAsDouble();
         inputs.tempCelsius = temp.getValueAsDouble();
-        
-        // Detect game piece via current spike while running
-        // Current will spike when a game piece loads into the rollers
-        inputs.hasGamePiece = isRunning && 
-            inputs.currentAmps > IntakeConstants.kGamePieceCurrentThreshold;
     }
     
     @Override
     public void setDutyCycle(double dutyCycle) {
-        isRunning = Math.abs(dutyCycle) > 0.01;
         roller.setControl(dutyCycleControl.withOutput(dutyCycle));
     }
     
     @Override
     public void stop() {
-        isRunning = false;
         roller.stopMotor();
     }
     

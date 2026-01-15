@@ -24,4 +24,12 @@ public interface PivotIO {
     
     /** Set the neutral mode (brake or coast) */
     default void setBrakeMode(boolean brake) {}
+
+    /** Run closed-loop Motion Magic to a position (mechanism rotations). */
+    default void runMotionMagicPosition(double positionRotations, double feedForwardVolts) {}
+
+    /** Sets the current mechanism position (in mechanism rotations). Used for zeroing. */
+    default void setPosition(double positionRotations) {}
+
+
 }

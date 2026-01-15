@@ -9,6 +9,9 @@ import frc.robot.subsystems.Intake.Pivot.PivotIO;
 import frc.robot.subsystems.Intake.Pivot.PivotIO.PivotIOInputs;
 import frc.robot.subsystems.Intake.Roller.RollerIO;
 import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
+
 
 public class IntakeBase extends SubsystemBase {
     
@@ -18,13 +21,21 @@ public class IntakeBase extends SubsystemBase {
         DEPLOYED,
         RETRACTING
     }
+
+    public enum Goal { 
+        STOWED, 
+        DEPLOYED 
+    }
+
+    private Debouncer crashDebouncer =
+        new Debouncer(IntakeConstants.kPivotCrashDebounceSecs, DebounceType.kRising);
+
+    private Goal goal = Goal.STOWED;
+    private double goalPosRot = IntakeConstants.kPivotStowedPosRot;
+
     
     private final PivotIO pivotIO;
     private final RollerIO rollerIO;
-    private double deployTimer = 0.0;
-    private static final double DEPLOY_TIME_SECONDS = 0.5;
-    private double retractTimer = 0.0;
-    private static final double RETRACT_TIME_SECONDS = 0.5;
     
     // Use the base inputs class instead of AutoLogged
     private final PivotIOInputs pivotInputs = new PivotIOInputs();
@@ -32,10 +43,20 @@ public class IntakeBase extends SubsystemBase {
     
     private IntakeState currentState = IntakeState.STOWED;
     private boolean intakeEnabled = false;
+
+    private boolean homed = false;
+
+    // Track goal changes so crash detection doesn’t trip during normal motion
+    private double goalChangeTimestampSec = 0.0;
+
+    // If you want: latch a crash for driver visibility
+    private boolean crashLatched = false;
+
     
     public IntakeBase(PivotIO pivotIO, RollerIO rollerIO) {
         this.pivotIO = pivotIO;
         this.rollerIO = rollerIO;
+        crashDebouncer = new Debouncer(IntakeConstants.kPivotCrashDebounceSecs, DebounceType.kRising);
     }
     
     @Override
@@ -44,36 +65,52 @@ public class IntakeBase extends SubsystemBase {
         pivotIO.updateInputs(pivotInputs);
         rollerIO.updateInputs(rollerInputs);
 
-        // Collision detection using velocity - cleaner than position delta
-        if (intakeEnabled) {
-            // Velocity negative = moving backward, high current = motor fighting something
-            boolean beingBackdriven = pivotInputs.velocityRotPerSec < -0.5 
-                                    && pivotInputs.currentAmps > IntakeConstants.kCollisionCurrentThreshold;
-            
-            if (beingBackdriven) {
-                handleCollision();
-            }
+        if (edu.wpi.first.wpilibj.DriverStation.isEnabled() && homed) {
+            pivotIO.runMotionMagicPosition(goalPosRot, 0.0 /* FF volts optional */);
         }
 
-        if (currentState == IntakeState.DEPLOYING) {
-            deployTimer += 0.02;
-
-            if (deployTimer >= DEPLOY_TIME_SECONDS) {
-                currentState = IntakeState.DEPLOYED;
-                pivotIO.stop();
-                pivotIO.setBrakeMode(true);
-            }
-
-        if (currentState == IntakeState.RETRACTING) {
-            retractTimer += 0.02;
-            
-            if (retractTimer >= RETRACT_TIME_SECONDS) {
-                currentState = IntakeState.STOWED;
-                pivotIO.stop();
-                pivotIO.setBrakeMode(true);
-            }
+        final double errorRot = goalPosRot - pivotInputs.positionRotations;
+        final boolean atPivotGoal =
+            Math.abs(errorRot) < IntakeConstants.kPivotAllowedErrorRot
+            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotAllowedVelRotPerSec;
+   
+        // Update state machine based on goal + atGoal
+        if (goal == Goal.DEPLOYED) {
+            currentState = atPivotGoal ? IntakeState.DEPLOYED : IntakeState.DEPLOYING;
+        } 
+        else {
+            currentState = atPivotGoal ? IntakeState.STOWED : IntakeState.RETRACTING;
         }
-    }
+
+        final double nowSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+        final boolean settledAfterGoalChange =
+            (nowSec - goalChangeTimestampSec) > IntakeConstants.kPivotCrashIgnoreAfterGoalChangeSecs;
+
+        final boolean crashCondition =
+            homed
+            && edu.wpi.first.wpilibj.DriverStation.isEnabled()
+            && goal == Goal.DEPLOYED
+            && settledAfterGoalChange
+            && Math.abs(errorRot) > IntakeConstants.kPivotCrashMinErrorRot
+            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotCrashMaxVelRotPerSec
+            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps;
+
+        boolean crashed = crashDebouncer.calculate(crashCondition);
+
+       
+        if (crashed && !crashLatched) {
+            crashLatched = true;
+            Logger.recordOutput("Intake/CrashDetected", true);
+
+            // Auto-stow to protect mechanism
+            retract();
+        } else {
+            Logger.recordOutput("Intake/CrashDetected", false);
+        }
+
+        Logger.recordOutput("Intake/Pivot/ErrorRot", errorRot);
+        Logger.recordOutput("Intake/Pivot/AtGoal", atPivotGoal);
+        Logger.recordOutput("Intake/CrashLatched", crashLatched);
 
         // Log inputs manually
         Logger.recordOutput("Intake/Pivot/PositionRotations", pivotInputs.positionRotations);
@@ -97,41 +134,34 @@ public class IntakeBase extends SubsystemBase {
     /**
      * Deploy the intake and run rollers
      */
-   public void deploy() {
-    intakeEnabled = true;
-    currentState = IntakeState.DEPLOYING;
-    deployTimer = 0.0;
-    pivotIO.setBrakeMode(true);  // Brake mode during motion is fine
-    pivotIO.setDutyCycle(IntakeConstants.kDeployDutyCycle);
-    rollerIO.setDutyCycle(IntakeConstants.kRollerIntakeDutyCycle);
-}
+    public void deploy() {
+        intakeEnabled = true;
+        setGoal(Goal.DEPLOYED);
+        currentState = IntakeState.DEPLOYING;
+        rollerIO.setDutyCycle(IntakeConstants.kRollerIntakeDutyCycle);
+    }
 
-    /**
- * Handle detected collision - retract intake to protect mechanism
- */
-private void handleCollision() {
-    Logger.recordOutput("Intake/CollisionDetected", true);
-    retract();  // Just retract - driver can re-deploy when safe
-}
     
     /**
      * Retract the intake and stop rollers
      */
     public void retract() {
-        intakeEnabled = false;
-        currentState = IntakeState.RETRACTING;
-        retractTimer = 0.0;
-    }
+    intakeEnabled = false;
+    setGoal(Goal.STOWED);
+    currentState = IntakeState.RETRACTING;
+    rollerIO.stop();
+  }
     
     /**
      * Toggle intake state
      */
     public void toggle() {
-        if (intakeEnabled) {
-            retract();
-        } else {
-            deploy();
-        }
+        if (goal == Goal.DEPLOYED) {
+        retract();
+    } 
+        else {
+        deploy();
+    }
     }
     
     /**
@@ -139,9 +169,7 @@ private void handleCollision() {
      */
     public void stop() {
         intakeEnabled = false;
-        currentState = IntakeState.STOWED;
-        deployTimer = 0.0;  
-        retractTimer = 0.0;  
+        currentState = IntakeState.STOWED; 
         pivotIO.stop();
         rollerIO.stop();
     }
@@ -181,6 +209,35 @@ private void handleCollision() {
         return rollerInputs.currentAmps;
     }
     
+      public void setGoal(Goal newGoal) {
+        if (newGoal != goal) {
+            goal = newGoal;
+            goalChangeTimestampSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+            crashDebouncer.calculate(false); // reset debounce state on new motion
+            crashLatched = false;
+        }
+
+        goalPosRot = (goal == Goal.DEPLOYED)
+            ? IntakeConstants.kPivotDeployedPosRot
+            : IntakeConstants.kPivotStowedPosRot;
+    }
+
+
+    /** Zero pivot assuming we are physically stowed right now. Call on autoInit + teleopInit. */
+    public void zeroPivotFromStowed() {
+        pivotIO.setPosition(IntakeConstants.kPivotStowedPosRot); // recommend kPivotStowedPosRot = 0.0
+        homed = true;
+        crashLatched = false;
+        crashDebouncer.calculate(false);
+
+        // Ensure internal goal/state matches reality
+        setGoal(Goal.STOWED);
+        intakeEnabled = false;
+        currentState = IntakeState.STOWED;
+    }
+
+
+
     // ==================== COMMANDS ====================
     
     /**

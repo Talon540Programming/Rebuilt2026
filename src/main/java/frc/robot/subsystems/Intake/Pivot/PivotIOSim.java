@@ -18,16 +18,29 @@ public class PivotIOSim implements PivotIO {
     );
     
     private double appliedVolts = 0.0;
+    private boolean closedLoop = false;
+    private double targetRot = 0.0;
+    private double positionOffsetRot = 0.0;
+
+
     
     @Override
     public void updateInputs(PivotIOInputs inputs) {
         sim.update(0.02);
         
-        inputs.positionRotations = sim.getAngleRads() / (2 * Math.PI);
+        inputs.positionRotations = (sim.getAngleRads() / (2 * Math.PI)) - positionOffsetRot;
         inputs.velocityRotPerSec = inputs.velocityRotPerSec = sim.getVelocityRadPerSec() / (2 * Math.PI);
         inputs.appliedVolts = appliedVolts;
         inputs.currentAmps = sim.getCurrentDrawAmps();
         inputs.tempCelsius = 25.0;
+        if (closedLoop) {
+            double errorRot = targetRot - (sim.getAngleRads() / (2 * Math.PI));
+            double volts = (10) * errorRot * 12.0; // keep bounded
+            volts = Math.max(-12.0, Math.min(12.0, volts));
+            sim.setInputVoltage(volts);
+            appliedVolts = volts;
+        }
+
     }
     
     @Override
@@ -46,4 +59,18 @@ public class PivotIOSim implements PivotIO {
     public void setBrakeMode(boolean brake) {
         // Simulation doesn't need brake mode
     }
+
+    @Override
+    public void runMotionMagicPosition(double positionRotations, double feedForwardVolts) {
+        closedLoop = true;
+        targetRot = positionRotations;
+    }
+
+    @Override
+    public void setPosition(double positionRotations) {
+        double rawRot = sim.getAngleRads() / (2 * Math.PI);
+        positionOffsetRot = rawRot - positionRotations;
+    }
+
+
 }

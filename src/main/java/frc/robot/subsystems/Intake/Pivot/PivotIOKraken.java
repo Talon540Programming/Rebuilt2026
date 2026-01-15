@@ -14,6 +14,8 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants.IntakeConstants;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+
 
 public class PivotIOKraken implements PivotIO {
     
@@ -26,6 +28,8 @@ public class PivotIOKraken implements PivotIO {
     private final StatusSignal<Temperature> temp;
     
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
+    private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0.0);
+
     
     public PivotIOKraken() {
         pivot = new TalonFX(IntakeConstants.kPivotMotorId);
@@ -41,8 +45,26 @@ public class PivotIOKraken implements PivotIO {
         // Motor direction - adjust based on your mechanism
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        
+
+        // Scale rotor -> mechanism rotations
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.kPivotSensorToMechanismRatio; // :contentReference[oaicite:12]{index=12}
+
+        // Slot0 PID
+        config.Slot0.kP = IntakeConstants.kPivotkP;
+        config.Slot0.kI = IntakeConstants.kPivotkI;
+        config.Slot0.kD = IntakeConstants.kPivotkD;
+
+        // Optional gravity compensation (only if you decide to use it)
+        // config.Slot0.kG = IntakeConstants.kPivotkG;
+        // config.Feedback.GravityType = GravityTypeValue.Arm_Cosine;  (verify your mechanism model) :contentReference[oaicite:13]{index=13}
+
+        // Motion Magic constraints :contentReference[oaicite:14]{index=14}
+        config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.kPivotMMCruiseVelRotPerSec;
+        config.MotionMagic.MotionMagicAcceleration = IntakeConstants.kPivotMMAccelRotPerSec2;
+        config.MotionMagic.MotionMagicJerk = IntakeConstants.kPivotMMJerkRotPerSec3;
+
         pivot.getConfigurator().apply(config);
+
         
         // Get status signals
         position = pivot.getPosition();
@@ -81,4 +103,20 @@ public class PivotIOKraken implements PivotIO {
     public void setBrakeMode(boolean brake) {
         pivot.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
     }
+
+    @Override
+    public void runMotionMagicPosition(double positionRotations, double feedForwardVolts) {
+        pivot.setControl(
+            mmRequest.withPosition(positionRotations)
+                    .withFeedForward(feedForwardVolts)
+        );
+    }
+
+      @Override
+        public void setPosition(double positionRotations) {
+            // Sets the integrated sensor position. This value affects subsequent position reads.
+            pivot.setPosition(positionRotations);
+    }
+
+
 }

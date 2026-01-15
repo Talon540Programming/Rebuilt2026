@@ -81,24 +81,51 @@ public final class Constants {
   }
 
   public static final class IntakeConstants {
-    // CAN IDs
-    public static final int kPivotMotorId = 13;
-    public static final int kRollerMotorId = 14;
-    
-    // Pivot duty cycles
-    public static final double kDeployDutyCycle = 0.25;   // Duty cycle to deploy (positive = down)
-    public static final double kRetractDutyCycle = -0.25; // Duty cycle to retract (negative = up)
+  // existing IDs...
+  public static final int kPivotMotorId = 13;
+  public static final int kRollerMotorId = 14;
 
-  public static final double kCollisionCurrentThreshold = 30.0; // Amps - pivot motor
-  public static final double kCollisionPositionThreshold = 0.1; // Rotations backward movement
-    
-    // Roller duty cycles
-    public static final double kRollerIntakeDutyCycle = 0.8;  // Duty cycle for intaking
-    public static final double kRollerEjectDutyCycle = -0.5;  // Duty cycle for ejecting
-    
-    // Game piece detection
-    public static final double kGamePieceCurrentThreshold = 25.0; // Amps - tune this value
-  }
+  // ===================== Pivot Motion Magic =====================
+  /** Rotor rotations per 1 mechanism rotation (gear ratio). REQUIRED for correct units. */
+  public static final double kPivotSensorToMechanismRatio = 0; /* TODO */;
+
+  /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
+  public static final double kPivotStowedPosRot = 0; /* TODO */
+  public static final double kPivotDeployedPosRot = 0; /* TODO */
+
+  public static final double kDeployDutyCycle = 0.5;
+  public static final double kRollerIntakeDutyCycle = 0.8;
+  public static final double kRollerEjectDutyCycle = -0.5;
+  public static final double kCollisionCurrentThreshold = 25;
+
+  /** How close is “at goal” */
+  public static final double kPivotPosToleranceRot = 0; /* TODO e.g. 0.01 */
+  public static final double kPivotVelToleranceRotPerSec = 0; /* TODO e.g. 0.05 */
+
+  // Motion Magic constraints (mechanism units if SensorToMechanismRatio is set)
+  public static final double kPivotMMCruiseVelRotPerSec = 0; /* TODO */
+  public static final double kPivotMMAccelRotPerSec2 = 0; /* TODO */
+  public static final double kPivotMMJerkRotPerSec3 = 0; /* TODO (optional) */
+
+  // Slot0 PID (tune on real robot)
+  public static final double kPivotkP = 0; /* TODO */
+  public static final double kPivotkI = 0; 
+  public static final double kPivotkD = 0; /* TODO */
+
+  // Optional gravity/feedforward support (if you use it)
+  public static final double kPivotkG = 0; /* TODO maybe 0 to start */
+
+  // ===================== Crash / stall detection =====================
+  public static final double kPivotCrashCurrentAmps = 0; // you already have collision threshold
+  public static final double kPivotCrashMinErrorRot = 0; /* TODO e.g. 0.05 */;
+  public static final double kPivotCrashMaxVelRotPerSec = 0; /* TODO e.g. 0.1 */;
+  public static final double kPivotCrashDebounceSecs = 0; /* TODO e.g. 0.15 */;
+
+  public static final double kPivotAllowedErrorRot = 0;
+  public static final double kPivotAllowedVelRotPerSec = 0;
+  public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0;
+
+}
 
   public static final class IndexConstants {
     public static final int kIndexMotorId = 15;
