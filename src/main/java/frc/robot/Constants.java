@@ -54,11 +54,7 @@ public final class Constants {
     public static final double deadband = 0.1;
   }
 
- 
-
- 
   public static final int PDHCanId = 1;
-
 
   public static final class PathPlannerConstants {
 
@@ -89,7 +85,6 @@ public final class Constants {
     public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  // Placeholder
 
   }
-
 
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
@@ -125,7 +120,4 @@ public final class Constants {
     public static final double kClimbUpDutyCycle = 0.8;
     public static final double kClimbDownDutyCycle = -0.5;
   }
-
-
-
 }
