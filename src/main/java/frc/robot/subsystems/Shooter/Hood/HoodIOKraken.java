@@ -4,10 +4,11 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
@@ -15,6 +16,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class HoodIOKraken implements HoodIO {
@@ -29,46 +31,50 @@ public class HoodIOKraken implements HoodIO {
     private final StatusSignal<Temperature> tempCelsius;
     
     // Control requests
-    private final PositionVoltage positionControl = new PositionVoltage(0);
+    private final MotionMagicVoltage positionControl = new MotionMagicVoltage(0);
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     private double targetPositionRadians = 0.0;
     
-    // Gear ratio from motor to hood output (rack and pinion)
-    // Adjust based on actual mechanism - this converts motor rotations to hood radians
-    private static final double kGearRatio = 50.0; // Example: 50 motor rotations per radian of hood
-    
-    // Position tolerance for "at setpoint" check (radians)
-    private static final double kPositionTolerance = Math.toRadians(2.0);
     
     public HoodIOKraken() {
-        motor = new TalonFX(ShooterConstants.kHoodMotorId);
+        motor = new TalonFX(ShooterConstants.kHoodMotorId, TunerConstants.kCANBus);
         
         // Configure motor
         TalonFXConfiguration config = new TalonFXConfiguration();
         
-        // Current limits - X44
-        config.CurrentLimits.StatorCurrentLimit = 40;
+        // Current limits
+        config.CurrentLimits.StatorCurrentLimit = ShooterConstants.hoodStatorCurrentLimit.get();
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 30;
+        config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.hoodSupplyCurrentLimit.get();
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
-        // Motor direction - may need to change based on testing
+        // Motor direction
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
-        // Position PID - slot 0
-        config.Slot0.kP = ShooterConstants.kHoodkP;
-        config.Slot0.kI = ShooterConstants.kHoodkI;
-        config.Slot0.kD = ShooterConstants.kHoodkD;
+        // Gear ratio: converts rotor rotations to mechanism rotations
+        config.Feedback.SensorToMechanismRatio = ShooterConstants.hoodSensorToMechanismRatio.get();
         
-        // Software limits to prevent over-travel
+        // Slot 0 gains for Motion Magic Position
+        config.Slot0.kP = ShooterConstants.hoodkP.get();
+        config.Slot0.kI = ShooterConstants.hoodkI.get();
+        config.Slot0.kD = ShooterConstants.hoodkD.get();
+        config.Slot0.kS = ShooterConstants.hoodkS.get();
+        config.Slot0.kV = ShooterConstants.hoodkV.get();
+        config.Slot0.kA = ShooterConstants.hoodkA.get();
+        // No kG for rack and pinion (no gravity compensation needed)
+        
+        // Motion Magic Position settings
+        config.MotionMagic.MotionMagicCruiseVelocity = ShooterConstants.hoodMMCruiseVelRotPerSec.get();
+        config.MotionMagic.MotionMagicAcceleration = ShooterConstants.hoodMMAccelRotPerSec2.get();
+        config.MotionMagic.MotionMagicJerk = ShooterConstants.hoodMMJerkRotPerSec3.get();
+        
+        // Software limits (in mechanism rotations)
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 
-            ShooterConstants.kHoodMaxAngle * kGearRatio / (2 * Math.PI); // Convert to rotations
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShooterConstants.hoodMaxPosRot.get() + 0.01;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 
-            ShooterConstants.kHoodMinAngle * kGearRatio / (2 * Math.PI);
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShooterConstants.hoodMinPosRot.get() - 0.01;
         
         motor.getConfigurator().apply(config);
         
@@ -91,7 +97,7 @@ public class HoodIOKraken implements HoodIO {
         
         // Optimize bus utilization
         motor.optimizeBusUtilization();
-    }
+}
     
     @Override
     public void updateInputs(HoodIOInputs inputs) {
@@ -104,25 +110,30 @@ public class HoodIOKraken implements HoodIO {
         );
         
         inputs.positionRotations = positionRotations.getValueAsDouble();
-        // Convert motor rotations to hood radians
-        inputs.positionRadians = (inputs.positionRotations / kGearRatio) * (2 * Math.PI);
+        // Convert mechanism rotations to radians
+        inputs.positionRadians = inputs.positionRotations * (2 * Math.PI);
         inputs.velocityRotPerSec = velocityRotPerSec.getValueAsDouble();
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = currentAmps.getValueAsDouble();
         inputs.tempCelsius = tempCelsius.getValueAsDouble();
         inputs.targetPositionRadians = targetPositionRadians;
-        inputs.atSetpoint = Math.abs(inputs.positionRadians - targetPositionRadians) < kPositionTolerance;
+        
+        double targetPosRot = targetPositionRadians / (2 * Math.PI);
+        inputs.atSetpoint = Math.abs(inputs.positionRotations - targetPosRot) < ShooterConstants.hoodPosToleranceRot.get()
+            && Math.abs(inputs.velocityRotPerSec) < ShooterConstants.hoodVelToleranceRotPerSec.get();
     }
     
     @Override
     public void setPosition(double positionRadians) {
         // Clamp to valid range
-        positionRadians = MathUtil.clamp(positionRadians, ShooterConstants.kHoodMinAngle, ShooterConstants.kHoodMaxAngle);
+        double minRad = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
+        double maxRad = ShooterConstants.hoodMaxPosRot.get() * (2 * Math.PI);
+        positionRadians = MathUtil.clamp(positionRadians, minRad, maxRad);
         targetPositionRadians = positionRadians;
         
-        // Convert hood radians to motor rotations
-        double motorRotations = (positionRadians / (2 * Math.PI)) * kGearRatio;
-        motor.setControl(positionControl.withPosition(motorRotations));
+        // Convert radians to mechanism rotations
+        double mechanismRotations = positionRadians / (2 * Math.PI);
+        motor.setControl(positionControl.withPosition(mechanismRotations));
     }
     
     @Override
@@ -138,11 +149,16 @@ public class HoodIOKraken implements HoodIO {
     @Override
     public void zeroEncoder() {
         // Zero the encoder - assumes hood is at minimum position when called
-        motor.setPosition((ShooterConstants.kHoodMinAngle / (2 * Math.PI)) * kGearRatio);
+        motor.setPosition(ShooterConstants.hoodMinPosRot.get());
     }
     
     @Override
     public void setBrakeMode(boolean brake) {
         motor.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
     }
+
+    @Override
+    public void setEncoderPosition(double positionRotations) {
+        motor.setPosition(positionRotations);
+}
 }

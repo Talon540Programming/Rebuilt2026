@@ -30,4 +30,8 @@ public interface HoodIO {
     
     /** Enable or disable brake mode */
     public default void setBrakeMode(boolean brake) {}
+
+
+    /** Sets the current position (in mechanism rotations). Used for zeroing after homing. */
+    default void setEncoderPosition(double positionRotations) {}
 }

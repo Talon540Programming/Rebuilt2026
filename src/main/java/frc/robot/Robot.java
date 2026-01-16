@@ -85,6 +85,12 @@ public class Robot extends LoggedRobot {
       CommandScheduler.getInstance().schedule(homingCommand);
     }
 
+    final Command hoodHomingCommand = m_robotContainer.getHoodHomingCommand();
+    
+    if (hoodHomingCommand != null) {
+        CommandScheduler.getInstance().schedule(hoodHomingCommand);
+    }
+
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)

@@ -14,6 +14,13 @@ import frc.robot.subsystems.Intake.Pivot.PivotIOKraken;
 import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
 import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
+import frc.robot.subsystems.Shooter.ShooterBase;
+import frc.robot.subsystems.Shooter.Flywheel.FlywheelIOKraken;
+import frc.robot.subsystems.Shooter.Flywheel.FlywheelIOSim;
+import frc.robot.subsystems.Shooter.Hood.HoodIOKraken;
+import frc.robot.subsystems.Shooter.Hood.HoodIOSim;
+import frc.robot.subsystems.Shooter.Kickup.KickupIOKraken;
+import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import frc.robot.utility.ShootingCalculator;
@@ -52,7 +59,15 @@ public class RobotContainer {
     private final RollerIOKraken rollerIOKraken = new RollerIOKraken();
     private final RollerIOSim rollerIOSim = new RollerIOSim();
     private final PivotIOSim pivotIOSim = new PivotIOSim();
+    private final FlywheelIOKraken flywheelIOKraken = new FlywheelIOKraken();
+    private final FlywheelIOSim flywheelIOSim = new FlywheelIOSim();
+    private final HoodIOKraken hoodIOKraken = new HoodIOKraken();
+    private final HoodIOSim hoodIOSim = new HoodIOSim();
+    private final KickupIOKraken kickupIOKraken = new KickupIOKraken();
+    private final KickupIOSim kickupIOSim = new KickupIOSim(); 
     private final IntakeBase intake;
+    private final ShooterBase shooter;
+
 
     private final SendableChooser<Command> autoChooser;
 
@@ -86,9 +101,11 @@ public class RobotContainer {
 
         if (Robot.isSimulation()) {
         intake = new IntakeBase(pivotIOSim, rollerIOSim);
+        shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
         } 
         else {
         intake = new IntakeBase(pivotIO, rollerIOKraken);
+        shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
         }
 
         configureBindings();
@@ -252,5 +269,13 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }
+
+    public Command getHoodHomingCommand() {
+        // Assuming you have a shooter subsystem instance
+        if (!shooter.isHoodHomed()) {
+            return shooter.hoodHomingSequence();
+        }
+        return Commands.none();
+}
 
 }

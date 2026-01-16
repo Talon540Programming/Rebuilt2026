@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
 
 
@@ -29,18 +30,18 @@ public class KickupIOKraken implements KickupIO {
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     public KickupIOKraken() {
-        motor = new TalonFX(KickupConstants.kKickupMotorId);
+        motor = new TalonFX(KickupConstants.kKickupMotorId, TunerConstants.kCANBus);
         
         // Configure motor
         TalonFXConfiguration config = new TalonFXConfiguration();
         
-        // Current limits - X60 can handle high current
-        config.CurrentLimits.StatorCurrentLimit = 60;
+        // Current limits
+        config.CurrentLimits.StatorCurrentLimit = KickupConstants.statorCurrentLimit.get();
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 40;
+        config.CurrentLimits.SupplyCurrentLimit = KickupConstants.supplyCurrentLimit.get();
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
-        // Motor direction - may need to change based on testing
+        // Motor direction
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         

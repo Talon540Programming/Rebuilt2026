@@ -3,6 +3,7 @@ package frc.robot.subsystems.Shooter;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
@@ -39,6 +40,8 @@ public class ShooterBase extends SubsystemBase {
     private final KickupIOInputs kickupInputs = new KickupIOInputs();
     
     private ShooterState currentState = ShooterState.IDLE;
+    // Hood homing state
+    private boolean hoodHomed = false;
     
     public ShooterBase(FlywheelIO flywheelIO, HoodIO hoodIO, KickupIO kickupIO) {
         this.flywheelIO = flywheelIO;
@@ -63,6 +66,7 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Flywheel/AtSetpoint", flywheelInputs.atSetpoint);
         
         // Manual logging - Hood
+        Logger.recordOutput("Shooter/Hood/Homed", hoodHomed);
         Logger.recordOutput("Shooter/Hood/PositionRadians", hoodInputs.positionRadians);
         Logger.recordOutput("Shooter/Hood/PositionRotations", hoodInputs.positionRotations);
         Logger.recordOutput("Shooter/Hood/VelocityRotPerSec", hoodInputs.velocityRotPerSec);
@@ -122,9 +126,13 @@ public class ShooterBase extends SubsystemBase {
     
     /**
      * Set hood to target angle
-     * @param angleRadians target angle in radians (π/8 to π/2)
+     * @param angleRadians target angle in radians
      */
     public void setHoodAngle(double angleRadians) {
+        if (!hoodHomed) {
+            Logger.recordOutput("Shooter/Hood/Warning", "Hood not homed - ignoring setHoodAngle");
+            return;
+        }
         currentState = ShooterState.ADJUSTING_HOOD;
         hoodIO.setPosition(angleRadians);
     }
@@ -156,6 +164,10 @@ public class ShooterBase extends SubsystemBase {
     public void zeroHood() {
         hoodIO.zeroEncoder();
     }
+
+    public boolean isHoodHomed(){
+        return hoodHomed;
+    }
     
     // ==================== KICKUP CONTROL ====================
     
@@ -163,14 +175,14 @@ public class ShooterBase extends SubsystemBase {
      * Run kickup to feed game piece into shooter
      */
     public void runKickup() {
-        kickupIO.setDutyCycle(KickupConstants.kFeedDutyCycle);
+        kickupIO.setDutyCycle(KickupConstants.feedDutyCycle.get());
     }
     
     /**
      * Run kickup in reverse
      */
     public void reverseKickup() {
-        kickupIO.setDutyCycle(KickupConstants.kReverseDutyCycle);
+        kickupIO.setDutyCycle(KickupConstants.reverseDutyCycle.get());
     }
     
     /**
@@ -248,6 +260,37 @@ public class ShooterBase extends SubsystemBase {
             .andThen(run(() -> {}))
             .until(this::isHoodAtSetpoint)
             .withName("Shooter Set Hood");
+    }
+
+    /**
+ * Command to home the hood by running toward the hard stop until stalled,
+ * then zeroing the encoder at the minimum position.
+ */
+    public Command hoodHomingSequence() {
+        return Commands.sequence(
+            // Disable normal control, reset state
+            runOnce(() -> {
+                hoodHomed = false;
+                currentState = ShooterState.IDLE;
+            }),
+            // Run toward hard stop (negative = toward min position) until stalled
+            run(() -> {
+                hoodIO.setDutyCycle(ShooterConstants.hoodHomingDutyCycle.get());
+            })
+            .until(() -> 
+                Math.abs(hoodInputs.velocityRotPerSec) < ShooterConstants.hoodHomingVelThreshold.get()
+                && Math.abs(hoodInputs.currentAmps) > ShooterConstants.hoodHomingCurrentThreshold.get()
+            )
+            .withTimeout(3.0),  // Safety timeout
+            // Zero encoder at hard stop (min position)
+            runOnce(() -> {
+                hoodIO.setEncoderPosition(ShooterConstants.hoodMinPosRot.get());
+                hoodHomed = true;
+                Logger.recordOutput("Shooter/Hood/Homed", true);
+            }),
+            // Stop the motor
+            runOnce(() -> hoodIO.stop())
+        ).withName("Hood Homing");
     }
     
     /**
