@@ -4,10 +4,10 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.ShootingCalculator;
 import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Vision.VisionBase;
-import frc.robot.util.ShootingCalculator;
 
 /**
  * Manages automatic heading control to face the hub while driving.

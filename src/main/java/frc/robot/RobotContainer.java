@@ -16,7 +16,6 @@ import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
-import frc.robot.util.ShootingCalculator;
 import frc.robot.util.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 
