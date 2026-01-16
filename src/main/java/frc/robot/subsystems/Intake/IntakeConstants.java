@@ -1,7 +1,7 @@
 package frc.robot.subsystems.Intake;
 
 import frc.robot.Constants;
-import frc.robot.LoggedTunableNumber;
+import frc.robot.utility.LoggedTunableNumber;
 
 public class IntakeConstants {
     // Shared constants (same for sim and real)

@@ -4,8 +4,6 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.ShootingCalculator;
-import frc.robot.ShootingCalculator.ShootingSolution;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
 import frc.robot.subsystems.Shooter.Hood.HoodIO;
@@ -13,6 +11,8 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
+import frc.robot.utility.ShootingCalculator;
+import frc.robot.utility.ShootingCalculator.ShootingSolution;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
