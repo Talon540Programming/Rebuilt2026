@@ -1,56 +1,144 @@
 package frc.robot.subsystems.Intake;
 
+import frc.robot.Constants;
+import frc.robot.util.LoggedTunableNumber;
+
 public class IntakeConstants {
-    // existing IDs...
-  public static final int kPivotMotorId = 13;
-  public static final int kRollerMotorId = 14;
+    // Shared constants (same for sim and real)
+    public static final int kPivotMotorId = 13;
+    public static final int kRollerMotorId = 14;
 
-  // Homing
-  public static final double kPivotHomingDutyCycle = -0.15;       // Slow, toward stowed
-  public static final double kPivotHomingVelThreshold = 0.05;     // rad/sec - "stopped"
-  public static final double kPivotHomingCurrentThreshold = 5.0;  // Amps - confirms stall
+    public static final double kPivotHomingDutyCycle = -0.15;
+    public static final double kPivotHomingVelThreshold = 0.05;
+    public static final double kPivotHomingCurrentThreshold = 5.0;
 
-  // ===================== Pivot Motion Magic =====================
-  /** Rotor rotations per 1 mechanism rotation (gear ratio). REQUIRED for correct units. */
-  public static final double kPivotSensorToMechanismRatio = 12; /* TODO */;
+    public static final double kDeployDutyCycle = 0.5;
+    public static final double kRollerIntakeDutyCycle = 0.8;
+    public static final double kRollerEjectDutyCycle = -0.5;
 
-  /** Mechanism rotations for stowed/deployed. Pick either rotations OR compute from degrees. */
-  public static final double kPivotStowedPosRot = 0; /* TODO */
-  public static final double kPivotDeployedPosRot = 0.215; /* TODO */
+    // ===================== Pivot Motion Magic =====================
+    public static final LoggedTunableNumber pivotSensorToMechanismRatio = 
+        new LoggedTunableNumber("Intake/Pivot/SensorToMechanismRatio");
+    public static final LoggedTunableNumber pivotStowedPosRot = 
+        new LoggedTunableNumber("Intake/Pivot/StowedPosRot");
+    public static final LoggedTunableNumber pivotDeployedPosRot = 
+        new LoggedTunableNumber("Intake/Pivot/DeployedPosRot");
+    public static final LoggedTunableNumber pivotPosToleranceRot = 
+        new LoggedTunableNumber("Intake/Pivot/PosToleranceRot");
+    public static final LoggedTunableNumber pivotVelToleranceRotPerSec = 
+        new LoggedTunableNumber("Intake/Pivot/VelToleranceRotPerSec");
 
-  public static final double kDeployDutyCycle = 0.5;
-  public static final double kRollerIntakeDutyCycle = 0.8;
-  public static final double kRollerEjectDutyCycle = -0.5;
+    // Motion Magic constraints
+    public static final LoggedTunableNumber pivotMMCruiseVelRotPerSec = 
+        new LoggedTunableNumber("Intake/Pivot/MMCruiseVelRotPerSec");
+    public static final LoggedTunableNumber pivotMMAccelRotPerSec2 = 
+        new LoggedTunableNumber("Intake/Pivot/MMAccelRotPerSec2");
+    public static final LoggedTunableNumber pivotMMJerkRotPerSec3 = 
+        new LoggedTunableNumber("Intake/Pivot/MMJerkRotPerSec3");
 
-  /** How close is “at goal” */
-  public static final double kPivotPosToleranceRot = 0.01; /* TODO e.g. 0.01 */
-  public static final double kPivotVelToleranceRotPerSec = 0.5; /* TODO e.g. 0.05 */
+    // Slot0 PID
+    public static final LoggedTunableNumber pivotkP = 
+        new LoggedTunableNumber("Intake/Pivot/kP");
+    public static final LoggedTunableNumber pivotkI = 
+        new LoggedTunableNumber("Intake/Pivot/kI");
+    public static final LoggedTunableNumber pivotkD = 
+        new LoggedTunableNumber("Intake/Pivot/kD");
+    public static final LoggedTunableNumber pivotkS = 
+        new LoggedTunableNumber("Intake/Pivot/kS");
+    public static final LoggedTunableNumber pivotkV = 
+        new LoggedTunableNumber("Intake/Pivot/kV");
+    public static final LoggedTunableNumber pivotkG = 
+        new LoggedTunableNumber("Intake/Pivot/kG");
 
-  // Motion Magic constraints (mechanism units if SensorToMechanismRatio is set)
-  public static final double kPivotMMCruiseVelRotPerSec = 15; /* TODO */
-  public static final double kPivotMMAccelRotPerSec2 = 30; /* TODO */
-  public static final double kPivotMMJerkRotPerSec3 = 0; /* TODO (optional) */
+    // Game piece detection
+    public static final LoggedTunableNumber gamePieceCurrentThreshold = 
+        new LoggedTunableNumber("Intake/GamePieceCurrentThreshold");
 
-  // Slot0 PID (tune on real robot)
-  public static final double kPivotkP = 100; /* TODO */
-  public static final double kPivotkI = 0.1; 
-  public static final double kPivotkD = 0; /* TODO */
-  public static final double kPivotkS = 0.0;  // TODO - tune: voltage to overcome static friction
-  public static final double kPivotkV = 0.0;  // TODO - tune: voltage per rotation per second
+    // ===================== Crash / stall detection =====================
+    public static final LoggedTunableNumber pivotCrashCurrentAmps = 
+        new LoggedTunableNumber("Intake/Pivot/CrashCurrentAmps");
+    public static final LoggedTunableNumber pivotCrashMinErrorRot = 
+        new LoggedTunableNumber("Intake/Pivot/CrashMinErrorRot");
+    public static final LoggedTunableNumber pivotCrashMaxVelRotPerSec = 
+        new LoggedTunableNumber("Intake/Pivot/CrashMaxVelRotPerSec");
+    public static final LoggedTunableNumber pivotCrashDebounceSecs = 
+        new LoggedTunableNumber("Intake/Pivot/CrashDebounceSecs");
+    public static final LoggedTunableNumber pivotAllowedErrorRot = 
+        new LoggedTunableNumber("Intake/Pivot/AllowedErrorRot");
+    public static final LoggedTunableNumber pivotAllowedVelRotPerSec = 
+        new LoggedTunableNumber("Intake/Pivot/AllowedVelRotPerSec");
+    public static final LoggedTunableNumber pivotCrashIgnoreAfterGoalChangeSecs = 
+        new LoggedTunableNumber("Intake/Pivot/CrashIgnoreAfterGoalChangeSecs");
 
-  // Optional gravity/feedforward support (if you use it)
-  public static final double kPivotkG = 0; /* TODO maybe 0 to start */
+    // Static initializer - sets defaults based on robot type
+    static {
+        switch (Constants.getRobot()) {
+            case SIMBOT -> {
+                // Pivot Motion Magic
+                pivotSensorToMechanismRatio.initDefault(12);
+                pivotStowedPosRot.initDefault(0);
+                pivotDeployedPosRot.initDefault(0.215);
+                pivotPosToleranceRot.initDefault(0.01);
+                pivotVelToleranceRotPerSec.initDefault(0.5);
 
-  public static final double kGamePieceCurrentThreshold  = 25;
+                // Motion Magic constraints
+                pivotMMCruiseVelRotPerSec.initDefault(15);
+                pivotMMAccelRotPerSec2.initDefault(30);
+                pivotMMJerkRotPerSec3.initDefault(0);
 
-  // ===================== Crash / stall detection =====================
-  public static final double kPivotCrashCurrentAmps = 50; 
-  public static final double kPivotCrashMinErrorRot = 1; /* TODO e.g. 0.05 */;
-  public static final double kPivotCrashMaxVelRotPerSec = 0.1; /* TODO e.g. 0.1 */;
-  public static final double kPivotCrashDebounceSecs = 0.15; /* TODO e.g. 0.15 */;
+                // PID
+                pivotkP.initDefault(100);
+                pivotkI.initDefault(0.1);
+                pivotkD.initDefault(0.0);
+                pivotkS.initDefault(0.0);
+                pivotkV.initDefault(0.0);
+                pivotkG.initDefault(0.0);
 
-  public static final double kPivotAllowedErrorRot = 0.1;
-  public static final double kPivotAllowedVelRotPerSec = 5;
-  public static final double kPivotCrashIgnoreAfterGoalChangeSecs = 0.5;
+                // Game piece detection
+                gamePieceCurrentThreshold.initDefault(25);
 
+                // Crash detection
+                pivotCrashCurrentAmps.initDefault(50);
+                pivotCrashMinErrorRot.initDefault(0.05);
+                pivotCrashMaxVelRotPerSec.initDefault(0.1);
+                pivotCrashDebounceSecs.initDefault(0.15);
+                pivotAllowedErrorRot.initDefault(0.01);
+                pivotAllowedVelRotPerSec.initDefault(0.5);
+                pivotCrashIgnoreAfterGoalChangeSecs.initDefault(0.5);
+            }
+            case COMPBOT -> {
+                // Pivot Motion Magic
+                pivotSensorToMechanismRatio.initDefault(12);  // TODO: verify gear ratio
+                pivotStowedPosRot.initDefault(0);
+                pivotDeployedPosRot.initDefault(0);  // TODO: tune on real robot
+                pivotPosToleranceRot.initDefault(0.01);
+                pivotVelToleranceRotPerSec.initDefault(0.05);
+
+                // Motion Magic constraints
+                pivotMMCruiseVelRotPerSec.initDefault(0);  // TODO
+                pivotMMAccelRotPerSec2.initDefault(0);  // TODO
+                pivotMMJerkRotPerSec3.initDefault(0);  // TODO
+
+                // PID
+                pivotkP.initDefault(0);  // TODO
+                pivotkI.initDefault(0);
+                pivotkD.initDefault(0);  // TODO
+                pivotkS.initDefault(0);  // TODO
+                pivotkV.initDefault(0);  // TODO
+                pivotkG.initDefault(0);  // TODO
+
+                // Game piece detection
+                gamePieceCurrentThreshold.initDefault(25);
+
+                // Crash detection
+                pivotCrashCurrentAmps.initDefault(50);  // TODO
+                pivotCrashMinErrorRot.initDefault(0.05);  // TODO
+                pivotCrashMaxVelRotPerSec.initDefault(0.1);  // TODO
+                pivotCrashDebounceSecs.initDefault(0.15);  // TODO
+                pivotAllowedErrorRot.initDefault(0.01);
+                pivotAllowedVelRotPerSec.initDefault(0.5);
+                pivotCrashIgnoreAfterGoalChangeSecs.initDefault(0.5);
+            }
+        }
+    }
 }

@@ -11,12 +11,12 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
+import frc.robot.util.ShootingCalculator;
+import frc.robot.util.ShootingCalculator.ShootingSolution;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
-import frc.robot.Util.ShootingCalculator;
-import frc.robot.Util.ShootingCalculator.ShootingSolution;
 
 public class ShooterBase extends SubsystemBase {
     

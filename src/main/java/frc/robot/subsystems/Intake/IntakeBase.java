@@ -32,10 +32,10 @@ public class IntakeBase extends SubsystemBase {
     }
 
     private Debouncer crashDebouncer =
-        new Debouncer(IntakeConstants.kPivotCrashDebounceSecs, DebounceType.kRising);
+        new Debouncer(IntakeConstants.pivotCrashDebounceSecs.get(), DebounceType.kRising);
 
     private Goal goal = Goal.STOWED;
-    private double goalPosRot = IntakeConstants.kPivotStowedPosRot;
+    private double goalPosRot = IntakeConstants.pivotStowedPosRot.get();
 
     
     private final PivotIO pivotIO;
@@ -60,7 +60,7 @@ public class IntakeBase extends SubsystemBase {
     public IntakeBase(PivotIO pivotIO, RollerIO rollerIO) {
         this.pivotIO = pivotIO;
         this.rollerIO = rollerIO;
-        crashDebouncer = new Debouncer(IntakeConstants.kPivotCrashDebounceSecs, DebounceType.kRising);
+        crashDebouncer = new Debouncer(IntakeConstants.pivotCrashDebounceSecs.get(), DebounceType.kRising);
     }
     
     @Override
@@ -78,8 +78,8 @@ public class IntakeBase extends SubsystemBase {
 
         final double errorRot = goalPosRot - pivotInputs.positionRotations;
         final boolean atPivotGoal =
-            Math.abs(errorRot) < IntakeConstants.kPivotAllowedErrorRot
-            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotAllowedVelRotPerSec;
+            Math.abs(errorRot) < IntakeConstants.pivotAllowedErrorRot.get()
+            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.pivotAllowedVelRotPerSec.get();
    
         // Update state machine based on goal + atGoal
         if (goal == Goal.DEPLOYED) {
@@ -91,16 +91,16 @@ public class IntakeBase extends SubsystemBase {
 
         final double nowSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
         final boolean settledAfterGoalChange =
-            (nowSec - goalChangeTimestampSec) > IntakeConstants.kPivotCrashIgnoreAfterGoalChangeSecs;
+            (nowSec - goalChangeTimestampSec) > IntakeConstants.pivotCrashIgnoreAfterGoalChangeSecs.get();
 
         final boolean crashCondition =
             homed
             && edu.wpi.first.wpilibj.DriverStation.isEnabled()
             && goal == Goal.DEPLOYED
             && settledAfterGoalChange
-            && Math.abs(errorRot) > IntakeConstants.kPivotCrashMinErrorRot
-            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotCrashMaxVelRotPerSec
-            && pivotInputs.currentAmps > IntakeConstants.kPivotCrashCurrentAmps;
+            && Math.abs(errorRot) > IntakeConstants.pivotCrashMinErrorRot.get()
+            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.pivotCrashMaxVelRotPerSec.get()
+            && pivotInputs.currentAmps > IntakeConstants.pivotCrashCurrentAmps.get();
 
         boolean crashed = crashDebouncer.calculate(crashCondition);
 
@@ -244,8 +244,8 @@ public class IntakeBase extends SubsystemBase {
         }
 
         goalPosRot = (goal == Goal.DEPLOYED)
-            ? IntakeConstants.kPivotDeployedPosRot
-            : IntakeConstants.kPivotStowedPosRot;
+            ? IntakeConstants.pivotDeployedPosRot.get()
+            : IntakeConstants.pivotStowedPosRot.get();
     }
 
     // ==================== COMMANDS ====================
@@ -295,7 +295,7 @@ public class IntakeBase extends SubsystemBase {
             .withTimeout(2.0),  // Safety timeout
             // Zero encoder at hard stop
             runOnce(() -> {
-                pivotIO.setPosition(IntakeConstants.kPivotStowedPosRot);
+                pivotIO.setPosition(IntakeConstants.pivotStowedPosRot.get());
                 homed = true;
                 setGoal(Goal.STOWED);
             })

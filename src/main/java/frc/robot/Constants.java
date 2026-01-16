@@ -8,6 +8,8 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.RobotBase;
+
 
 import edu.wpi.first.math.util.Units;
 /**
@@ -19,10 +21,40 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+
+   public static final boolean TUNING_MODE = true;
+
+   private static RobotType robotType = RobotType.SIMBOT;
+
+    // Add these enums
+    public enum Mode {
+        REAL,
+        SIM,
+        REPLAY
+    }
+
+    public enum RobotType {
+        SIMBOT,
+        COMPBOT
+    }
+
+    public static RobotType getRobot() {
+        return robotType;
+    }
+
+    public static Mode getMode() {
+        return switch (robotType) {
+            case COMPBOT -> RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
+            case SIMBOT -> Mode.SIM;
+        };
+    }
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
     public static final double deadband = 0.1;
   }
+
+ 
 
  
   public static final int PDHCanId = 1;

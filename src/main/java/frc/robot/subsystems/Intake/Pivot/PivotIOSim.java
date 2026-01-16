@@ -8,7 +8,7 @@ import frc.robot.subsystems.Intake.IntakeConstants;
 public class PivotIOSim implements PivotIO {
     
     // Physical parameters - adjust to match your mechanism
-    private static final double kGearRatio = IntakeConstants.kPivotSensorToMechanismRatio;
+    private static final double kGearRatio = IntakeConstants.pivotSensorToMechanismRatio.get();
     private static final double kMOI = 0.5;        // kg*m^2
     private static final double kArmLength = 0.3;  // meters
     

@@ -7,8 +7,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Util.ShootingCalculator;
-import frc.robot.Util.Telemetry;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
 import frc.robot.subsystems.Intake.IntakeBase;
@@ -18,6 +16,7 @@ import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
+import frc.robot.util.ShootingCalculator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -156,19 +155,7 @@ public class RobotContainer {
             // Or use left bumper for toggle
             m_driverController.leftBumper().onTrue(intake.toggleCommand());
         }
-        /* 
-        m_driverController.povUp().whileTrue(
-            (driveToPose.createReefPathCommand(DriveToPose.Side.Middle).until(() -> driveToPose.haveReefConditionsChanged()).repeatedly()));
-
-        m_driverController.leftBumper().whileTrue(
-            (driveToPose.createReefPathCommand(DriveToPose.Side.Left).until(() -> driveToPose.haveReefConditionsChanged()).repeatedly()));
-
-        m_driverController.rightBumper().whileTrue(
-            (driveToPose.createReefPathCommand(DriveToPose.Side.Right).until(() -> driveToPose.haveReefConditionsChanged()).repeatedly()));
-
-        m_driverController.leftTrigger().whileTrue(
-            (driveToPose.createStationPathCommand().until(() -> driveToPose.haveStationConditionsChanged()).repeatedly()));
-        */
+        
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(6, .5, 0);
 

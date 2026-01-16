@@ -49,29 +49,29 @@ public class PivotIOKraken implements PivotIO {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Scale rotor -> mechanism rotations
-        config.Feedback.SensorToMechanismRatio = IntakeConstants.kPivotSensorToMechanismRatio; //
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.pivotSensorToMechanismRatio.get(); //
 
         // Slot0 PID
-        config.Slot0.kP = IntakeConstants.kPivotkP;
-        config.Slot0.kI = IntakeConstants.kPivotkI;
-        config.Slot0.kD = IntakeConstants.kPivotkD;
-        config.Slot0.kS = IntakeConstants.kPivotkS;
-        config.Slot0.kV = IntakeConstants.kPivotkV;
+        config.Slot0.kP = IntakeConstants.pivotkP.get();
+        config.Slot0.kI = IntakeConstants.pivotkI.get();
+        config.Slot0.kD = IntakeConstants.pivotkD.get();
+        config.Slot0.kS = IntakeConstants.pivotkS.get();
+        config.Slot0.kV = IntakeConstants.pivotkV.get();
 
         // Software limits to prevent over-travel
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.kPivotDeployedPosRot + 0.05;  // Small buffer
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.pivotDeployedPosRot.get() + 0.05;  // Small buffer
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.kPivotStowedPosRot - 0.05;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.pivotStowedPosRot.get() - 0.05;
 
         // Optional gravity compensation 
-        config.Slot0.kG = IntakeConstants.kPivotkG;
+        config.Slot0.kG = IntakeConstants.pivotkG.get();
         config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 
         // Motion Magic constraints:
-        config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.kPivotMMCruiseVelRotPerSec;
-        config.MotionMagic.MotionMagicAcceleration = IntakeConstants.kPivotMMAccelRotPerSec2;
-        config.MotionMagic.MotionMagicJerk = IntakeConstants.kPivotMMJerkRotPerSec3;
+        config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.pivotMMCruiseVelRotPerSec.get();
+        config.MotionMagic.MotionMagicAcceleration = IntakeConstants.pivotMMAccelRotPerSec2.get();
+        config.MotionMagic.MotionMagicJerk = IntakeConstants.pivotMMJerkRotPerSec3.get();
 
         pivot.getConfigurator().apply(config);
 
