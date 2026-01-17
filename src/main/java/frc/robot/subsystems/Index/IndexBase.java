@@ -11,14 +11,16 @@ public class IndexBase extends SubsystemBase {
     public enum IndexState {
         STOPPED,
         INDEXING,      // Moving game piece toward shooter
-        REVERSING,     // Backing out a game piece
-        FEEDING        // Fast feed during shooting
+        REVERSING  
     }
     
     private final IndexIOInputs inputs = new IndexIOInputs();
     private final IndexIO io;
     
     private IndexState currentState = IndexState.STOPPED;
+    private boolean wantIntakeIndex = false;
+    private boolean wantShootFeed = false;
+
     
     public IndexBase(IndexIO io) {
         this.io = io;
@@ -40,7 +42,7 @@ public class IndexBase extends SubsystemBase {
      */
     public void index() {
         currentState = IndexState.INDEXING;
-        io.setDutyCycle(IndexConstants.kIndexDutyCycle);
+        io.setDutyCycle(IndexConstants.indexDutyCycle.get());
     }
     
     /**
@@ -48,15 +50,15 @@ public class IndexBase extends SubsystemBase {
      */
     public void reverse() {
         currentState = IndexState.REVERSING;
-        io.setDutyCycle(IndexConstants.kReverseDutyCycle);
+        io.setDutyCycle(IndexConstants.reverseDutyCycle.get());
     }
     
     /**
-     * Run index at high speed for feeding during shooting
+     * Run index for feeding during shooting (same speed as indexing)
      */
     public void feed() {
-        currentState = IndexState.FEEDING;
-        io.setDutyCycle(IndexConstants.kFeedDutyCycle);
+        currentState = IndexState.INDEXING;
+        io.setDutyCycle(IndexConstants.indexDutyCycle.get());
     }
     
     /**
@@ -65,6 +67,21 @@ public class IndexBase extends SubsystemBase {
     public void stop() {
         currentState = IndexState.STOPPED;
         io.stop();
+    }
+
+     public void requestIntakeIndex(boolean enable){
+        wantIntakeIndex = enable; 
+    }
+    public void requestShootFeed(boolean enable){
+        wantShootFeed = enable; 
+    }
+
+    public boolean getwantIntakeIndex(){
+        return wantIntakeIndex;
+    }
+
+    public boolean getRequestShootFeed(){
+        return wantShootFeed;
     }
     
     // ==================== SENSOR METHODS ====================
@@ -135,13 +152,10 @@ public class IndexBase extends SubsystemBase {
             .withName("Index Reverse");
     }
     
-    /**
+   /**
      * Command to feed during shooting (runs until interrupted)
      */
     public Command feedCommand() {
-        return runOnce(this::feed)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Index Feed");
+        return indexCommand().withName("Index Feed");
     }
 }

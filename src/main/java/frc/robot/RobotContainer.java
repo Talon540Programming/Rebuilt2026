@@ -7,8 +7,13 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.IntakeIndexCommand;
+import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
+import frc.robot.subsystems.Index.IndexBase;
+import frc.robot.subsystems.Index.IndexIOKraken;
+import frc.robot.subsystems.Index.IndexIOSim;
 import frc.robot.subsystems.Intake.IntakeBase;
 import frc.robot.subsystems.Intake.Pivot.PivotIOKraken;
 import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
@@ -63,9 +68,11 @@ public class RobotContainer {
     private final HoodIOSim hoodIOSim = new HoodIOSim();
     private final KickupIOKraken kickupIOKraken = new KickupIOKraken();
     private final KickupIOSim kickupIOSim = new KickupIOSim(); 
+    private final IndexIOKraken indexIOKraken = new IndexIOKraken();
+    private final IndexIOSim indexIOSim = new IndexIOSim();
     private final IntakeBase intake;
     private final ShooterBase shooter;
-
+    private final IndexBase index;
 
     private final SendableChooser<Command> autoChooser;
 
@@ -100,11 +107,13 @@ public class RobotContainer {
         if (Robot.isSimulation()) {
         intake = new IntakeBase(pivotIOSim, rollerIOSim);
         shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
+        index = new IndexBase(indexIOSim);
         shooter.forceHoodHomed();
         } 
         else {
         intake = new IntakeBase(pivotIO, rollerIOKraken);
         shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
+        index = new IndexBase(indexIOKraken);
         }
 
         configureBindings();
@@ -131,38 +140,36 @@ public class RobotContainer {
             }
         }));
 
+        index.setDefaultCommand(
+            Commands.run(() -> {
+                if (index.getRequestShootFeed()) {          // SHOOT has priority
+                index.feed();
+                } else if (index.getwantIntakeIndex() && !index.hasGamePiece()) {
+                index.index();
+                } else {
+                index.stop();
+                }
+            }, index)
+        );
+
+
+        // X button - Intake + Index (toggle - press to start, press again to stop)
+        m_driverController.x().toggleOnTrue(
+            new IntakeIndexCommand(intake, index)
+        );
+
+        // Right trigger - Shoot with auto-aim (continuous updates)
+        m_driverController.rightTrigger(0.2).whileTrue(
+            new ShootCommand(
+                shooter,
+                index,
+                () -> drivetrain.getPose(),
+                () -> vision.isRedAlliance()
+            )
+        );
 
 
 
-        // Simulation test triggers
-        if (Robot.isSimulation()) {
-            // Press Y to simulate collision
-            m_driverController.y().whileTrue(
-                Commands.runOnce(() -> simulateIntakeCollision(true))
-            ).onFalse(
-                Commands.runOnce(() -> simulateIntakeCollision(false))
-            );
-            
-            // Press X to simulate game piece
-            m_driverController.x().whileTrue(
-                Commands.runOnce(() -> simulateGamePiece(true))
-            ).onFalse(
-                Commands.runOnce(() -> simulateGamePiece(false))
-            );
-
-            // A button to deploy intake, release to retract
-            m_driverController.a().whileTrue(intake.deployCommand());
-
-            // Or use left bumper for toggle
-            m_driverController.leftBumper().onTrue(intake.toggleCommand());
-
-            m_driverController.rightTrigger(0.2).whileTrue(
-                shooter.autoAimCommand(
-                    () -> drivetrain.getPose(),
-                    () -> vision.isRedAlliance()
-                )
-            );
-        }
         
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(6, .5, 0);
@@ -234,17 +241,6 @@ public class RobotContainer {
                 drivetrain.seedFieldCentric();
                 vision.setGyroInitialized();
             }
-        }
-    }
-    private void simulateIntakeCollision(boolean colliding) {
-        if (pivotIOSim != null) {
-        pivotIOSim.simulateCollision(colliding);
-        }
-    }
-
-    private void simulateGamePiece(boolean contact) {
-        if (rollerIOSim != null) {
-            rollerIOSim.simulateGamePieceContact(contact);
         }
     }
 

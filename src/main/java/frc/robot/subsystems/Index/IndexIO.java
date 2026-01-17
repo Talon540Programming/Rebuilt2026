@@ -1,10 +1,8 @@
 package frc.robot.subsystems.Index;
 
-import org.littletonrobotics.junction.AutoLog;
 
 public interface IndexIO {
     
-    @AutoLog
     public static class IndexIOInputs {
         public double velocityRotPerSec = 0.0;
         public double appliedVolts = 0.0;
