@@ -3,26 +3,29 @@ package frc.robot.subsystems.Shooter.Hood;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.Constants.ShootingConstants;
 import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class HoodIOSim implements HoodIO {
     
+    // Convert rotation limits to radians for the sim
+    private static final double kMinAngleRad = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
+    private static final double kMaxAngleRad = ShooterConstants.hoodMaxPosRot.get() * (2 * Math.PI);
+
     // Simulate as a single jointed arm (hood pivots up/down)
     private final SingleJointedArmSim sim = new SingleJointedArmSim(
         DCMotor.getKrakenX44(1),
         50.0, // Gear ratio
         0.1,  // MOI kg*m^2 - light hood mechanism
         0.15, // Arm length meters
-        ShooterConstants.hoodMinPosRot.get(), // Min angle
-        ShooterConstants.hoodMaxPosRot.get(), // Max angle
+        kMinAngleRad, // Min angle in radians
+        kMaxAngleRad, // Max angle in radians
         false, // Don't simulate gravity (rack and pinion holds position)
-        ShooterConstants.hoodMinPosRot.get() // Starting angle
+        kMinAngleRad // Starting angle in radians
     );
 
     private boolean closedLoop = false;
     private double appliedVolts = 0.0;
-    private double targetPositionRadians = ShooterConstants.hoodMinPosRot.get();
+    private double targetPositionRadians = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
     
     // Simple position control gains for simulation
     private static final double kSimP = 5.0;
@@ -54,8 +57,10 @@ public class HoodIOSim implements HoodIO {
     
     @Override
     public void setPosition(double positionRadians) {
-        // Clamp to valid range
-        positionRadians = MathUtil.clamp(positionRadians, ShooterConstants.hoodMinPosRot.get(), ShooterConstants.hoodMaxPosRot.get());
+        // Clamp to valid range (convert rotation limits to radians)
+        double minRad = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
+        double maxRad = ShooterConstants.hoodMaxPosRot.get() * (2 * Math.PI);
+        positionRadians = MathUtil.clamp(positionRadians, minRad, maxRad);
         targetPositionRadians = positionRadians;
         closedLoop = true;
     }
@@ -76,8 +81,9 @@ public class HoodIOSim implements HoodIO {
     
     @Override
     public void zeroEncoder() {
-        // In simulation, reset the sim state to min angle
-        sim.setState(ShooterConstants.hoodMinPosRot.get(), 0.0);
+        // In simulation, reset the sim state to min angle (in radians)
+        double minRad = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
+        sim.setState(minRad, 0.0);
     }
     
     @Override

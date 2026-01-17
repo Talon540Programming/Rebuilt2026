@@ -26,6 +26,7 @@ public class FlywheelIOSim implements FlywheelIO {
     );
     
     private double appliedVolts = 0.0;
+    private boolean closedLoop = false;
     private double targetVelocityRPM = 0.0;
     
     // Simple velocity control gains for simulation
@@ -37,6 +38,15 @@ public class FlywheelIOSim implements FlywheelIO {
     
     @Override
     public void updateInputs(FlywheelIOInputs inputs) {
+
+        if (closedLoop) {
+        double currentRPM = sim.getAngularVelocityRPM();
+        double error = targetVelocityRPM - currentRPM;
+        appliedVolts = (kSimP * error) + (kSimFF * targetVelocityRPM);
+        appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
+        sim.setInputVoltage(appliedVolts);
+        }
+
         sim.update(0.02);
         
         inputs.velocityRotPerSec = sim.getAngularVelocityRPM() / 60.0;
@@ -48,21 +58,15 @@ public class FlywheelIOSim implements FlywheelIO {
         inputs.atSetpoint = Math.abs(inputs.velocityRPM - targetVelocityRPM) < kVelocityTolerance;
     }
     
-    @Override
+   @Override
     public void setVelocity(double velocityRPM) {
         targetVelocityRPM = velocityRPM;
-        
-        // Simple P + FF control for simulation
-        double currentRPM = sim.getAngularVelocityRPM();
-        double error = velocityRPM - currentRPM;
-        appliedVolts = (kSimP * error) + (kSimFF * velocityRPM);
-        appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
-        
-        sim.setInputVoltage(appliedVolts);
+        closedLoop = true;
     }
     
     @Override
     public void setDutyCycle(double dutyCycle) {
+        closedLoop = false;
         targetVelocityRPM = 0.0;
         appliedVolts = dutyCycle * 12.0;
         sim.setInputVoltage(appliedVolts);
@@ -70,6 +74,7 @@ public class FlywheelIOSim implements FlywheelIO {
     
     @Override
     public void stop() {
+        closedLoop = false;
         targetVelocityRPM = 0.0;
         appliedVolts = 0.0;
         sim.setInputVoltage(0.0);

@@ -100,6 +100,7 @@ public class RobotContainer {
         if (Robot.isSimulation()) {
         intake = new IntakeBase(pivotIOSim, rollerIOSim);
         shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
+        shooter.forceHoodHomed();
         } 
         else {
         intake = new IntakeBase(pivotIO, rollerIOKraken);
@@ -130,12 +131,6 @@ public class RobotContainer {
             }
         }));
 
-        m_driverController.rightTrigger(0.2).whileTrue(
-            shooter.autoAimCommand(
-                () -> drivetrain.getPose(),
-                () -> vision.isRedAlliance()
-            )
-        );
 
 
 
@@ -160,6 +155,13 @@ public class RobotContainer {
 
             // Or use left bumper for toggle
             m_driverController.leftBumper().onTrue(intake.toggleCommand());
+
+            m_driverController.rightTrigger(0.2).whileTrue(
+                shooter.autoAimCommand(
+                    () -> drivetrain.getPose(),
+                    () -> vision.isRedAlliance()
+                )
+            );
         }
         
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
