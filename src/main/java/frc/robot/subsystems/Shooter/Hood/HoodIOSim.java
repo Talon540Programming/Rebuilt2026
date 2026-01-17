@@ -1,7 +1,9 @@
 package frc.robot.subsystems.Shooter.Hood;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.Constants.ShootingConstants;
 import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class HoodIOSim implements HoodIO {
@@ -12,14 +14,15 @@ public class HoodIOSim implements HoodIO {
         50.0, // Gear ratio
         0.1,  // MOI kg*m^2 - light hood mechanism
         0.15, // Arm length meters
-        ShooterConstants.kHoodMinAngle, // Min angle
-        ShooterConstants.kHoodMaxAngle, // Max angle
+        ShooterConstants.hoodMinPosRot.get(), // Min angle
+        ShooterConstants.hoodMaxPosRot.get(), // Max angle
         false, // Don't simulate gravity (rack and pinion holds position)
-        ShooterConstants.kHoodMinAngle // Starting angle
+        ShooterConstants.hoodMinPosRot.get() // Starting angle
     );
-    
+
+    private boolean closedLoop = false;
     private double appliedVolts = 0.0;
-    private double targetPositionRadians = ShooterConstants.kHoodMinAngle;
+    private double targetPositionRadians = ShooterConstants.hoodMinPosRot.get();
     
     // Simple position control gains for simulation
     private static final double kSimP = 5.0;
@@ -29,6 +32,14 @@ public class HoodIOSim implements HoodIO {
     
     @Override
     public void updateInputs(HoodIOInputs inputs) {
+        // Run closed-loop control if enabled
+        if (closedLoop) {
+            double error = targetPositionRadians - sim.getAngleRads();
+            appliedVolts = kSimP * error;
+            appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
+            sim.setInputVoltage(appliedVolts);
+        }
+        
         sim.update(0.02);
         
         inputs.positionRotations = sim.getAngleRads() / (2 * Math.PI);
@@ -44,26 +55,21 @@ public class HoodIOSim implements HoodIO {
     @Override
     public void setPosition(double positionRadians) {
         // Clamp to valid range
-        positionRadians = Math.max(ShooterConstants.kHoodMinAngle, 
-                         Math.min(ShooterConstants.kHoodMaxAngle, positionRadians));
+        positionRadians = MathUtil.clamp(positionRadians, ShooterConstants.hoodMinPosRot.get(), ShooterConstants.hoodMaxPosRot.get());
         targetPositionRadians = positionRadians;
-        
-        // Simple P control for simulation
-        double error = positionRadians - sim.getAngleRads();
-        appliedVolts = kSimP * error;
-        appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
-        
-        sim.setInputVoltage(appliedVolts);
+        closedLoop = true;
     }
     
     @Override
     public void setDutyCycle(double dutyCycle) {
+        closedLoop = false;
         appliedVolts = dutyCycle * 12.0;
         sim.setInputVoltage(appliedVolts);
     }
     
     @Override
     public void stop() {
+        closedLoop = false;
         appliedVolts = 0.0;
         sim.setInputVoltage(0.0);
     }
@@ -71,7 +77,7 @@ public class HoodIOSim implements HoodIO {
     @Override
     public void zeroEncoder() {
         // In simulation, reset the sim state to min angle
-        sim.setState(ShooterConstants.kHoodMinAngle, 0.0);
+        sim.setState(ShooterConstants.hoodMinPosRot.get(), 0.0);
     }
     
     @Override

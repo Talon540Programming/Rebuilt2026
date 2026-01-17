@@ -23,7 +23,7 @@ import frc.robot.subsystems.Shooter.Kickup.KickupIOKraken;
 import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
-import frc.robot.utility.ShootingCalculator;
+
 import frc.robot.utility.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 
@@ -33,8 +33,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import frc.robot.generated.TunerConstants;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -133,20 +131,10 @@ public class RobotContainer {
         }));
 
         m_driverController.rightTrigger(0.2).whileTrue(
-            Commands.run(() -> {
-                var pose = drivetrain.getPose();
-                boolean isRed = DriverStation.getAlliance()
-                    .map(a -> a == Alliance.Red)
-                    .orElse(false);
-
-                var sol = ShootingCalculator.calculateSolution(pose, isRed);
-                double initialVelFPS = ShootingCalculator.calculateInitialVelocityFPS(sol.distanceMeters);
-
-                System.out.printf(
-                    "[ShooterCalc] dist=%.2fm angle=%.2fdeg flywheel=%.0fRPM initialVel=%.2fft/s%n",
-                    sol.distanceMeters, sol.getHoodAngleDegrees(), sol.flywheelRPM, initialVelFPS
-                );
-            })
+            shooter.autoAimCommand(
+                () -> drivetrain.getPose(),
+                () -> vision.isRedAlliance()
+            )
         );
 
 
