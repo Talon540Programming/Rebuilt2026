@@ -22,6 +22,9 @@ public class ShooterConstants {
         new LoggedTunableNumber("Shooter/Flywheel/kV");
     public static final LoggedTunableNumber flywheelkA = 
         new LoggedTunableNumber("Shooter/Flywheel/kA");
+
+    public static final LoggedTunableNumber flywheelRPMThreshould = 
+        new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
     
     // Motion Magic Velocity constraints (Acceleration and Jerk only - no CruiseVelocity)
     public static final LoggedTunableNumber flywheelMMAccelRotPerSec2 = 
@@ -109,16 +112,19 @@ public class ShooterConstants {
                     reverseDutyCycle.initDefault(-0.3);
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
+                    flywheelRPMThreshould.initDefault(250);
                     // Hood homing
                     hoodHomingDutyCycle.initDefault(-0.1);  // Small negative voltage toward min position
                     hoodHomingVelThreshold.initDefault(0.05);  // Stall detection velocity threshold
                     hoodHomingCurrentThreshold.initDefault(10.0);  // Stall detection current threshold
+                    
                 }
                 case COMPBOT -> {
                     feedDutyCycle.initDefault(0.8);  // TODO: tune
                     reverseDutyCycle.initDefault(-0.3);  // TODO: tune
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
+                    flywheelRPMThreshould.initDefault(250);
                     // Hood homing
                     hoodHomingDutyCycle.initDefault(-0.1);  // TODO: tune
                     hoodHomingVelThreshold.initDefault(0.05);  // TODO: tune

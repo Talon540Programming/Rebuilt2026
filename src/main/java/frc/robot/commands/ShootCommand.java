@@ -8,8 +8,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utility.ShootingCalculator;
 import frc.robot.utility.ShootingCalculator.ShootingSolution;
 import frc.robot.subsystems.Index.IndexBase;
-import frc.robot.subsystems.Index.IndexBase.IndexState;
 import frc.robot.subsystems.Shooter.ShooterBase;
+import frc.robot.subsystems.Shooter.ShooterConstants;
+
+import org.littletonrobotics.junction.Logger;
 
 /**
  * Command that coordinates shooter, index, and kickup during shooting with auto-aim.
@@ -49,7 +51,6 @@ public class ShootCommand extends Command {
     @Override
     public void initialize() {
         flywheelSpunUp = false;
-        index.requestShootFeed(true);
     }
     
     @Override
@@ -66,29 +67,28 @@ public class ShootCommand extends Command {
         
         // Wait for flywheel to spin up the FIRST time only
         if (!flywheelSpunUp) {
-            if (shooter.isReadyToShoot()) {
+            if (shooter.isFlywheelAtSetpoint() && shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get()) {
                 // Flywheel just reached speed - mark as spun up
                 flywheelSpunUp = true;
-                index.requestShootFeed(false);
             }
+            Logger.recordOutput("ShootCommand/FlywheelSpunUp", flywheelSpunUp);
             // Don't feed until spun up
-            index.requestShootFeed(true);
             return;
         }
         
+        Logger.recordOutput("ShootCommand/FlywheelSpunUp", flywheelSpunUp);
+        
         // Once spun up, continuously run index and kickup
         // (Don't check isReadyToShoot again - just keep feeding)
-        if(index.getState() != IndexState.INDEXING && index.getState() != IndexState.REVERSING){
-            index.feed();
-        }
+        // Once spun up, continuously run index and kickup
+        index.feed();
         shooter.runKickup();
     }
     
     @Override
     public void end(boolean interrupted) {
-        // Stop everything
+        // Stop shooter - index will return to default command behavior
         shooter.stopAll();
-        index.requestShootFeed(false);
     }
     
     @Override

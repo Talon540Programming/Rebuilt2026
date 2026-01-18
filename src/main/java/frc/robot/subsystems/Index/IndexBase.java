@@ -19,7 +19,6 @@ public class IndexBase extends SubsystemBase {
     
     private IndexState currentState = IndexState.STOPPED;
     private boolean wantIntakeIndex = false;
-    private boolean wantShootFeed = false;
 
     
     public IndexBase(IndexIO io) {
@@ -72,16 +71,9 @@ public class IndexBase extends SubsystemBase {
      public void requestIntakeIndex(boolean enable){
         wantIntakeIndex = enable; 
     }
-    public void requestShootFeed(boolean enable){
-        wantShootFeed = enable; 
-    }
 
     public boolean getwantIntakeIndex(){
         return wantIntakeIndex;
-    }
-
-    public boolean getRequestShootFeed(){
-        return wantShootFeed;
     }
     
     // ==================== SENSOR METHODS ====================

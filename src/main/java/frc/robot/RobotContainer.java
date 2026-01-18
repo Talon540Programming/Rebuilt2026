@@ -142,12 +142,10 @@ public class RobotContainer {
 
         index.setDefaultCommand(
             Commands.run(() -> {
-                if (index.getRequestShootFeed()) {          // SHOOT has priority
-                index.feed();
-                } else if (index.getwantIntakeIndex() && !index.hasGamePiece()) {
-                index.index();
+                if (index.getwantIntakeIndex() && !index.hasGamePiece()) {
+                    index.index();
                 } else {
-                index.stop();
+                    index.stop();
                 }
             }, index)
         );
