@@ -9,8 +9,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
-
-
+import frc.robot.utility.LoggedTunableNumber;
 import edu.wpi.first.math.util.Units;
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -109,6 +108,31 @@ public final class Constants {
     // Hood angle limits (same as ShooterConstants for reference)
     public static final double hoodMinAngle = Math.PI / 8;     // 22.5 degrees
     public static final double hoodMaxAngle = Math.PI / 2;     // 90 degrees
+  }
+
+  public static final class HeadingPID{
+    public static LoggedTunableNumber headingP =
+      new LoggedTunableNumber("AutoSetHeading/HeadingP");
+    public static LoggedTunableNumber headingI =
+      new LoggedTunableNumber("AutoSetHeading/HeadingI");
+    public static LoggedTunableNumber headingD =
+      new LoggedTunableNumber("AutoSetHeading/HeadingD"); 
+  }
+
+  static {
+    switch (getRobot()) {
+      case SIMBOT ->{
+        HeadingPID.headingP.initDefault(25.0);
+        HeadingPID.headingI.initDefault(0.0);
+        HeadingPID.headingD.initDefault(0.0);
+
+      }
+      case COMPBOT ->{
+        HeadingPID.headingP.initDefault(0.0); //TODO
+        HeadingPID.headingI.initDefault(0.0); //TODO
+        HeadingPID.headingD.initDefault(0.0); //TODO
+      }
+    }
   }
 
 }

@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.IntakeIndexCommand;
 import frc.robot.commands.ShootCommand;
@@ -166,11 +167,8 @@ public class RobotContainer {
             )
         );
 
-
-
-        
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
-        headingDrive.HeadingController.setPID(6, .5, 0);
+        headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
 
         drivetrain.setDefaultCommand(
             drivetrain.run(() -> {
