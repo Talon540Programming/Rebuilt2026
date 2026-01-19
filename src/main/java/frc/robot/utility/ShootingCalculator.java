@@ -25,9 +25,9 @@ public class ShootingCalculator {
         // Convert to inches for calculation (original formula uses inches)
         double distFromCenter = Units.metersToInches(distanceMeters);
         
-        double backDistance = ShootingConstants.kBackDistanceInches;
-        double maxHeight = ShootingConstants.kMaxHeightInches;
-        double clearance = ShootingConstants.kClearanceInches;
+        double backDistance = ShootingConstants.backDistanceInches;
+        double maxHeight = ShootingConstants.maxHeightInches;
+        double clearance = ShootingConstants.clearanceInches;
         
         // Calculate theta using trajectory formula
         double numerator = 2 * (maxHeight + Math.sqrt(clearance * maxHeight));
@@ -35,7 +35,7 @@ public class ShootingCalculator {
         double theta = Math.atan(numerator / denominator);
         
         // Clamp to hood limits
-        theta = MathUtil.clamp(theta, ShootingConstants.kHoodMinAngle, ShootingConstants.kHoodMaxAngle);
+        theta = MathUtil.clamp(theta, ShootingConstants.hoodMinAngle, ShootingConstants.hoodMaxAngle);
         
         return theta;
     }
@@ -50,10 +50,10 @@ public class ShootingCalculator {
         // Convert to inches for calculation
         double distFromCenter = Units.metersToInches(distanceMeters);
         
-        double backDistance = ShootingConstants.kBackDistanceInches;
-        double maxHeight = ShootingConstants.kMaxHeightInches;
-        double clearance = ShootingConstants.kClearanceInches;
-        double gravity = ShootingConstants.kGravityInchesPerSecSq;
+        double backDistance = ShootingConstants.backDistanceInches;
+        double maxHeight = ShootingConstants.maxHeightInches;
+        double clearance = ShootingConstants.clearanceInches;
+        double gravity = ShootingConstants.gravityInchesPerSecSq;
         
         // Calculate initial velocity using trajectory formula
         double numerator = gravity * Math.pow((distFromCenter + backDistance), 2);
@@ -79,12 +79,12 @@ public class ShootingCalculator {
         // v = ω * r, where v is linear velocity, ω is angular velocity, r is wheel radius
         // ω (rad/s) = v / r
         // RPM = ω * 60 / (2π)
-        double wheelRadiusFeet = ShootingConstants.kFlywheelRadiusInches / 12.0;
+        double wheelRadiusFeet = ShootingConstants.flywheelRadiusInches / 12.0;
         double omegaRadPerSec = velocityFPS / wheelRadiusFeet;
         double rpm = (omegaRadPerSec * 60.0) / (2.0 * Math.PI);
         
         // Clamp to safe RPM range
-        rpm = MathUtil.clamp(rpm, ShootingConstants.kMinFlywheelRPM, ShootingConstants.kMaxFlywheelRPM);
+        rpm = MathUtil.clamp(rpm, ShootingConstants.minFlywheelRPM, ShootingConstants.maxFlywheelRPM);
         
         return rpm;
     }

@@ -4,7 +4,6 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ClimberConstants;
 import frc.robot.subsystems.Climberz.ClimberzIO.ClimberzIOInputs;
 
 public class ClimberzBase extends SubsystemBase {
@@ -47,7 +46,7 @@ public class ClimberzBase extends SubsystemBase {
      */
     public void climbUp() {
         currentState = ClimberState.CLIMBING_UP;
-        io.setDutyCycle(ClimberConstants.kClimbUpDutyCycle);
+        io.setDutyCycle(ClimberzConstants.climbUpDutyCycle);
     }
     
     /**
@@ -55,7 +54,7 @@ public class ClimberzBase extends SubsystemBase {
      */
     public void climbDown() {
         currentState = ClimberState.CLIMBING_DOWN;
-        io.setDutyCycle(ClimberConstants.kClimbDownDutyCycle);
+        io.setDutyCycle(ClimberzConstants.climbDownDutyCycle);
     }
     
     /**

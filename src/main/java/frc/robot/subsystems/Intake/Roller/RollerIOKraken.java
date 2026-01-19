@@ -27,7 +27,7 @@ public class RollerIOKraken implements RollerIO {
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     public RollerIOKraken() {
-        roller = new TalonFX(IntakeConstants.kRollerMotorId);
+        roller = new TalonFX(IntakeConstants.rollerMotorId);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         

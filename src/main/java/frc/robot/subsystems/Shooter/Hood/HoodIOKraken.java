@@ -38,7 +38,7 @@ public class HoodIOKraken implements HoodIO {
     
     
     public HoodIOKraken() {
-        motor = new TalonFX(ShooterConstants.kHoodMotorId, TunerConstants.kCANBus);
+        motor = new TalonFX(ShooterConstants.hoodMotorId, TunerConstants.kCANBus);
         
         // Configure motor
         TalonFXConfiguration config = new TalonFXConfiguration();

@@ -121,10 +121,10 @@ public class VisionBase extends SubsystemBase{
     public void setYawWithCameras(CommandSwerveDrivetrain drivetrain) {
 
         LimelightHelpers.PoseEstimate mt1EstimateCameraOne = 
-            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.kLimelightOne);
+            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightOne);
 
         LimelightHelpers.PoseEstimate mt1EstimateCameraTwo = 
-            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.kLimelightTwo);
+            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightTwo);
 
         ArrayList<LimelightHelpers.PoseEstimate> poseList = new ArrayList<>();
 
@@ -198,10 +198,10 @@ public boolean forceSetYawFromCameras(CommandSwerveDrivetrain drivetrain) {
     }
 
     LimelightHelpers.PoseEstimate mt1EstimateCameraOne = 
-        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.kLimelightOne);
+        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightOne);
 
     LimelightHelpers.PoseEstimate mt1EstimateCameraTwo = 
-        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.kLimelightTwo);
+        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightTwo);
 
     // Try camera one first
     if (mt1EstimateCameraOne != null && mt1EstimateCameraOne.tagCount > 0) {

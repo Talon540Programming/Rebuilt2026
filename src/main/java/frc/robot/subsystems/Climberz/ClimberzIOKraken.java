@@ -15,7 +15,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.Constants.ClimberConstants;
 
 public class ClimberzIOKraken implements ClimberzIO {
     
@@ -37,8 +36,8 @@ public class ClimberzIOKraken implements ClimberzIO {
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     public ClimberzIOKraken() {
-        leaderMotor = new TalonFX(ClimberConstants.kLeaderMotorId);
-        followerMotor = new TalonFX(ClimberConstants.kFollowerMotorId);
+        leaderMotor = new TalonFX(ClimberzConstants.leaderMotorId);
+        followerMotor = new TalonFX(ClimberzConstants.followerMotorId);
         
         // Configure leader motor
         TalonFXConfiguration leaderConfig = new TalonFXConfiguration();
@@ -60,7 +59,7 @@ public class ClimberzIOKraken implements ClimberzIO {
         followerMotor.getConfigurator().apply(followerConfig);
         
         // Set follower to follow leader (same direction - both on same mechanism)
-        followerMotor.setControl(new Follower(ClimberConstants.kLeaderMotorId, MotorAlignmentValue.Aligned));
+        followerMotor.setControl(new Follower(ClimberzConstants.leaderMotorId, MotorAlignmentValue.Aligned));
         
         // Get status signals - Leader
         position = leaderMotor.getPosition();

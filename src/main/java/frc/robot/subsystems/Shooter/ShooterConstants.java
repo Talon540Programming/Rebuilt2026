@@ -5,9 +5,9 @@ import frc.robot.utility.LoggedTunableNumber;
 
 public class ShooterConstants {
     // ===================== CAN IDs =====================
-    public static final int kFlywheelMotor1Id = 17;
-    public static final int kFlywheelMotor2Id = 18;
-    public static final int kHoodMotorId = 19;
+    public static final int flywheelMotor1Id = 17;
+    public static final int flywheelMotor2Id = 18;
+    public static final int hoodMotorId = 19;
 
     // ===================== Flywheel Constants =====================
     public static final LoggedTunableNumber flywheelkP = 

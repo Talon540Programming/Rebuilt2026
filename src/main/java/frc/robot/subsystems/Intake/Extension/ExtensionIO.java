@@ -1,8 +1,8 @@
-package frc.robot.subsystems.Intake.Pivot;
+package frc.robot.subsystems.Intake.Extension;
 
 import org.littletonrobotics.junction.AutoLog;
 
-public interface PivotIO {
+public interface ExtensionIO {
     
     @AutoLog
     public static class PivotIOInputs {

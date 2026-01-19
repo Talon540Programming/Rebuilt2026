@@ -1,22 +1,22 @@
-package frc.robot.subsystems.Intake.Pivot;
+package frc.robot.subsystems.Intake.Extension;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import frc.robot.subsystems.Intake.IntakeConstants;
 
-public class PivotIOSim implements PivotIO {
+public class ExtensionIOSim implements ExtensionIO {
+
+    // Constants for simulation
+    private static final double kGearRatio = IntakeConstants.extensionSensorToMechanismRatio.get();
+    private static final double kCarriageMassKg = 2.27;  // ~5 lbs - TODO: update when known
+    private static final double kDrumRadiusMeters = 0.02;  // Pinion radius - TODO: update when known
+
+    // Sim hard stops (in meters)
+    private static final double kMinHeightMeters = 0.0;   // Fully retracted
+    private static final double kMaxHeightMeters = 0.3;   // Fully extended - TODO: update when known
     
-    // Physical parameters - adjust to match your mechanism
-    private static final double kGearRatio = IntakeConstants.pivotSensorToMechanismRatio.get();
-    private static final double kMOI = 0.5;        // kg*m^2
-    private static final double kArmLength = 0.3;  // meters
-    
-    // Sim hard stops (in radians for the sim, will convert to rotations for output)
-    private static final double kMinAngleRad = Math.PI/8;                    // Stowed
-    private static final double kMaxAngleRad = Math.toRadians(100);    // Deployed
-    
-    private final SingleJointedArmSim sim;
+    private final ElevatorSim sim;
     private final DCMotor gearbox = DCMotor.getKrakenX44(1);
     
     private double appliedVolts = 0.0;
@@ -29,20 +29,21 @@ public class PivotIOSim implements PivotIO {
     // For simulating external disturbances (like collisions)
     private boolean simulateCollision = false;
     
-    public PivotIOSim() {
-        sim = new SingleJointedArmSim(
+    public ExtensionIOSim() {
+        sim = new ElevatorSim(
             gearbox,
             kGearRatio,
-            kMOI,
-            kArmLength,
-            kMinAngleRad,
-            kMaxAngleRad,
-            true,  // Simulate gravity
-            kMinAngleRad  // Start at stowed position
+            kCarriageMassKg,
+            kDrumRadiusMeters,
+            kMinHeightMeters,
+            kMaxHeightMeters,
+            false,  // Don't simulate gravity (horizontal/self-supporting)
+            kMinHeightMeters  // Starting position
         );
 
-        positionOffsetRot = kMinAngleRad / (2 * Math.PI);
+        positionOffsetRot = 0.0;
     }
+
     
     @Override
     public void updateInputs(PivotIOInputs inputs) {
@@ -62,8 +63,8 @@ public class PivotIOSim implements PivotIO {
         sim.update(0.02);
         
         // Calculate current draw
-        double velocityRadPerSec = sim.getVelocityRadPerSec();
-        double currentAmps = calculateCurrentDraw(appliedVolts, velocityRadPerSec);
+        double velocityMetersPerSec = sim.getVelocityMetersPerSecond();
+        double currentAmps = calculateCurrentDraw(appliedVolts, velocityMetersPerSec);
         
         // If at hard stop and trying to push further, simulate stall current
         if (isAtHardStop() && Math.abs(appliedVolts) > 0.5) {
@@ -77,27 +78,34 @@ public class PivotIOSim implements PivotIO {
         
         // Fill inputs
         inputs.positionRotations = getPositionRotations();
-        inputs.velocityRotPerSec = velocityRadPerSec / (2 * Math.PI);
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        inputs.velocityRotPerSec = sim.getVelocityMetersPerSecond() / metersPerRotation;
         inputs.appliedVolts = appliedVolts;
         inputs.currentAmps = currentAmps;
         inputs.tempCelsius = 25.0 + (currentAmps * 0.5);  // Fake temp rise with current
     }
     
+    // Replace with:
     private double getPositionRotations() {
-        return (sim.getAngleRads() / (2 * Math.PI)) - positionOffsetRot;
+        // Convert linear position (meters) to motor rotations
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        return (sim.getPositionMeters() / metersPerRotation) - positionOffsetRot;
     }
+
     
-    private double calculateCurrentDraw(double voltage, double velocityRadPerSec) {
-        // I = (V - omega * Kv) / R
-        double backEmf = velocityRadPerSec * gearbox.KvRadPerSecPerVolt;
+    private double calculateCurrentDraw(double voltage, double velocityMetersPerSec) {
+        // Convert linear velocity to rotational for back-EMF calculation
+        double velocityRadPerSec = velocityMetersPerSec / kDrumRadiusMeters;
+        double backEmf = velocityRadPerSec / gearbox.KvRadPerSecPerVolt;
         double current = (voltage - backEmf) / gearbox.rOhms;
         return Math.abs(current);
     }
     
     private boolean isAtHardStop() {
-        double angleRad = sim.getAngleRads();
-        return angleRad <= kMinAngleRad + 0.01 || angleRad >= kMaxAngleRad - 0.01;
+        double position = sim.getPositionMeters();
+        return position <= kMinHeightMeters + 0.001 || position >= kMaxHeightMeters - 0.001;
     }
+
     
     @Override
     public void setDutyCycle(double dutyCycle) {
@@ -124,7 +132,8 @@ public class PivotIOSim implements PivotIO {
     
     @Override
     public void setPosition(double positionRotations) {
-        double rawRot = sim.getAngleRads() / (2 * Math.PI);
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        double rawRot = sim.getPositionMeters() / metersPerRotation;
         positionOffsetRot = rawRot - positionRotations;
     }
     
@@ -142,8 +151,8 @@ public class PivotIOSim implements PivotIO {
      * Manually set the arm position (for testing scenarios).
      * @param angleRad Angle in radians
      */
-    public void setSimulationAngle(double angleRad) {
-        sim.setState(angleRad, 0.0);
+    public void setSimulationPosition(double positionMeters) {
+        sim.setState(positionMeters, 0.0);
     }
     
     /**

@@ -50,7 +50,7 @@ public final class Constants {
     }
 
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int driverControllerPort = 0;
     public static final double deadband = 0.1;
   }
 
@@ -88,36 +88,27 @@ public final class Constants {
 
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
-    public static final double kBackDistanceInches = 20.0;      // Distance from shooter exit to robot center
-    public static final double kShooterHeightInches = 20.0;     // Height of shooter exit from ground
-    public static final double kHeightOfHubInches = 72.0;       // Height of hub opening
-    public static final double kClearanceInches = 12.0;         // Desired clearance over hub rim
+    public static final double backDistanceInches = 20.0;      // Distance from shooter exit to robot center
+    public static final double shooterHeightInches = 20.0;     // Height of shooter exit from ground
+    public static final double heightOfHubInches = 72.0;       // Height of hub opening
+    public static final double clearanceInches = 12.0;         // Desired clearance over hub rim
     
     // Derived value
-    public static final double kMaxHeightInches = (kHeightOfHubInches + kClearanceInches) - kShooterHeightInches;
+    public static final double maxHeightInches = (heightOfHubInches + clearanceInches) - shooterHeightInches;
     
     // Physics
-    public static final double kGravityInchesPerSecSq = 386.09; // Gravity in inches/sec^2
+    public static final double gravityInchesPerSecSq = 386.09; // Gravity in inches/sec^2
     
     // Flywheel physical properties
-    public static final double kFlywheelRadiusInches = 2.0;     // Radius of flywheel wheel (Colson)
+    public static final double flywheelRadiusInches = 2.0;     // Radius of flywheel wheel (Colson)
     
     // Flywheel RPM limits
-    public static final double kMinFlywheelRPM = 1000.0;        // Minimum safe RPM
-    public static final double kMaxFlywheelRPM = 6000.0;        // Maximum safe RPM
+    public static final double minFlywheelRPM = 1000.0;        // Minimum safe RPM
+    public static final double maxFlywheelRPM = 6000.0;        // Maximum safe RPM
     
     // Hood angle limits (same as ShooterConstants for reference)
-    public static final double kHoodMinAngle = Math.PI / 8;     // 22.5 degrees
-    public static final double kHoodMaxAngle = Math.PI / 2;     // 90 degrees
+    public static final double hoodMinAngle = Math.PI / 8;     // 22.5 degrees
+    public static final double hoodMaxAngle = Math.PI / 2;     // 90 degrees
   }
 
-
-  public static final class ClimberConstants {
-    // Single climber with 2x X60 (leader/follower)
-    public static final int kLeaderMotorId = 20;
-    public static final int kFollowerMotorId = 21;
-    
-    public static final double kClimbUpDutyCycle = 0.8;
-    public static final double kClimbDownDutyCycle = -0.5;
-  }
 }

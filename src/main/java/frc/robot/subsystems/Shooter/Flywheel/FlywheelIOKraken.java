@@ -39,8 +39,8 @@ public class FlywheelIOKraken implements FlywheelIO {
     
     
     public FlywheelIOKraken() {
-        leaderMotor = new TalonFX(ShooterConstants.kFlywheelMotor1Id, TunerConstants.kCANBus);
-        followerMotor = new TalonFX(ShooterConstants.kFlywheelMotor2Id, TunerConstants.kCANBus);
+        leaderMotor = new TalonFX(ShooterConstants.flywheelMotor1Id, TunerConstants.kCANBus);
+        followerMotor = new TalonFX(ShooterConstants.flywheelMotor2Id, TunerConstants.kCANBus);
         
         // Configure leader motor
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -81,7 +81,7 @@ public class FlywheelIOKraken implements FlywheelIO {
         followerMotor.getConfigurator().apply(followerConfig);
         
         // Set follower to follow leader (Aligned = same direction)
-        followerMotor.setControl(new Follower(ShooterConstants.kFlywheelMotor1Id, MotorAlignmentValue.Aligned));  // false = same direction
+        followerMotor.setControl(new Follower(ShooterConstants.flywheelMotor1Id, MotorAlignmentValue.Aligned));  // false = same direction
 
         
         // Get status signals from leader

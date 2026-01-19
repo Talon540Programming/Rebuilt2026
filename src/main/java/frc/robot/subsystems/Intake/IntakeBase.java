@@ -6,9 +6,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.subsystems.Intake.Pivot.PivotIO;
-import frc.robot.subsystems.Intake.Pivot.PivotIO.PivotIOInputs;
-import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
+import frc.robot.subsystems.Intake.Extension.ExtensionIO;
+import frc.robot.subsystems.Intake.Extension.ExtensionIOSim;
+import frc.robot.subsystems.Intake.Extension.ExtensionIO.PivotIOInputs;
 import frc.robot.subsystems.Intake.Roller.RollerIO;
 import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
@@ -32,17 +32,17 @@ public class IntakeBase extends SubsystemBase {
     }
 
     private Debouncer crashDebouncer =
-        new Debouncer(IntakeConstants.pivotCrashDebounceSecs.get(), DebounceType.kRising);
+        new Debouncer(IntakeConstants.extensionCrashDebounceSecs.get(), DebounceType.kRising);
 
     private Goal goal = Goal.STOWED;
-    private double goalPosRot = IntakeConstants.pivotStowedPosRot.get();
+    private double goalPosRot = IntakeConstants.extensionStowedPosRot.get();
 
     
-    private final PivotIO pivotIO;
+    private final ExtensionIO pivotIO;
     private final RollerIO rollerIO;
     
     // Use the base inputs class instead of AutoLogged
-    private final PivotIOInputs pivotInputs = new PivotIOInputs();
+    private final PivotIOInputs extensionInputs = new PivotIOInputs();
     private final RollerIOInputs rollerInputs = new RollerIOInputs();
     
     private IntakeState currentState = IntakeState.STOWED;
@@ -57,16 +57,16 @@ public class IntakeBase extends SubsystemBase {
     private boolean crashLatched = false;
 
     
-    public IntakeBase(PivotIO pivotIO, RollerIO rollerIO) {
+    public IntakeBase(ExtensionIO pivotIO, RollerIO rollerIO) {
         this.pivotIO = pivotIO;
         this.rollerIO = rollerIO;
-        crashDebouncer = new Debouncer(IntakeConstants.pivotCrashDebounceSecs.get(), DebounceType.kRising);
+        crashDebouncer = new Debouncer(IntakeConstants.extensionCrashDebounceSecs.get(), DebounceType.kRising);
     }
     
     @Override
     public void periodic() {
         // Update inputs from IO layers
-        pivotIO.updateInputs(pivotInputs);
+        pivotIO.updateInputs(extensionInputs);
         rollerIO.updateInputs(rollerInputs);
 
         if (edu.wpi.first.wpilibj.DriverStation.isEnabled() && homed) {
@@ -76,10 +76,10 @@ public class IntakeBase extends SubsystemBase {
                 pivotIO.stop();
         }
 
-        final double errorRot = goalPosRot - pivotInputs.positionRotations;
+        final double errorRot = goalPosRot - extensionInputs.positionRotations;
         final boolean atPivotGoal =
-            Math.abs(errorRot) < IntakeConstants.pivotAllowedErrorRot.get()
-            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.pivotAllowedVelRotPerSec.get();
+            Math.abs(errorRot) < IntakeConstants.extensionAllowedErrorRot.get()
+            && Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionAllowedVelRotPerSec.get();
    
         // Update state machine based on goal + atGoal
         if (goal == Goal.DEPLOYED) {
@@ -91,16 +91,16 @@ public class IntakeBase extends SubsystemBase {
 
         final double nowSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
         final boolean settledAfterGoalChange =
-            (nowSec - goalChangeTimestampSec) > IntakeConstants.pivotCrashIgnoreAfterGoalChangeSecs.get();
+            (nowSec - goalChangeTimestampSec) > IntakeConstants.extensionCrashIgnoreAfterGoalChangeSecs.get();
 
         final boolean crashCondition =
             homed
             && edu.wpi.first.wpilibj.DriverStation.isEnabled()
             && goal == Goal.DEPLOYED
             && settledAfterGoalChange
-            && Math.abs(errorRot) > IntakeConstants.pivotCrashMinErrorRot.get()
-            && Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.pivotCrashMaxVelRotPerSec.get()
-            && pivotInputs.currentAmps > IntakeConstants.pivotCrashCurrentAmps.get();
+            && Math.abs(errorRot) > IntakeConstants.extensionCrashMinErrorRot.get()
+            && Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionCrashMaxVelRotPerSec.get()
+            && extensionInputs.currentAmps > IntakeConstants.extensionCrashCurrentAmps.get();
 
         boolean crashed = crashDebouncer.calculate(crashCondition);
 
@@ -120,11 +120,11 @@ public class IntakeBase extends SubsystemBase {
         Logger.recordOutput("Intake/CrashLatched", crashLatched);
 
         // Log inputs manually
-        Logger.recordOutput("Intake/Pivot/PositionRotations", pivotInputs.positionRotations);
-        Logger.recordOutput("Intake/Pivot/VelocityRotPerSec", pivotInputs.velocityRotPerSec);
-        Logger.recordOutput("Intake/Pivot/AppliedVolts", pivotInputs.appliedVolts);
-        Logger.recordOutput("Intake/Pivot/CurrentAmps", pivotInputs.currentAmps);
-        Logger.recordOutput("Intake/Pivot/TempCelsius", pivotInputs.tempCelsius);
+        Logger.recordOutput("Intake/Pivot/PositionRotations", extensionInputs.positionRotations);
+        Logger.recordOutput("Intake/Pivot/VelocityRotPerSec", extensionInputs.velocityRotPerSec);
+        Logger.recordOutput("Intake/Pivot/AppliedVolts", extensionInputs.appliedVolts);
+        Logger.recordOutput("Intake/Pivot/CurrentAmps", extensionInputs.currentAmps);
+        Logger.recordOutput("Intake/Pivot/TempCelsius", extensionInputs.tempCelsius);
         
         Logger.recordOutput("Intake/Roller/VelocityRotPerSec", rollerInputs.velocityRotPerSec);
         Logger.recordOutput("Intake/Roller/AppliedVolts", rollerInputs.appliedVolts);
@@ -141,8 +141,8 @@ public class IntakeBase extends SubsystemBase {
         if (Robot.isSimulation()) {
             // Read collision trigger from dashboard
             boolean triggerCollision = SmartDashboard.getBoolean("Sim/TriggerIntakeCollision", false);
-            if (pivotIO instanceof PivotIOSim) {
-                    ((PivotIOSim) pivotIO).simulateCollision(triggerCollision);
+            if (pivotIO instanceof ExtensionIOSim) {
+                    ((ExtensionIOSim) pivotIO).simulateCollision(triggerCollision);
             }
     
             // Read game piece trigger
@@ -160,7 +160,7 @@ public class IntakeBase extends SubsystemBase {
         intakeEnabled = true;
         setGoal(Goal.DEPLOYED);
         currentState = IntakeState.DEPLOYING;
-        rollerIO.setDutyCycle(IntakeConstants.kRollerIntakeDutyCycle);
+        rollerIO.setDutyCycle(IntakeConstants.rollerIntakeDutyCycle);
     }
 
     
@@ -200,7 +200,7 @@ public class IntakeBase extends SubsystemBase {
      * Run rollers in reverse to eject game piece
      */
     public void eject() {
-        rollerIO.setDutyCycle(IntakeConstants.kRollerEjectDutyCycle);
+        rollerIO.setDutyCycle(IntakeConstants.rollerEjectDutyCycle);
     }
     
     /**
@@ -244,8 +244,8 @@ public class IntakeBase extends SubsystemBase {
         }
 
         goalPosRot = (goal == Goal.DEPLOYED)
-            ? IntakeConstants.pivotDeployedPosRot.get()
-            : IntakeConstants.pivotStowedPosRot.get();
+            ? IntakeConstants.extensionDeployedPosRot.get()
+            : IntakeConstants.extensionStowedPosRot.get();
     }
 
     // ==================== COMMANDS ====================
@@ -286,16 +286,16 @@ public class IntakeBase extends SubsystemBase {
             }),
             // Run toward hard stop until stalled
             run(() -> {
-                pivotIO.setDutyCycle(IntakeConstants.kPivotHomingDutyCycle);  // e.g., -0.15
+                pivotIO.setDutyCycle(IntakeConstants.extensionHomingDutyCycle);  // e.g., -0.15
             })
             .until(() -> 
-                Math.abs(pivotInputs.velocityRotPerSec) < IntakeConstants.kPivotHomingVelThreshold
-                && Math.abs(pivotInputs.currentAmps) > IntakeConstants.kPivotHomingCurrentThreshold
+                Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionHomingVelThreshold
+                && Math.abs(extensionInputs.currentAmps) > IntakeConstants.extensionHomingCurrentThreshold
             )
             .withTimeout(2.0),  // Safety timeout
             // Zero encoder at hard stop
             runOnce(() -> {
-                pivotIO.setPosition(IntakeConstants.pivotStowedPosRot.get());
+                pivotIO.setPosition(IntakeConstants.extensionStowedPosRot.get());
                 homed = true;
                 setGoal(Goal.STOWED);
             })

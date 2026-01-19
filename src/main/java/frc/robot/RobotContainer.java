@@ -15,8 +15,8 @@ import frc.robot.subsystems.Index.IndexBase;
 import frc.robot.subsystems.Index.IndexIOKraken;
 import frc.robot.subsystems.Index.IndexIOSim;
 import frc.robot.subsystems.Intake.IntakeBase;
-import frc.robot.subsystems.Intake.Pivot.PivotIOKraken;
-import frc.robot.subsystems.Intake.Pivot.PivotIOSim;
+import frc.robot.subsystems.Intake.Extension.ExtensionIOKraken;
+import frc.robot.subsystems.Intake.Extension.ExtensionIOSim;
 import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import frc.robot.subsystems.Shooter.ShooterBase;
@@ -58,10 +58,10 @@ public class RobotContainer {
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
     private final SetHubHeading autoHeading = new SetHubHeading(vision);
-    private final PivotIOKraken pivotIO = new PivotIOKraken();
+    private final ExtensionIOKraken extensionIO = new ExtensionIOKraken();
     private final RollerIOKraken rollerIOKraken = new RollerIOKraken();
     private final RollerIOSim rollerIOSim = new RollerIOSim();
-    private final PivotIOSim pivotIOSim = new PivotIOSim();
+    private final ExtensionIOSim extensionIOSim = new ExtensionIOSim();
     private final FlywheelIOKraken flywheelIOKraken = new FlywheelIOKraken();
     private final FlywheelIOSim flywheelIOSim = new FlywheelIOSim();
     private final HoodIOKraken hoodIOKraken = new HoodIOKraken();
@@ -78,7 +78,7 @@ public class RobotContainer {
 
     // Replace with CommandPS4Controller or CommandJoystick if needed
     private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+      new CommandXboxController(OperatorConstants.driverControllerPort);
 
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(4);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(4);
@@ -105,13 +105,13 @@ public class RobotContainer {
     public RobotContainer() {
 
         if (Robot.isSimulation()) {
-        intake = new IntakeBase(pivotIOSim, rollerIOSim);
+        intake = new IntakeBase(extensionIOSim, rollerIOSim);
         shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
         index = new IndexBase(indexIOSim);
         shooter.forceHoodHomed();
         } 
         else {
-        intake = new IntakeBase(pivotIO, rollerIOKraken);
+        intake = new IntakeBase(extensionIO, rollerIOKraken);
         shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
         index = new IndexBase(indexIOKraken);
         }

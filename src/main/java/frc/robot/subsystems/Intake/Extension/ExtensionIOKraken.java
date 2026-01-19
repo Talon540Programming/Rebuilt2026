@@ -1,11 +1,10 @@
-package frc.robot.subsystems.Intake.Pivot;
+package frc.robot.subsystems.Intake.Extension;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -19,7 +18,7 @@ import frc.robot.subsystems.Intake.IntakeConstants;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 
-public class PivotIOKraken implements PivotIO {
+public class ExtensionIOKraken implements ExtensionIO {
     
     private final TalonFX pivot;
     
@@ -33,8 +32,8 @@ public class PivotIOKraken implements PivotIO {
     private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0.0);
 
     
-    public PivotIOKraken() {
-        pivot = new TalonFX(IntakeConstants.kPivotMotorId);
+    public ExtensionIOKraken() {
+        pivot = new TalonFX(IntakeConstants.extensionMotorId);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         
@@ -49,29 +48,25 @@ public class PivotIOKraken implements PivotIO {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Scale rotor -> mechanism rotations
-        config.Feedback.SensorToMechanismRatio = IntakeConstants.pivotSensorToMechanismRatio.get(); //
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.extensionSensorToMechanismRatio.get(); //
 
         // Slot0 PID
-        config.Slot0.kP = IntakeConstants.pivotkP.get();
-        config.Slot0.kI = IntakeConstants.pivotkI.get();
-        config.Slot0.kD = IntakeConstants.pivotkD.get();
-        config.Slot0.kS = IntakeConstants.pivotkS.get();
-        config.Slot0.kV = IntakeConstants.pivotkV.get();
+        config.Slot0.kP = IntakeConstants.extensionkP.get();
+        config.Slot0.kI = IntakeConstants.extensionkI.get();
+        config.Slot0.kD = IntakeConstants.extensionkD.get();
+        config.Slot0.kS = IntakeConstants.extensionkS.get();
+        config.Slot0.kV = IntakeConstants.extensionkV.get();
 
         // Software limits to prevent over-travel
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.pivotDeployedPosRot.get() + 0.05;  // Small buffer
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() + 0.05;  // Small buffer
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.pivotStowedPosRot.get() - 0.05;
-
-        // Optional gravity compensation 
-        config.Slot0.kG = IntakeConstants.pivotkG.get();
-        config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() - 0.05;
 
         // Motion Magic constraints:
-        config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.pivotMMCruiseVelRotPerSec.get();
-        config.MotionMagic.MotionMagicAcceleration = IntakeConstants.pivotMMAccelRotPerSec2.get();
-        config.MotionMagic.MotionMagicJerk = IntakeConstants.pivotMMJerkRotPerSec3.get();
+        config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.extensionMMCruiseVelRotPerSec.get();
+        config.MotionMagic.MotionMagicAcceleration = IntakeConstants.extensionMMAccelRotPerSec2.get();
+        config.MotionMagic.MotionMagicJerk = IntakeConstants.extensionMMJerkRotPerSec3.get();
 
         pivot.getConfigurator().apply(config);
 
