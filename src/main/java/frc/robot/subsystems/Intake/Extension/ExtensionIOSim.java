@@ -2,6 +2,7 @@ package frc.robot.subsystems.Intake.Extension;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import frc.robot.subsystems.Intake.IntakeConstants;
 
@@ -9,7 +10,7 @@ public class ExtensionIOSim implements ExtensionIO {
 
     // Constants for simulation
     private static final double kGearRatio = IntakeConstants.extensionSensorToMechanismRatio.get();
-    private static final double kCarriageMassKg = 2.27;  // ~5 lbs - TODO: update when known
+    private static final double kCarriageMassKg = Units.lbsToKilograms(5);  // ~5 lbs - TODO: update when known
     private static final double kDrumRadiusMeters = 0.02;  // Pinion radius - TODO: update when known
 
     // Sim hard stops (in meters)
