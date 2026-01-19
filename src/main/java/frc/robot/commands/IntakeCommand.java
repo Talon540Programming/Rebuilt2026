@@ -12,55 +12,30 @@ import frc.robot.subsystems.Intake.IntakeBase;
  * - Keeps intake running until command is interrupted or crash detected
  * - Index stops when ball is staged, intake continues
  */
-public class IntakeIndexCommand extends Command {
+public class IntakeCommand extends Command {
     
-    private final IntakeBase intake; 
-    private final IndexBase index;   
-    private boolean ballWasDetected = false;
+    private final IntakeBase intake;    
     
-    public IntakeIndexCommand(IntakeBase intake, IndexBase index) {
+    public IntakeCommand(IntakeBase intake, IndexBase index) {
         this.intake = intake;
-        this.index = index;
         
         // Require both subsystems
         addRequirements(intake);
     }
     
     @Override
-    public void initialize() {
-        ballWasDetected = false;
-        
+    public void initialize() { 
         // Deploy intake (this also runs rollers)
         intake.deploy();
-        
-        // Start indexing
-        index.requestIntakeIndex(true);
     }
     
     @Override
-    public void execute() {
-        // Check if ball is now detected
-        if (index.hasGamePiece() && !ballWasDetected) {
-            // Ball just detected - stop index but keep intake running
-            ballWasDetected = true;
-            index.stop();
-        }
-        
-        // If ball was detected but is now gone (shot was fired), resume indexing
-        if (ballWasDetected 
-            && !index.hasGamePiece() 
-            && index.getState() != IndexState.INDEXING 
-            && index.getState() != IndexState.REVERSING) {
-            ballWasDetected = false;
-            index.index();
-        }
-    }
+    public void execute() {}
     
     @Override
     public void end(boolean interrupted) {
         // Stop both subsystems
         intake.retract();
-        index.requestIntakeIndex(false);
     }
     
     @Override
@@ -72,7 +47,7 @@ public class IntakeIndexCommand extends Command {
     
     @Override
     public String getName() {
-        return "IntakeIndexCommand";
+        return "IntakeCommand";
     }
 }
 
