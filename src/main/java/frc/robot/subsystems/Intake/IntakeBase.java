@@ -115,16 +115,16 @@ public class IntakeBase extends SubsystemBase {
             Logger.recordOutput("Intake/CrashDetected", false);
         }
 
-        Logger.recordOutput("Intake/Pivot/ErrorRot", errorRot);
-        Logger.recordOutput("Intake/Pivot/AtGoal", atPivotGoal);
+        Logger.recordOutput("Intake/Extension/ErrorRot", errorRot);
+        Logger.recordOutput("Intake/Extension/AtGoal", atPivotGoal);
         Logger.recordOutput("Intake/CrashLatched", crashLatched);
 
         // Log inputs manually
-        Logger.recordOutput("Intake/Pivot/PositionRotations", extensionInputs.positionRotations);
-        Logger.recordOutput("Intake/Pivot/VelocityRotPerSec", extensionInputs.velocityRotPerSec);
-        Logger.recordOutput("Intake/Pivot/AppliedVolts", extensionInputs.appliedVolts);
-        Logger.recordOutput("Intake/Pivot/CurrentAmps", extensionInputs.currentAmps);
-        Logger.recordOutput("Intake/Pivot/TempCelsius", extensionInputs.tempCelsius);
+        Logger.recordOutput("Intake/Extension/PositionRotations", extensionInputs.positionRotations);
+        Logger.recordOutput("Intake/Extension/VelocityRotPerSec", extensionInputs.velocityRotPerSec);
+        Logger.recordOutput("Intake/Extension/AppliedVolts", extensionInputs.appliedVolts);
+        Logger.recordOutput("Intake/Extension/CurrentAmps", extensionInputs.currentAmps);
+        Logger.recordOutput("Intake/Extension/TempCelsius", extensionInputs.tempCelsius);
         
         Logger.recordOutput("Intake/Roller/VelocityRotPerSec", rollerInputs.velocityRotPerSec);
         Logger.recordOutput("Intake/Roller/AppliedVolts", rollerInputs.appliedVolts);

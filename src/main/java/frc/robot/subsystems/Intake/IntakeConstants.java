@@ -18,37 +18,37 @@ public class IntakeConstants {
 
     // ===================== Pivot Motion Magic =====================
     public static final LoggedTunableNumber extensionSensorToMechanismRatio = 
-        new LoggedTunableNumber("Intake/Pivot/SensorToMechanismRatio");
+        new LoggedTunableNumber("Intake/Extension/SensorToMechanismRatio");
     public static final LoggedTunableNumber extensionStowedPosRot = 
-        new LoggedTunableNumber("Intake/Pivot/StowedPosRot");
+        new LoggedTunableNumber("Intake/Extension/StowedPosRot");
     public static final LoggedTunableNumber extensionDeployedPosRot = 
-        new LoggedTunableNumber("Intake/Pivot/DeployedPosRot");
+        new LoggedTunableNumber("Intake/Extension/DeployedPosRot");
     public static final LoggedTunableNumber extensionPosToleranceRot = 
-        new LoggedTunableNumber("Intake/Pivot/PosToleranceRot");
+        new LoggedTunableNumber("Intake/Extension/PosToleranceRot");
     public static final LoggedTunableNumber extensionVelToleranceRotPerSec = 
-        new LoggedTunableNumber("Intake/Pivot/VelToleranceRotPerSec");
+        new LoggedTunableNumber("Intake/Extension/VelToleranceRotPerSec");
 
     // Motion Magic constraints
     public static final LoggedTunableNumber extensionMMCruiseVelRotPerSec = 
-        new LoggedTunableNumber("Intake/Pivot/MMCruiseVelRotPerSec");
+        new LoggedTunableNumber("Intake/Extension/MMCruiseVelRotPerSec");
     public static final LoggedTunableNumber extensionMMAccelRotPerSec2 = 
-        new LoggedTunableNumber("Intake/Pivot/MMAccelRotPerSec2");
+        new LoggedTunableNumber("Intake/Extension/MMAccelRotPerSec2");
     public static final LoggedTunableNumber extensionMMJerkRotPerSec3 = 
-        new LoggedTunableNumber("Intake/Pivot/MMJerkRotPerSec3");
+        new LoggedTunableNumber("Intake/Extension/MMJerkRotPerSec3");
 
     // Slot0 PID
     public static final LoggedTunableNumber extensionkP = 
-        new LoggedTunableNumber("Intake/Pivot/kP");
+        new LoggedTunableNumber("Intake/Extension/kP");
     public static final LoggedTunableNumber extensionkI = 
-        new LoggedTunableNumber("Intake/Pivot/kI");
+        new LoggedTunableNumber("Intake/Extension/kI");
     public static final LoggedTunableNumber extensionkD = 
-        new LoggedTunableNumber("Intake/Pivot/kD");
+        new LoggedTunableNumber("Intake/Extension/kD");
     public static final LoggedTunableNumber extensionkS = 
-        new LoggedTunableNumber("Intake/Pivot/kS");
+        new LoggedTunableNumber("Intake/Extension/kS");
     public static final LoggedTunableNumber extensionkV = 
-        new LoggedTunableNumber("Intake/Pivot/kV");
+        new LoggedTunableNumber("Intake/Extension/kV");
     public static final LoggedTunableNumber extensionkG = 
-        new LoggedTunableNumber("Intake/Pivot/kG");
+        new LoggedTunableNumber("Intake/Extension/kG");
 
     // Game piece detection
     public static final LoggedTunableNumber gamePieceCurrentThreshold = 
@@ -56,19 +56,19 @@ public class IntakeConstants {
 
     // ===================== Crash / stall detection =====================
     public static final LoggedTunableNumber extensionCrashCurrentAmps = 
-        new LoggedTunableNumber("Intake/Pivot/CrashCurrentAmps");
+        new LoggedTunableNumber("Intake/Extension/CrashCurrentAmps");
     public static final LoggedTunableNumber extensionCrashMinErrorRot = 
-        new LoggedTunableNumber("Intake/Pivot/CrashMinErrorRot");
+        new LoggedTunableNumber("Intake/Extension/CrashMinErrorRot");
     public static final LoggedTunableNumber extensionCrashMaxVelRotPerSec = 
-        new LoggedTunableNumber("Intake/Pivot/CrashMaxVelRotPerSec");
+        new LoggedTunableNumber("Intake/Extension/CrashMaxVelRotPerSec");
     public static final LoggedTunableNumber extensionCrashDebounceSecs = 
-        new LoggedTunableNumber("Intake/Pivot/CrashDebounceSecs");
+        new LoggedTunableNumber("Intake/Extension/CrashDebounceSecs");
     public static final LoggedTunableNumber extensionAllowedErrorRot = 
-        new LoggedTunableNumber("Intake/Pivot/AllowedErrorRot");
+        new LoggedTunableNumber("Intake/Extension/AllowedErrorRot");
     public static final LoggedTunableNumber extensionAllowedVelRotPerSec = 
-        new LoggedTunableNumber("Intake/Pivot/AllowedVelRotPerSec");
+        new LoggedTunableNumber("Intake/Extension/AllowedVelRotPerSec");
     public static final LoggedTunableNumber extensionCrashIgnoreAfterGoalChangeSecs = 
-        new LoggedTunableNumber("Intake/Pivot/CrashIgnoreAfterGoalChangeSecs");
+        new LoggedTunableNumber("Intake/Extension/CrashIgnoreAfterGoalChangeSecs");
 
     // Static initializer - sets defaults based on robot type
     static {
@@ -87,7 +87,7 @@ public class IntakeConstants {
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID
-                extensionkP.initDefault(100);
+                extensionkP.initDefault(5);
                 extensionkI.initDefault(0.1);
                 extensionkD.initDefault(0.0);
                 extensionkS.initDefault(0.0);

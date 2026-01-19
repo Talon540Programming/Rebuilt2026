@@ -14,7 +14,7 @@ public class ExtensionIOSim implements ExtensionIO {
 
     // Sim hard stops (in meters)
     private static final double kMinHeightMeters = 0.0;   // Fully retracted
-    private static final double kMaxHeightMeters = 0.3;   // Fully extended - TODO: update when known
+    private static final double kMaxHeightMeters = 0.5;   // Fully extended - TODO: update when known
     
     private final ElevatorSim sim;
     private final DCMotor gearbox = DCMotor.getKrakenX44(1);
@@ -53,7 +53,7 @@ public class ExtensionIOSim implements ExtensionIO {
             double errorRot = targetRot - currentPosRot;
             
             // Simple P control to simulate Motion Magic
-            double kP = 40.0;  // Tune for reasonable sim behavior
+            double kP = IntakeConstants.extensionkP.get();  // Tune for reasonable sim behavior
             appliedVolts = kP * errorRot;
             appliedVolts = MathUtil.clamp(appliedVolts, -12.0, 12.0);
         }
@@ -132,7 +132,7 @@ public class ExtensionIOSim implements ExtensionIO {
     
     @Override
     public void setPosition(double positionRotations) {
-        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) * kGearRatio;
         double rawRot = sim.getPositionMeters() / metersPerRotation;
         positionOffsetRot = rawRot - positionRotations;
     }
