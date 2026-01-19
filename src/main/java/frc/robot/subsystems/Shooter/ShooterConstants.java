@@ -139,7 +139,7 @@ public class ShooterConstants {
         switch (Constants.getRobot()) {
             case SIMBOT -> {
                 // ===== Flywheel Sim Defaults =====
-                flywheelkP.initDefault(0.11);
+                flywheelkP.initDefault(0.04);
                 flywheelkI.initDefault(0.0);
                 flywheelkD.initDefault(0.0);
                 flywheelkS.initDefault(0.1);

@@ -5,6 +5,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class FlywheelIOSim implements FlywheelIO {
     
@@ -30,7 +31,7 @@ public class FlywheelIOSim implements FlywheelIO {
     private double targetVelocityRPM = 0.0;
     
     // Simple velocity control gains for simulation
-    private static final double kSimP = 0.01;
+    private static final double simP = ShooterConstants.flywheelkP.get();
     private static final double kSimFF = 0.0018; // Feedforward: volts per RPM
     
     // Velocity tolerance for "at setpoint" check (RPM)
@@ -42,7 +43,7 @@ public class FlywheelIOSim implements FlywheelIO {
         if (closedLoop) {
         double currentRPM = sim.getAngularVelocityRPM();
         double error = targetVelocityRPM - currentRPM;
-        appliedVolts = (kSimP * error) + (kSimFF * targetVelocityRPM);
+        appliedVolts = (simP * error) + (kSimFF * targetVelocityRPM);
         appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
         sim.setInputVoltage(appliedVolts);
         }

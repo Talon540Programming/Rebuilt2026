@@ -110,19 +110,19 @@ public final class Constants {
     public static final double hoodMaxAngle = Math.PI / 2;     // 90 degrees
   }
 
-  public static final class HeadingPID{
+  public static final class HeadingPID {
     public static LoggedTunableNumber headingP =
-      new LoggedTunableNumber("AutoSetHeading/HeadingP");
+        new LoggedTunableNumber("AutoSetHeading/HeadingP");
     public static LoggedTunableNumber headingI =
-      new LoggedTunableNumber("AutoSetHeading/HeadingI");
+        new LoggedTunableNumber("AutoSetHeading/HeadingI");
     public static LoggedTunableNumber headingD =
-      new LoggedTunableNumber("AutoSetHeading/HeadingD"); 
+        new LoggedTunableNumber("AutoSetHeading/HeadingD");
   }
 
   static {
     switch (getRobot()) {
       case SIMBOT ->{
-        HeadingPID.headingP.initDefault(25.0);
+        HeadingPID.headingP.initDefault(20.0);
         HeadingPID.headingI.initDefault(0.0);
         HeadingPID.headingD.initDefault(0.0);
 

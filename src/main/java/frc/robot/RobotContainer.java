@@ -152,12 +152,10 @@ public class RobotContainer {
         );
 
 
-        // X button - Intake + Index (toggle - press to start, press again to stop)
         m_driverController.x().toggleOnTrue(
             new IntakeIndexCommand(intake, index)
         );
 
-        // Right trigger - Shoot with auto-aim (continuous updates)
         m_driverController.rightTrigger(0.2).whileTrue(
             new ShootCommand(
                 shooter,
@@ -182,15 +180,15 @@ public class RobotContainer {
                 rawY = Math.abs(rawY) > OperatorConstants.deadband ? rawY : 0.0;
                 rawRot = Math.abs(rawRot) > OperatorConstants.deadband ? rawRot : 0.0;
                 
-                // Now apply slew rate limiting
+                //apply slew rate limiting
                 double xSpeed = xLimiter.calculate(rawX);
                 double ySpeed = yLimiter.calculate(rawY);
                 double rotSpeed = rotLimiter.calculate(rawRot);
                 
-                // Check if driver is manually rotating - this always takes priority
+                // Check if driver is manually rotating
                 boolean driverRotating = autoHeading.isDriverRotating(rotSpeed);
                 
-                // Determine which auto-heading mode to use (if any)
+                // Determine which auto-heading mode to use
                 boolean useAutoHeading = autoHeading.isEnabled() && !driverRotating;
 
                 if (useAutoHeading) {
