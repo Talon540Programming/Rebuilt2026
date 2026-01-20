@@ -2,7 +2,6 @@ package frc.robot.subsystems.Index;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Index.IndexIO.IndexIOInputs;
 
@@ -34,14 +33,6 @@ public class IndexBase extends SubsystemBase {
     }
     
     // ==================== CONTROL METHODS ====================
-    
-    /**
-     * Run index forward to move game piece toward shooter
-     */
-    public void index() {
-        currentState = IndexState.INDEXING;
-        io.setDutyCycle(IndexConstants.indexDutyCycle.get());
-    }
     
     /**
      * Run index in reverse to back out a game piece
@@ -77,32 +68,4 @@ public class IndexBase extends SubsystemBase {
         return currentState != IndexState.STOPPED;
     }
     
-    // ==================== COMMANDS ====================
-
-    /**
-     * Command to run index (manual control, runs until interrupted)
-     */
-    public Command indexCommand() {
-        return runOnce(this::index)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Index");
-    }
-    
-    /**
-     * Command to reverse index (runs until interrupted)
-     */
-    public Command reverseCommand() {
-        return runOnce(this::reverse)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Index Reverse");
-    }
-    
-   /**
-     * Command to feed during shooting (runs until interrupted)
-     */
-    public Command feedCommand() {
-        return indexCommand().withName("Index Feed");
-    }
 }

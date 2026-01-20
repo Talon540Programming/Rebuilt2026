@@ -3,7 +3,6 @@ package frc.robot.subsystems.Shooter;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
@@ -11,13 +10,9 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO;
 import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
+import frc.robot.commands.HoodHomingCommand;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
-import frc.robot.utility.ShootingCalculator;
-import frc.robot.utility.ShootingCalculator.ShootingSolution;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import edu.wpi.first.math.geometry.Pose2d;
 
 public class ShooterBase extends SubsystemBase {
     
@@ -170,6 +165,38 @@ public class ShooterBase extends SubsystemBase {
     public boolean isHoodHomed(){
         return hoodHomed;
     }
+
+    /**
+     * Reset homing state - call at start of homing sequence
+     */
+    public void resetHomingState() {
+        hoodHomed = false;
+        currentState = ShooterState.IDLE;
+    }
+
+    /**
+     * Set hood duty cycle directly - used for homing
+     */
+    public void setHoodDutyCycle(double dutyCycle) {
+        hoodIO.setDutyCycle(dutyCycle);
+    }
+
+    /**
+     * Check if hood is stalled (for homing detection)
+     */
+    public boolean isHoodStalled() {
+        return Math.abs(hoodInputs.velocityRotPerSec) < ShooterConstants.hoodHomingVelThreshold.get()
+            && Math.abs(hoodInputs.currentAmps) > ShooterConstants.hoodHomingCurrentThreshold.get();
+    }
+
+    /**
+     * Zero hood encoder at minimum position - call when at hard stop
+     */
+    public void zeroHoodAtMin() {
+        hoodIO.setEncoderPosition(ShooterConstants.hoodMinPosRot.get());
+        hoodHomed = true;
+        Logger.recordOutput("Shooter/Hood/Homed", true);
+    }
     
     // ==================== KICKUP CONTROL ====================
     
@@ -243,175 +270,17 @@ public class ShooterBase extends SubsystemBase {
     public ShooterState getState() {
         return currentState;
     }
-    
-    // ==================== COMMANDS ====================
-    
+   
     /**
-     * Command to spin up flywheel and wait until at speed
-     */
-    public Command spinUpCommand(double velocityRPM) {
-        return runOnce(() -> setFlywheelVelocity(velocityRPM))
-            .andThen(run(() -> {
-                if (isFlywheelAtSetpoint()) {
-                    currentState = ShooterState.READY;
-                }
-            }))
-            .until(this::isFlywheelAtSetpoint)
-            .withName("Shooter Spin Up");
-    }
-    
+    * Command to home the hood by running toward the hard stop until stalled,
+    * then zeroing the encoder at the minimum position.
+    */
     /**
-     * Command to set hood angle and wait until in position
-     */
-    public Command setHoodCommand(double angleRadians) {
-        return runOnce(() -> setHoodAngle(angleRadians))
-            .andThen(run(() -> {}))
-            .until(this::isHoodAtSetpoint)
-            .withName("Shooter Set Hood");
-    }
-
-    /**
- * Command to home the hood by running toward the hard stop until stalled,
- * then zeroing the encoder at the minimum position.
+ * Get the hood homing command
  */
     public Command hoodHomingSequence() {
-        return Commands.sequence(
-            // Disable normal control, reset state
-            runOnce(() -> {
-                hoodHomed = false;
-                currentState = ShooterState.IDLE;
-            }),
-            // Run toward hard stop (negative = toward min position) until stalled
-            run(() -> {
-                hoodIO.setDutyCycle(ShooterConstants.hoodHomingDutyCycle.get());
-            })
-            .until(() -> 
-                Math.abs(hoodInputs.velocityRotPerSec) < ShooterConstants.hoodHomingVelThreshold.get()
-                && Math.abs(hoodInputs.currentAmps) > ShooterConstants.hoodHomingCurrentThreshold.get()
-            )
-            .withTimeout(3.0),  // Safety timeout
-            // Zero encoder at hard stop (min position)
-            runOnce(() -> {
-                hoodIO.setEncoderPosition(ShooterConstants.hoodMinPosRot.get());
-                hoodHomed = true;
-                Logger.recordOutput("Shooter/Hood/Homed", true);
-            }),
-            // Stop the motor
-            runOnce(() -> hoodIO.stop())
-        ).withName("Hood Homing");
+        return new HoodHomingCommand(this).withTimeout(3.0);
     }
     
-    /**
-     * Command to prepare shooter (flywheel + hood) and wait until ready
-     */
-    public Command prepareCommand(double velocityRPM, double hoodAngleRadians) {
-        return runOnce(() -> prepareToShoot(velocityRPM, hoodAngleRadians))
-            .andThen(run(() -> {
-                if (isReadyToShoot()) {
-                    currentState = ShooterState.READY;
-                }
-            }))
-            .until(this::isReadyToShoot)
-            .withName("Shooter Prepare");
-    }
-    
-    /**
-     * Command to shoot (runs kickup until interrupted)
-     * Should only be used after prepareCommand completes
-     */
-    public Command shootCommand() {
-        return runOnce(this::shoot)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stopKickup())
-            .withName("Shooter Shoot");
-    }
-    
-    /**
-     * Command to shoot for a specific duration
-     */
-    public Command shootForTimeCommand(double seconds) {
-        return runOnce(this::shoot)
-            .andThen(run(() -> {}).withTimeout(seconds))
-            .finallyDo((interrupted) -> stopKickup())
-            .withName("Shooter Shoot Timed");
-    }
-    
-    /**
-     * Full shooting sequence - prepare then shoot
-     */
-    public Command fullShootCommand(double velocityRPM, double hoodAngleRadians, double shootDurationSeconds) {
-        return prepareCommand(velocityRPM, hoodAngleRadians)
-            .andThen(shootForTimeCommand(shootDurationSeconds))
-            .finallyDo((interrupted) -> stopAll())
-            .withName("Shooter Full Sequence");
-    }
-    
-    /**
-     * Command to stop all shooter mechanisms
-     */
-    public Command stopCommand() {
-        return runOnce(this::stopAll).withName("Shooter Stop");
-    }
-    
-    /**
-     * Command to zero hood encoder
-     */
-    public Command zeroHoodCommand() {
-        return runOnce(this::zeroHood).withName("Shooter Zero Hood");
-    }
-
-    /**
- * Continuously update shooter based on distance to hub.
- * Use this while driving to keep shooter ready.
- */
-    public Command autoAimCommand(Supplier<Pose2d> poseSupplier, BooleanSupplier isRedAllianceSupplier) {
-        return run(() -> {
-            ShootingSolution solution = ShootingCalculator.calculateSolution(
-                poseSupplier.get(), 
-                isRedAllianceSupplier.getAsBoolean()
-            );
-            
-            setFlywheelVelocity(solution.flywheelRPM);
-            setHoodAngle(solution.hoodAngleRadians);
-            
-            Logger.recordOutput("Shooter/AutoAim/Distance", solution.distanceMeters);
-            Logger.recordOutput("Shooter/AutoAim/HoodAngleDeg", solution.getHoodAngleDegrees());
-            Logger.recordOutput("Shooter/AutoAim/FlywheelRPM", solution.flywheelRPM);
-        })
-        .finallyDo((interrupted) -> stopAll())
-        .withName("Shooter Auto Aim");
-    }
-
-/**
- * Auto-aim and shoot when ready.
- */
-    public Command autoAimAndShootCommand(
-            Supplier<Pose2d> poseSupplier, 
-            BooleanSupplier isRedAllianceSupplier,
-            double shootDurationSeconds) {
-        return run(() -> {
-            ShootingSolution solution = ShootingCalculator.calculateSolution(
-                poseSupplier.get(), 
-                isRedAllianceSupplier.getAsBoolean()
-            );
-            
-            setFlywheelVelocity(solution.flywheelRPM);
-            setHoodAngle(solution.hoodAngleRadians);
-            
-            Logger.recordOutput("Shooter/AutoAim/Distance", solution.distanceMeters);
-            Logger.recordOutput("Shooter/AutoAim/HoodAngleDeg", solution.getHoodAngleDegrees());
-            Logger.recordOutput("Shooter/AutoAim/FlywheelRPM", solution.flywheelRPM);
-        })
-        .until(this::isReadyToShoot)
-        .andThen(shootForTimeCommand(shootDurationSeconds))
-        .finallyDo((interrupted) -> stopAll())
-        .withName("Shooter Auto Aim and Shoot");
-    }
-
-/**
- * Get shooting solution for current position.
- */
-    public ShootingSolution getShootingSolution(Pose2d robotPose, boolean isRedAlliance) {
-        return ShootingCalculator.calculateSolution(robotPose, isRedAlliance);
-    }
+   
 }

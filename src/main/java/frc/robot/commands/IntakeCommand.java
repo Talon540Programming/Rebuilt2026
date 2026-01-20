@@ -17,7 +17,6 @@ public class IntakeCommand extends Command {
     public IntakeCommand(IntakeBase intake) {
         this.intake = intake;
         
-        // Require both subsystems
         addRequirements(intake);
     }
     
@@ -32,7 +31,6 @@ public class IntakeCommand extends Command {
     
     @Override
     public void end(boolean interrupted) {
-        // Stop both subsystems
         intake.retract();
     }
     
