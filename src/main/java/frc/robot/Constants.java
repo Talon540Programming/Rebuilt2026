@@ -122,7 +122,7 @@ public final class Constants {
   static {
     switch (getRobot()) {
       case SIMBOT ->{
-        HeadingPID.headingP.initDefault(10.0);
+        HeadingPID.headingP.initDefault(20.0);
         HeadingPID.headingI.initDefault(0.0);
         HeadingPID.headingD.initDefault(0.0);
 

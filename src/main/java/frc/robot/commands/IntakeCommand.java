@@ -1,8 +1,6 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Index.IndexBase;
-import frc.robot.subsystems.Index.IndexBase.IndexState;
 import frc.robot.subsystems.Intake.IntakeBase;
 
 /**
@@ -16,7 +14,7 @@ public class IntakeCommand extends Command {
     
     private final IntakeBase intake;    
     
-    public IntakeCommand(IntakeBase intake, IndexBase index) {
+    public IntakeCommand(IntakeBase intake) {
         this.intake = intake;
         
         // Require both subsystems

@@ -6,12 +6,14 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.IntakeIndexCommand;
+import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.SetHubHeading;
+import frc.robot.subsystems.Drive.SmoothFieldCentricFacingAngle;
 import frc.robot.subsystems.Index.IndexBase;
 import frc.robot.subsystems.Index.IndexIOKraken;
 import frc.robot.subsystems.Index.IndexIOSim;
@@ -93,10 +95,11 @@ public class RobotContainer {
       .withRotationalDeadband(MaxAngularRate * 0.1)
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   
-    private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
-      .withDeadband(0)
-      .withRotationalDeadband(MaxAngularRate * 0.1)
-      .withDriveRequestType(com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType.OpenLoopVoltage);
+    private final SmoothFieldCentricFacingAngle headingDrive = new SmoothFieldCentricFacingAngle()
+    .withRedTarget(FieldPoses.redHub.getTranslation()) 
+    .withBlueTarget(FieldPoses.blueHub.getTranslation())
+    .withDeadband(MaxSpeed * 0.1)
+    .withRotationalDeadband(0.0);
   
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
@@ -153,7 +156,7 @@ public class RobotContainer {
 
 
         m_driverController.x().toggleOnTrue(
-            new IntakeIndexCommand(intake, index)
+            new IntakeCommand(intake)
         );
 
         m_driverController.rightTrigger(0.2).whileTrue(
@@ -192,13 +195,10 @@ public class RobotContainer {
                 boolean useAutoHeading = autoHeading.isEnabled() && !driverRotating;
 
                 if (useAutoHeading) {
-                    autoHeading.updateTargetHeading(drivetrain.getPose());
-                    
                     drivetrain.setControl(
                         headingDrive
-                            .withVelocityX(xSpeed * MaxSpeed)
-                            .withVelocityY(ySpeed * MaxSpeed)
-                            .withTargetDirection(autoHeading.getTargetHeading())
+                        .withVelocityX(xSpeed * MaxSpeed)
+                        .withVelocityY(ySpeed * MaxSpeed)
                     );
                 } else {
                     drivetrain.setControl(
