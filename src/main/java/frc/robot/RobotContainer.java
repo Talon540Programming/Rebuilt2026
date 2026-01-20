@@ -144,17 +144,6 @@ public class RobotContainer {
             }
         }));
 
-        index.setDefaultCommand(
-            Commands.run(() -> {
-                if (index.getwantIntakeIndex() && !index.hasGamePiece()) {
-                    index.index();
-                } else {
-                    index.stop();
-                }
-            }, index)
-        );
-
-
         m_driverController.x().toggleOnTrue(
             new IntakeCommand(intake)
         );

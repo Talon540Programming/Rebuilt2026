@@ -26,8 +26,6 @@ public class IndexIOSim implements IndexIO {
     );
     
     private double appliedVolts = 0.0;
-    private boolean simulatedGamePiece = false;
-    private double simulatedDistance = 1.0; // Default to no game piece (far away)
     
     @Override
     public void updateInputs(IndexIOInputs inputs) {
@@ -37,10 +35,6 @@ public class IndexIOSim implements IndexIO {
         inputs.appliedVolts = appliedVolts;
         inputs.currentAmps = sim.getCurrentDrawAmps();
         inputs.tempCelsius = 25.0;
-        
-        // Simulate CANRange data
-        inputs.distanceMeters = simulatedDistance;
-        inputs.hasGamePiece = simulatedGamePiece;
     }
     
     @Override
@@ -58,19 +52,5 @@ public class IndexIOSim implements IndexIO {
     @Override
     public void setBrakeMode(boolean brake) {
         // Simulation doesn't need brake mode
-    }
-    
-    // ==================== SIMULATION METHODS ====================
-    
-    /** For testing - simulate a game piece being present at the CANRange */
-    public void setSimulatedGamePiece(boolean hasGamePiece) {
-        this.simulatedGamePiece = hasGamePiece;
-        this.simulatedDistance = hasGamePiece ? 0.05 : 1.0; // 5cm if present, 1m if not
-    }
-    
-    /** For testing - set the simulated distance reading */
-    public void setSimulatedDistance(double distanceMeters) {
-        this.simulatedDistance = distanceMeters;
-        this.simulatedGamePiece = distanceMeters < 0.15 && distanceMeters > 0.01;
     }
 }

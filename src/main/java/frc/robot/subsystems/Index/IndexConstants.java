@@ -5,7 +5,6 @@ import frc.robot.utility.LoggedTunableNumber;
 
 public class IndexConstants {
     public static final int kIndexMotorId = 15;
-    public static final int kCANRangeId = 22;
     
     public static final LoggedTunableNumber indexDutyCycle = new LoggedTunableNumber("Index/DutyCycle");      // Normal indexing speed
     public static final LoggedTunableNumber reverseDutyCycle = new LoggedTunableNumber("Index/ReverseDutyCycle");   // Reverse/eject speed

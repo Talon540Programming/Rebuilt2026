@@ -8,10 +8,6 @@ public interface IndexIO {
         public double appliedVolts = 0.0;
         public double currentAmps = 0.0;
         public double tempCelsius = 0.0;
-        
-        // CANRange sensor data
-        public double distanceMeters = 0.0;
-        public boolean hasGamePiece = false;
     }
     
     /** Update the set of loggable inputs */

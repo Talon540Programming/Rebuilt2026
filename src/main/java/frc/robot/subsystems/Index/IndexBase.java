@@ -18,7 +18,6 @@ public class IndexBase extends SubsystemBase {
     private final IndexIO io;
     
     private IndexState currentState = IndexState.STOPPED;
-    private boolean wantIntakeIndex = false;
 
     
     public IndexBase(IndexIO io) {
@@ -67,40 +66,6 @@ public class IndexBase extends SubsystemBase {
         currentState = IndexState.STOPPED;
         io.stop();
     }
-
-     public void requestIntakeIndex(boolean enable){
-        wantIntakeIndex = enable; 
-    }
-
-    public boolean getwantIntakeIndex(){
-        return wantIntakeIndex;
-    }
-    
-    // ==================== SENSOR METHODS ====================
-    
-    /**
-     * Check if a game piece is detected by the CANRange sensor
-     * @return true if game piece is present
-     */
-    public boolean hasGamePiece() {
-        return inputs.hasGamePiece;
-    }
-    
-    /**
-     * Get the raw distance reading from CANRange
-     * @return distance in meters
-     */
-    public double getDistance() {
-        return inputs.distanceMeters;
-    }
-    
-    /**
-     * Check if index is ready to feed (game piece is in position)
-     * @return true if ready to shoot
-     */
-    public boolean isReadyToFeed() {
-        return inputs.hasGamePiece;
-    }
     
     // ==================== STATE GETTERS ====================
     
@@ -113,17 +78,7 @@ public class IndexBase extends SubsystemBase {
     }
     
     // ==================== COMMANDS ====================
-    
-    /**
-     * Command to run index until game piece is detected
-     */
-    public Command indexUntilGamePieceCommand() {
-        return run(this::index)
-            .until(this::hasGamePiece)
-            .finallyDo((interrupted) -> stop())
-            .withName("Index Until Game Piece");
-    }
-    
+
     /**
      * Command to run index (manual control, runs until interrupted)
      */
