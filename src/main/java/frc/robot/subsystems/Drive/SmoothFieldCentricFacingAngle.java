@@ -30,6 +30,8 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
     // Target point to face (set externally based on alliance)
     private Translation2d m_redTarget = new Translation2d();
     private Translation2d m_blueTarget = new Translation2d();
+    // Dynamic virtual target (overrides static targets when non-null)
+    private Translation2d m_virtualTarget = null;
 
     // For tracking rate of change of target heading
     private double m_previousTimestamp = 0.0;
@@ -53,11 +55,16 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         // Get current pose from the 250Hz odometry thread
         Pose2d currentPose = parameters.currentPose;
         
-        // Determine which target to use based on alliance
-        Translation2d target = m_blueTarget;
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isPresent() && alliance.get() == Alliance.Red) {
-            target = m_redTarget;
+       // Use virtual target if set, otherwise use alliance-based static target
+        Translation2d target;
+        if (m_virtualTarget != null) {
+            target = m_virtualTarget;
+        } else {
+            target = m_blueTarget;
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+                target = m_redTarget;
+            }
         }
         
         // Calculate target heading at 250Hz
@@ -155,5 +162,14 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
     public SmoothFieldCentricFacingAngle withForwardPerspective(ForwardPerspectiveValue forwardPerspective) {
         this.ForwardPerspective = forwardPerspective;
         return this;
+    }
+
+    public SmoothFieldCentricFacingAngle withVirtualTarget(Translation2d virtualTarget) {
+        this.m_virtualTarget = virtualTarget;
+        return this;
+    }
+
+    public void clearVirtualTarget() {
+        this.m_virtualTarget = null;
     }
 }

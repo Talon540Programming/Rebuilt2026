@@ -164,6 +164,7 @@ public class RobotContainer {
                 shooter,
                 index,
                 () -> drivetrain.getPose(),
+                () -> drivetrain.getFieldVelocity(),
                 () -> vision.isRedAlliance()
             )
         );
@@ -193,6 +194,14 @@ public class RobotContainer {
                 
                 // Determine which auto-heading mode to use
                 boolean useAutoHeading = autoHeading.isEnabled() && !driverRotating;
+
+                // Update virtual goal for shoot-while-moving when auto heading is enabled
+                if (useAutoHeading) {
+                    autoHeading.updateVirtualGoal(drivetrain.getPose(), drivetrain.getFieldVelocity());
+                    headingDrive.withVirtualTarget(autoHeading.getVirtualGoal());
+                } else {
+                    headingDrive.clearVirtualTarget();
+                }
 
                 if (useAutoHeading) {
                     drivetrain.setControl(
@@ -256,6 +265,6 @@ public class RobotContainer {
             return shooter.hoodHomingSequence();
         }
         return Commands.none();
-}
+    }
 
 }

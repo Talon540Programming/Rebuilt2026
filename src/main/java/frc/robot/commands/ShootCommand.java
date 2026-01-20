@@ -4,6 +4,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utility.ShootingCalculator;
 import frc.robot.utility.ShootingCalculator.ShootingSolution;
@@ -25,28 +27,33 @@ public class ShootCommand extends Command {
     private final ShooterBase shooter;
     private final IndexBase index;
     private final Supplier<Pose2d> poseSupplier;
+    private final Supplier<ChassisSpeeds> velocitySupplier;
     private final BooleanSupplier isRedAllianceSupplier;
-    
+
     private boolean flywheelSpunUp = false;
     
     /**
-     * Creates a ShootCommand with auto-aiming based on robot position.
+     * Creates a ShootCommand with auto-aiming based on robot position and velocity.
      * 
      * @param shooter The shooter subsystem
      * @param index The index subsystem
      * @param poseSupplier Supplier for current robot pose
+     * @param velocitySupplier Supplier for field-relative velocity
      * @param isRedAllianceSupplier Supplier for alliance color
      */
     public ShootCommand(ShooterBase shooter, IndexBase index, 
-                        Supplier<Pose2d> poseSupplier, BooleanSupplier isRedAllianceSupplier) {
+                        Supplier<Pose2d> poseSupplier, 
+                        Supplier<ChassisSpeeds> velocitySupplier,
+                        BooleanSupplier isRedAllianceSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
+        this.velocitySupplier = velocitySupplier;
         this.isRedAllianceSupplier = isRedAllianceSupplier;
         
         // Require both subsystems
         addRequirements(shooter);
-    }
+}
     
     @Override
     public void initialize() {
@@ -55,9 +62,10 @@ public class ShootCommand extends Command {
     
     @Override
     public void execute() {
-        // Continuously update shooter parameters based on current position
-        ShootingSolution solution = ShootingCalculator.calculateSolution(
-            poseSupplier.get(), 
+        // Continuously update shooter parameters based on current position and velocity
+        ShootingSolution solution = ShootingCalculator.calculateSolutionWithMovement(
+            poseSupplier.get(),
+            velocitySupplier.get(),
             isRedAllianceSupplier.getAsBoolean()
         );
         

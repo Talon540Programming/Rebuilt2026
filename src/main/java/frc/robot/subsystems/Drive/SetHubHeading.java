@@ -4,10 +4,12 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.robot.utility.ShootingCalculator;
 import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Vision.VisionBase;
-import frc.robot.utility.ShootingCalculator;
 
 /**
  * Manages automatic heading control to face the hub while driving.
@@ -19,6 +21,7 @@ public class SetHubHeading {
     
     private boolean faceHubEnabled = false;
     private Rotation2d targetHeading = new Rotation2d();
+    private Translation2d virtualGoal = null;
     private double distanceToHub = 0.0;
 
     public SetHubHeading(VisionBase vision) {
@@ -90,5 +93,39 @@ public class SetHubHeading {
      */
     public boolean isDriverRotating(double rotationInput) {
         return Math.abs(rotationInput) > OperatorConstants.deadband;
+    }
+
+    /**
+     * Updates the virtual goal position for shoot-while-moving.
+     * Call this periodically when shoot-while-moving is active.
+     * 
+     * @param currentPose The current pose of the robot
+     * @param fieldVelocity Field-relative velocity of the robot
+     */
+    public void updateVirtualGoal(Pose2d currentPose, ChassisSpeeds fieldVelocity) {
+        boolean isRed = vision.isRedAlliance();
+        
+        virtualGoal = ShootingCalculator.calculateVirtualGoal(currentPose, fieldVelocity, isRed);
+        
+        // Update target heading to face virtual goal instead of actual hub
+        double dx = virtualGoal.getX() - currentPose.getX();
+        double dy = virtualGoal.getY() - currentPose.getY();
+        
+        targetHeading = new Rotation2d(Math.atan2(dy, dx));
+        
+        // Distance is now to virtual goal
+        distanceToHub = virtualGoal.getDistance(currentPose.getTranslation());
+        
+        // Log values
+        Logger.recordOutput("FaceHub/VirtualGoal", virtualGoal);
+        Logger.recordOutput("FaceHub/TargetHeading", targetHeading.getDegrees());
+        Logger.recordOutput("FaceHub/DistanceToVirtualGoal", distanceToHub);
+    }
+
+    /**
+     * Get the current virtual goal position.
+     */
+    public Translation2d getVirtualGoal() {
+        return virtualGoal;
     }
 }

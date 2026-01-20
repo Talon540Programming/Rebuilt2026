@@ -108,6 +108,11 @@ public final class Constants {
     // Hood angle limits (same as ShooterConstants for reference)
     public static final double hoodMinAngle = Math.PI / 8;     // 22.5 degrees
     public static final double hoodMaxAngle = Math.PI / 2;     // 90 degrees
+
+    public static final LoggedTunableNumber compensationFactorX = 
+        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.3);
+    public static final LoggedTunableNumber compensationFactorY = 
+        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.45);
   }
 
   public static final class HeadingPID {
