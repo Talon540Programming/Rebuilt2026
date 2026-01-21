@@ -9,6 +9,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.ShootingConstants;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 
 /**
  * Calculates the optimal hood angle and flywheel velocity for shooting
@@ -68,7 +70,7 @@ public class ShootingCalculator {
         double theta = Math.atan(numerator / denominator);
         
         // Clamp to hood limits
-        theta = MathUtil.clamp(theta, ShootingConstants.hoodMinAngle, ShootingConstants.hoodMaxAngle);
+        theta = MathUtil.clamp((Math.PI/2) - theta, ShootingConstants.hoodMinAngle, ShootingConstants.hoodMaxAngle);
         
         return theta;
     }
@@ -176,7 +178,9 @@ public class ShootingCalculator {
             boolean isRedAlliance) {
         
         Pose2d hubPose = isRedAlliance ? FieldPoses.redHub : FieldPoses.blueHub;
+        // Get shooter position for accurate distance calculation
         Translation2d actualGoal = hubPose.getTranslation();
+        Translation2d shooterPos = getShooterPosition(robotPose);
         
         // Initial distance estimate
         double dist = getDistanceToHub(robotPose, isRedAlliance);
@@ -196,7 +200,7 @@ public class ShootingCalculator {
                 new Translation2d(virtualGoalX, virtualGoalY);
             
             // Calculate new distance and shot time to virtual goal
-            double newDist = testGoal.getDistance(robotPose.getTranslation());
+            double newDist = testGoal.getDistance(shooterPos);
             double newShotTime = calculateTimeOfFlight(newDist);
             
             // Check for convergence (within 10ms)
@@ -237,25 +241,76 @@ public class ShootingCalculator {
             calculateVirtualGoal(robotPose, robotVelocity, isRedAlliance);
         
         // Calculate distance to VIRTUAL goal (not actual goal)
-        double distance = virtualGoal.getDistance(robotPose.getTranslation());
+        Translation2d shooterPos = getShooterPosition(robotPose);
+        double distance = virtualGoal.getDistance(shooterPos);
         double hoodAngle = calculateHoodAngle(distance);
         double flywheelRPM = calculateFlywheelRPM(distance);
         
         return new ShootingSolution(hoodAngle, flywheelRPM, distance, virtualGoal);
     }
+
+    /**
+ * Get the shooter's position in field coordinates.
+ * Accounts for shooter offset from robot center.
+ * 
+ * @param robotPose Current robot pose (center of robot)
+ * @return Shooter position in field coordinates
+ */
+public static Translation2d getShooterPosition(Pose2d robotPose) {
+    // Convert shooter offset from inches to meters
+    double offsetXMeters = Units.inchesToMeters(ShootingConstants.shooterOffsetXInches.get());
+    double offsetYMeters = Units.inchesToMeters(ShootingConstants.shooterOffsetYInches.get());
+    
+    // Transform from robot-relative to field-relative
+    Transform2d shooterOffset = new Transform2d(
+        new Translation2d(offsetXMeters, offsetYMeters),
+        new Rotation2d()
+    );
+    
+    Pose2d shooterPose = robotPose.transformBy(shooterOffset);
+    
+    Logger.recordOutput("Shooting/ShooterPosition", shooterPose.getTranslation());
+    
+    return shooterPose.getTranslation();
+}
+
+    /**
+     * Calculate the heading offset needed to point the shooter at the target.
+     * Because the shooter is offset laterally, the robot needs to rotate slightly
+     * so the shooter (not robot center) points at the hub.
+     * 
+     * @param robotPose Current robot pose
+     * @param target Target position (hub or virtual goal)
+     * @return Heading the robot should face (in radians)
+     */
+    public static double calculateAimingHeading(Pose2d robotPose, Translation2d target) {
+        Translation2d shooterPos = getShooterPosition(robotPose);
+        
+        // Calculate angle from shooter to target
+        double dx = target.getX() - shooterPos.getX();
+        double dy = target.getY() - shooterPos.getY();
+        double angleToTarget = Math.atan2(dy, dx);
+        
+        Logger.recordOutput("Shooting/AimingHeadingDeg", Math.toDegrees(angleToTarget));
+        
+        return angleToTarget;
+    }
     
     /**
-     * Calculate distance from robot to hub center.
+     * Calculate distance from shooter (not robot center) to hub center.
      * 
      * @param robotPose Current robot pose
      * @param isRedAlliance True if on red alliance
-     * @return Distance in meters
+     * @return Distance in meters from shooter to hub
      */
     public static double getDistanceToHub(Pose2d robotPose, boolean isRedAlliance) {
         Pose2d hubPose = isRedAlliance ? FieldPoses.redHub : FieldPoses.blueHub;
         
-        double dx = hubPose.getX() - robotPose.getX();
-        double dy = hubPose.getY() - robotPose.getY();
+        // Use shooter position, not robot center
+        Translation2d shooterPos = getShooterPosition(robotPose);
+        
+        double dx = hubPose.getX() - shooterPos.getX();
+        double dy = hubPose.getY() - shooterPos.getY();
         
         return Math.sqrt(dx * dx + dy * dy);
     }

@@ -135,7 +135,7 @@ public class RobotContainer {
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
         // Y button toggles face reef center - also disables auto heading if it's on
-        m_driverController.povRight().onTrue(Commands.runOnce(() -> {
+        m_driverController.rightBumper().onTrue(Commands.runOnce(() -> {
             if (autoHeading.isEnabled()) {
                 autoHeading.disableFaceHub();
             }
@@ -144,7 +144,7 @@ public class RobotContainer {
             }
         }));
 
-        m_driverController.x().toggleOnTrue(
+        m_driverController.leftTrigger().toggleOnTrue(
             new IntakeCommand(intake)
         );
 

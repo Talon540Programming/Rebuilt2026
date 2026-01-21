@@ -3,9 +3,9 @@ package frc.robot.subsystems.Intake;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.commands.IntakeHomingCommand;
 import frc.robot.subsystems.Intake.Extension.ExtensionIO;
 import frc.robot.subsystems.Intake.Extension.ExtensionIOSim;
 import frc.robot.subsystems.Intake.Extension.ExtensionIO.PivotIOInputs;
@@ -14,6 +14,7 @@ import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
@@ -238,7 +239,7 @@ public class IntakeBase extends SubsystemBase {
       public void setGoal(Goal newGoal) {
         if (newGoal != goal) {
             goal = newGoal;
-            goalChangeTimestampSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+            goalChangeTimestampSec = Timer.getFPGATimestamp();
             crashDebouncer.calculate(false); // reset debounce state on new motion
             crashLatched = false;
         }
@@ -248,57 +249,53 @@ public class IntakeBase extends SubsystemBase {
             : IntakeConstants.extensionStowedPosRot.get();
     }
 
-    // ==================== COMMANDS ====================
-    
+    // ==================== HOMING HELPERS ====================
+
     /**
-     * Command to deploy intake (runs until interrupted)
+     * Reset homing state - call at start of homing sequence
      */
-    public Command deployCommand() {
-        return runOnce(this::deploy)
-            .andThen(run(() -> {})) // Keep running
-            .finallyDo((interrupted) -> retract())
-            .withName("Intake Deploy");
-    }
-    
-    /**
-     * Command to toggle intake state
-     */
-    public Command toggleCommand() {
-        return runOnce(this::toggle).withName("Intake Toggle");
-    }
-    
-    /**
-     * Command to eject game piece
-     */
-    public Command ejectCommand() {
-        return runOnce(this::eject)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Intake Eject");
+    public void resetHomingState() {
+        homed = false;
+        crashLatched = false;
     }
 
-    public Command homingSequence() {
-        return Commands.sequence(
-            // Disable normal control, reset state
-            runOnce(() -> {
-                homed = false;
-                crashLatched = false;
-            }),
-            // Run toward hard stop until stalled
-            run(() -> {
-                pivotIO.setDutyCycle(IntakeConstants.extensionHomingDutyCycle);  // e.g., -0.15
-            })
-            .until(() -> 
-                Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionHomingVelThreshold
-                && Math.abs(extensionInputs.currentAmps) > IntakeConstants.extensionHomingCurrentThreshold
-            )
-            .withTimeout(2.0),  // Safety timeout
-            // Zero encoder at hard stop
-            runOnce(() -> {
-                pivotIO.setPosition(IntakeConstants.extensionStowedPosRot.get());
-                homed = true;
-                setGoal(Goal.STOWED);
-            })
-        ).withName("Intake Homing");
+    /**
+     * Set extension duty cycle directly - used for homing
+     */
+    public void setExtensionDutyCycle(double dutyCycle) {
+        pivotIO.setDutyCycle(dutyCycle);
     }
+
+    /**
+     * Stop the extension motor
+     */
+    public void stopExtension() {
+        pivotIO.stop();
+    }
+
+    /**
+     * Check if extension is stalled (for homing detection)
+     */
+    public boolean isExtensionStalled() {
+        return Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionHomingVelThreshold
+            && Math.abs(extensionInputs.currentAmps) > IntakeConstants.extensionHomingCurrentThreshold;
+    }
+
+    /**
+     * Zero extension encoder at stowed position - call when at hard stop
+     */
+    public void zeroExtensionAtStowed() {
+        pivotIO.setPosition(IntakeConstants.extensionStowedPosRot.get());
+        homed = true;
+        setGoal(Goal.STOWED);
+        Logger.recordOutput("Intake/Extension/Homed", true);
+    }
+
+    /**
+     * Get the intake homing command
+     */
+    public Command homingSequence() {
+        return new IntakeHomingCommand(this).withTimeout(2.0);
+    }
+
 }

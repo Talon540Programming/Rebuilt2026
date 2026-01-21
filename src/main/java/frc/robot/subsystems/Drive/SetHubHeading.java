@@ -107,11 +107,9 @@ public class SetHubHeading {
         
         virtualGoal = ShootingCalculator.calculateVirtualGoal(currentPose, fieldVelocity, isRed);
         
-        // Update target heading to face virtual goal instead of actual hub
-        double dx = virtualGoal.getX() - currentPose.getX();
-        double dy = virtualGoal.getY() - currentPose.getY();
-        
-        targetHeading = new Rotation2d(Math.atan2(dy, dx));
+        // Calculate heading that points the shooter at the virtual goal
+        double aimingHeading = ShootingCalculator.calculateAimingHeading(currentPose, virtualGoal);
+        targetHeading = new Rotation2d(aimingHeading);
         
         // Distance is now to virtual goal
         distanceToHub = virtualGoal.getDistance(currentPose.getTranslation());

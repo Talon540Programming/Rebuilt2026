@@ -2,7 +2,6 @@ package frc.robot.subsystems.Climberz;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Climberz.ClimberzIO.ClimberzIOInputs;
 
@@ -86,50 +85,4 @@ public class ClimberzBase extends SubsystemBase {
         return inputs.leaderCurrentAmps + inputs.followerCurrentAmps;
     }
     
-    // ==================== COMMANDS ====================
-    
-    /**
-     * Command to climb up (run until interrupted)
-     */
-    public Command climbUpCommand() {
-        return runOnce(this::climbUp)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Climberz Up");
-    }
-    
-    /**
-     * Command to climb down (run until interrupted)
-     */
-    public Command climbDownCommand() {
-        return runOnce(this::climbDown)
-            .andThen(run(() -> {}))
-            .finallyDo((interrupted) -> stop())
-            .withName("Climberz Down");
-    }
-    
-    /**
-     * Command to stop climber
-     */
-    public Command stopCommand() {
-        return runOnce(this::stop).withName("Climberz Stop");
-    }
-    
-    /**
-     * Command for manual control with joystick input
-     * @param dutyCycleSupplier Supplier for duty cycle (-1 to 1)
-     */
-    public Command manualControlCommand(java.util.function.DoubleSupplier dutyCycleSupplier) {
-        return run(() -> {
-            double dutyCycle = dutyCycleSupplier.getAsDouble();
-            if (Math.abs(dutyCycle) > 0.1) { // Deadband
-                setDutyCycle(dutyCycle);
-                currentState = dutyCycle > 0 ? ClimberState.CLIMBING_UP : ClimberState.CLIMBING_DOWN;
-            } else {
-                stop();
-            }
-        })
-        .finallyDo((interrupted) -> stop())
-        .withName("Climberz Manual");
-    }
 }

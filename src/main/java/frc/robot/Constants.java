@@ -87,7 +87,7 @@ public final class Constants {
 
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
-    public static final double backDistanceInches = 20.0;      // Distance from shooter exit to robot center
+    public static final double backDistanceInches = 20.0;      
     public static final double shooterHeightInches = 20.0;     // Height of shooter exit from ground
     public static final double heightOfHubInches = 72.0;       // Height of hub opening
     public static final double clearanceInches = 12.0;         // Desired clearance over hub rim
@@ -106,13 +106,20 @@ public final class Constants {
     public static final double maxFlywheelRPM = 6000.0;        // Maximum safe RPM
     
     // Hood angle limits (same as ShooterConstants for reference)
-    public static final double hoodMinAngle = Math.PI / 8;     // 22.5 degrees
-    public static final double hoodMaxAngle = Math.PI / 2;     // 90 degrees
+    public static final double hoodMinAngle = Math.PI / 12;     // 15 degrees
+    public static final double hoodMaxAngle = Math.PI / 3;     // 60 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
         new LoggedTunableNumber("Shooting/CompensationFactorX", 0.3);
     public static final LoggedTunableNumber compensationFactorY = 
         new LoggedTunableNumber("Shooting/CompensationFactorY", 0.45);
+
+    // Shooter position offset from robot center (in inches)
+    // Positive X = forward, Positive Y = left
+    public static final LoggedTunableNumber shooterOffsetXInches = 
+        new LoggedTunableNumber("Shooting/ShooterOffsetXInches", 6.6);
+    public static final LoggedTunableNumber shooterOffsetYInches = 
+        new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 3.5);
   }
 
   public static final class HeadingPID {

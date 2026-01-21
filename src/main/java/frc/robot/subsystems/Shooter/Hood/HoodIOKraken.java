@@ -10,12 +10,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.Constants.ShootingConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Shooter.ShooterConstants;
 
@@ -72,9 +72,9 @@ public class HoodIOKraken implements HoodIO {
         
         // Software limits (in mechanism rotations)
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShooterConstants.hoodMaxPosRot.get() + 0.01;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShootingConstants.hoodMaxAngle + 0.01;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShooterConstants.hoodMinPosRot.get() - 0.01;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShootingConstants.hoodMinAngle - 0.01;
         
         motor.getConfigurator().apply(config);
         
@@ -125,10 +125,6 @@ public class HoodIOKraken implements HoodIO {
     
     @Override
     public void setPosition(double positionRadians) {
-        // Clamp to valid range
-        double minRad = ShooterConstants.hoodMinPosRot.get() * (2 * Math.PI);
-        double maxRad = ShooterConstants.hoodMaxPosRot.get() * (2 * Math.PI);
-        positionRadians = MathUtil.clamp(positionRadians, minRad, maxRad);
         targetPositionRadians = positionRadians;
         
         // Convert radians to mechanism rotations
@@ -149,7 +145,7 @@ public class HoodIOKraken implements HoodIO {
     @Override
     public void zeroEncoder() {
         // Zero the encoder - assumes hood is at minimum position when called
-        motor.setPosition(ShooterConstants.hoodMinPosRot.get());
+        motor.setPosition(ShootingConstants.hoodMinAngle);
     }
     
     @Override

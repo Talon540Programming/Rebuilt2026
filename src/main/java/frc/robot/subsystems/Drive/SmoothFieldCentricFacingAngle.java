@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.utility.ShootingCalculator;
 
 /**
  * Custom swerve request that smoothly tracks a target point on the field.
@@ -68,9 +69,8 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         }
         
         // Calculate target heading at 250Hz
-        double dx = target.getX() - currentPose.getX();
-        double dy = target.getY() - currentPose.getY();
-        double targetRadians = Math.atan2(dy, dx);
+        // Calculate target heading at 250Hz using shooter position offset
+        double targetRadians = ShootingCalculator.calculateAimingHeading(currentPose, target);
         
         Rotation2d angleToFace = new Rotation2d(targetRadians);
         if (ForwardPerspective == ForwardPerspectiveValue.OperatorPerspective) {

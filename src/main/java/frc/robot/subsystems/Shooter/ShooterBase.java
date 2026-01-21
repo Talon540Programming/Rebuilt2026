@@ -10,6 +10,7 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO;
 import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
+import frc.robot.Constants.ShootingConstants;
 import frc.robot.commands.HoodHomingCommand;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
 
@@ -193,7 +194,7 @@ public class ShooterBase extends SubsystemBase {
      * Zero hood encoder at minimum position - call when at hard stop
      */
     public void zeroHoodAtMin() {
-        hoodIO.setEncoderPosition(ShooterConstants.hoodMinPosRot.get());
+        hoodIO.setEncoderPosition(ShootingConstants.hoodMinAngle);
         hoodHomed = true;
         Logger.recordOutput("Shooter/Hood/Homed", true);
     }

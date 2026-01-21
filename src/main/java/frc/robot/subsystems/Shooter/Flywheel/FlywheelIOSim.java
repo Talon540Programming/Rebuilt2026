@@ -31,7 +31,7 @@ public class FlywheelIOSim implements FlywheelIO {
     private double targetVelocityRPM = 0.0;
     
     // Simple velocity control gains for simulation
-    private static final double simP = ShooterConstants.flywheelkP.get();
+    // Simple velocity control gains for simulation
     private static final double kSimFF = 0.0018; // Feedforward: volts per RPM
     
     // Velocity tolerance for "at setpoint" check (RPM)
@@ -43,6 +43,7 @@ public class FlywheelIOSim implements FlywheelIO {
         if (closedLoop) {
         double currentRPM = sim.getAngularVelocityRPM();
         double error = targetVelocityRPM - currentRPM;
+        double simP = ShooterConstants.flywheelkP.get(); // Get dynamically so it's tunable
         appliedVolts = (simP * error) + (kSimFF * targetVelocityRPM);
         appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
         sim.setInputVoltage(appliedVolts);

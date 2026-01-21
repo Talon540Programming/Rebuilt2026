@@ -72,11 +72,6 @@ public class ShooterConstants {
     public static final LoggedTunableNumber hoodMMJerkRotPerSec3 = 
         new LoggedTunableNumber("Shooter/Hood/MMJerkRotPerSec3");
     
-    // Hood positions and limits (in mechanism rotations)
-    public static final LoggedTunableNumber hoodMinPosRot = 
-        new LoggedTunableNumber("Shooter/Hood/MinPosRot");
-    public static final LoggedTunableNumber hoodMaxPosRot = 
-        new LoggedTunableNumber("Shooter/Hood/MaxPosRot");
     public static final LoggedTunableNumber hoodSensorToMechanismRatio = 
         new LoggedTunableNumber("Shooter/Hood/SensorToMechanismRatio");
     
@@ -164,11 +159,7 @@ public class ShooterConstants {
                 hoodMMCruiseVelRotPerSec.initDefault(80);  // 80 rps cruise
                 hoodMMAccelRotPerSec2.initDefault(160);    // 160 rps/s
                 hoodMMJerkRotPerSec3.initDefault(1600);    // 1600 rps/s/s
-                
-                // Hood positions in mechanism rotations
-                // Min angle ~22.5 deg = 0.0625 rot, Max angle ~90 deg = 0.25 rot
-                hoodMinPosRot.initDefault(0.0625);
-                hoodMaxPosRot.initDefault(0.25);
+            
                 hoodSensorToMechanismRatio.initDefault(50);  // 50:1 gear ratio
                 
                 hoodPosToleranceRot.initDefault(0.005);  // ~2 degrees
@@ -204,8 +195,6 @@ public class ShooterConstants {
                 hoodMMAccelRotPerSec2.initDefault(0);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
                 
-                hoodMinPosRot.initDefault(0.0);  // TODO: measure
-                hoodMaxPosRot.initDefault(0.0);  // TODO: measure
                 hoodSensorToMechanismRatio.initDefault(50);  // TODO: verify
                 
                 hoodPosToleranceRot.initDefault(0.005);
