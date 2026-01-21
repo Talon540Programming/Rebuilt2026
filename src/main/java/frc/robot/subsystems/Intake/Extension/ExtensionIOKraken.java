@@ -28,10 +28,8 @@ public class ExtensionIOKraken implements ExtensionIO {
     private final StatusSignal<Current> current;
     private final StatusSignal<Temperature> temp;
     
-    private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0.0);
 
-    
     public ExtensionIOKraken() {
         pivot = new TalonFX(IntakeConstants.extensionMotorId);
         
@@ -92,11 +90,6 @@ public class ExtensionIOKraken implements ExtensionIO {
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = current.getValueAsDouble();
         inputs.tempCelsius = temp.getValueAsDouble();
-    }
-    
-    @Override
-    public void setDutyCycle(double dutyCycle) {
-        pivot.setControl(dutyCycleControl.withOutput(dutyCycle));
     }
     
     @Override

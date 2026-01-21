@@ -32,19 +32,19 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
     private Translation2d m_redTarget = new Translation2d();
     private Translation2d m_blueTarget = new Translation2d();
     // Dynamic virtual target (overrides static targets when non-null)
-    private Translation2d m_virtualTarget = null;
+    private Translation2d virtualTarget = null;
 
     // For tracking rate of change of target heading
     private double m_previousTimestamp = 0.0;
 
     // Request parameters
-    public double VelocityX = 0.0;
-    public double VelocityY = 0.0;
-    public double Deadband = 0.0;
-    public double RotationalDeadband = 0.0;
-    public SwerveModule.DriveRequestType DriveRequestType = SwerveModule.DriveRequestType.OpenLoopVoltage;
-    public SwerveModule.SteerRequestType SteerRequestType = SwerveModule.SteerRequestType.MotionMagicExpo;
-    public ForwardPerspectiveValue ForwardPerspective = ForwardPerspectiveValue.OperatorPerspective;
+    public double velocityX = 0.0;
+    public double velocityY = 0.0;
+    public double deadband = 0.0;
+    public double rotationalDeadband = 0.0;
+    public SwerveModule.DriveRequestType driveRequestType = SwerveModule.DriveRequestType.OpenLoopVoltage;
+    public SwerveModule.SteerRequestType steerRequestType = SwerveModule.SteerRequestType.MotionMagicExpo;
+    public ForwardPerspectiveValue forwardPerspective = ForwardPerspectiveValue.OperatorPerspective;
 
     public SmoothFieldCentricFacingAngle() {
         HeadingController.enableContinuousInput(-Math.PI, Math.PI);
@@ -58,8 +58,8 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         
        // Use virtual target if set, otherwise use alliance-based static target
         Translation2d target;
-        if (m_virtualTarget != null) {
-            target = m_virtualTarget;
+        if (virtualTarget != null) {
+            target = virtualTarget;
         } else {
             target = m_blueTarget;
             var alliance = DriverStation.getAlliance();
@@ -73,7 +73,7 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         double targetRadians = ShootingCalculator.calculateAimingHeading(currentPose, target);
         
         Rotation2d angleToFace = new Rotation2d(targetRadians);
-        if (ForwardPerspective == ForwardPerspectiveValue.OperatorPerspective) {
+        if (forwardPerspective == ForwardPerspectiveValue.OperatorPerspective) {
             angleToFace = angleToFace.rotateBy(parameters.operatorForwardDirection);
         }
         double adjustedTargetRadians = angleToFace.getRadians();
@@ -99,14 +99,14 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
 
         // Use the underlying FieldCentric request
         return m_fieldCentric
-            .withVelocityX(VelocityX)
-            .withVelocityY(VelocityY)
+            .withVelocityX(velocityX)
+            .withVelocityY(velocityY)
             .withRotationalRate(toApplyOmega)
-            .withDeadband(Deadband)
-            .withRotationalDeadband(RotationalDeadband)
-            .withDriveRequestType(DriveRequestType)
-            .withSteerRequestType(SteerRequestType)
-            .withForwardPerspective(ForwardPerspective)
+            .withDeadband(deadband)
+            .withRotationalDeadband(rotationalDeadband)
+            .withDriveRequestType(driveRequestType)
+            .withSteerRequestType(steerRequestType)
+            .withForwardPerspective(forwardPerspective)
             .apply(parameters, modulesToApply);
 
     
@@ -114,12 +114,12 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
 
     // Fluent API methods
     public SmoothFieldCentricFacingAngle withVelocityX(double velocityX) {
-        this.VelocityX = velocityX;
+        this.velocityX = velocityX;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withVelocityY(double velocityY) {
-        this.VelocityY = velocityY;
+        this.velocityY = velocityY;
         return this;
     }
 
@@ -140,36 +140,36 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
     }
 
     public SmoothFieldCentricFacingAngle withDeadband(double deadband) {
-        this.Deadband = deadband;
+        this.deadband = deadband;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withRotationalDeadband(double rotationalDeadband) {
-        this.RotationalDeadband = rotationalDeadband;
+        this.rotationalDeadband = rotationalDeadband;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withDriveRequestType(SwerveModule.DriveRequestType driveRequestType) {
-        this.DriveRequestType = driveRequestType;
+        this.driveRequestType = driveRequestType;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withSteerRequestType(SwerveModule.SteerRequestType steerRequestType) {
-        this.SteerRequestType = steerRequestType;
+        this.steerRequestType = steerRequestType;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withForwardPerspective(ForwardPerspectiveValue forwardPerspective) {
-        this.ForwardPerspective = forwardPerspective;
+        this.forwardPerspective = forwardPerspective;
         return this;
     }
 
     public SmoothFieldCentricFacingAngle withVirtualTarget(Translation2d virtualTarget) {
-        this.m_virtualTarget = virtualTarget;
+        this.virtualTarget = virtualTarget;
         return this;
     }
 
     public void clearVirtualTarget() {
-        this.m_virtualTarget = null;
+        this.virtualTarget = null;
     }
 }

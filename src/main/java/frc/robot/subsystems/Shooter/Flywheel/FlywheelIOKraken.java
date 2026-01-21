@@ -3,7 +3,6 @@ package frc.robot.subsystems.Shooter.Flywheel;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -33,7 +32,6 @@ public class FlywheelIOKraken implements FlywheelIO {
     
     // Control requests
     private final MotionMagicVelocityVoltage velocityControl = new MotionMagicVelocityVoltage(0);
-    private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     private double targetVelocityRPM = 0.0;
     
@@ -128,18 +126,6 @@ public class FlywheelIOKraken implements FlywheelIO {
         double velocityRotPerSec = velocityRPM / 60.0;
         // Motion Magic Velocity uses rotations per second
         leaderMotor.setControl(velocityControl.withVelocity(velocityRotPerSec));
-    }
-    
-    @Override
-    public void setDutyCycle(double dutyCycle) {
-        targetVelocityRPM = 0.0;
-        leaderMotor.setControl(dutyCycleControl.withOutput(dutyCycle));
-    }
-    
-    @Override
-    public void stop() {
-        targetVelocityRPM = 0.0;
-        leaderMotor.setControl(dutyCycleControl.withOutput(0));
     }
     
     @Override

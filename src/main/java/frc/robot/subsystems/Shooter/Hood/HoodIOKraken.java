@@ -32,7 +32,6 @@ public class HoodIOKraken implements HoodIO {
     
     // Control requests
     private final MotionMagicVoltage positionControl = new MotionMagicVoltage(0);
-    private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     private double targetPositionRadians = 0.0;
     
@@ -130,16 +129,6 @@ public class HoodIOKraken implements HoodIO {
         // Convert radians to mechanism rotations
         double mechanismRotations = positionRadians / (2 * Math.PI);
         motor.setControl(positionControl.withPosition(mechanismRotations));
-    }
-    
-    @Override
-    public void setDutyCycle(double dutyCycle) {
-        motor.setControl(dutyCycleControl.withOutput(dutyCycle));
-    }
-    
-    @Override
-    public void stop() {
-        motor.setControl(dutyCycleControl.withOutput(0));
     }
     
     @Override
