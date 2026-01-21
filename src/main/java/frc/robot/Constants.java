@@ -136,7 +136,7 @@ public final class Constants {
       case SIMBOT ->{
         HeadingPID.headingP.initDefault(20.0);
         HeadingPID.headingI.initDefault(0.0);
-        HeadingPID.headingD.initDefault(0.0);
+        HeadingPID.headingD.initDefault(0.5);
 
       }
       case COMPBOT ->{
