@@ -15,26 +15,33 @@ import frc.robot.subsystems.Vision.VisionBase;
  * Manages automatic heading control to face the hub while driving.
  * Similar to SetReefCenterHeading but targets the hub for shooting.
  */
-public class SetHubHeading {
+public class SetHeading {
 
     private final VisionBase vision;
     
     private boolean faceHubEnabled = false;
+    private boolean passingEnabled = false;
     private Rotation2d targetHeading = new Rotation2d();
     private Translation2d virtualGoal = null;
     private double distanceToHub = 0.0;
 
-    public SetHubHeading(VisionBase vision) {
+    public SetHeading(VisionBase vision) {
         this.vision = vision;
     }
 
     public void enableFaceHub() {
         faceHubEnabled = true;
+        passingEnabled = false;
         Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
     }
     
     public void toggleFaceHub() {
         faceHubEnabled = !faceHubEnabled;
+        if (faceHubEnabled) {
+            passingEnabled = false;
+            Logger.recordOutput("Passing/Enabled", passingEnabled);
+        }
         Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
     }
 
@@ -118,6 +125,48 @@ public class SetHubHeading {
         Logger.recordOutput("FaceHub/VirtualGoal", virtualGoal);
         Logger.recordOutput("FaceHub/TargetHeading", targetHeading.getDegrees());
         Logger.recordOutput("FaceHub/DistanceToVirtualGoal", distanceToHub);
+    }
+
+     // ==================== PASSING MODE ====================
+    
+    public void enablePassing() {
+        passingEnabled = true;
+        faceHubEnabled = false;
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+        Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+    }
+    
+    public void togglePassing() {
+        passingEnabled = !passingEnabled;
+        if (passingEnabled) {
+            faceHubEnabled = false;
+            Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+        }
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+    }
+    
+    public void disablePassing() {
+        passingEnabled = false;
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+    }
+    
+    public boolean isPassingEnabled() {
+        return passingEnabled;
+    }
+    
+    /**
+     * Updates the target heading for passing mode (face alliance wall).
+     * 
+     * @param currentPose The current pose of the robot (unused but kept for consistency)
+     */
+    public void updatePassingHeading(Pose2d currentPose) {
+        boolean isRed = vision.isRedAlliance();
+        
+        double passingHeadingRad = ShootingCalculator.calculatePassingHeading(isRed);
+        targetHeading = new Rotation2d(passingHeadingRad);
+        
+        Logger.recordOutput("Passing/TargetHeading", targetHeading.getDegrees());
+        Logger.recordOutput("Passing/IsRedAlliance", isRed);
     }
 
     /**

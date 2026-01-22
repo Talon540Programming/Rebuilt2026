@@ -12,7 +12,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Drive.SetHubHeading;
+import frc.robot.subsystems.Drive.SetHeading;
 import frc.robot.subsystems.Drive.SmoothFieldCentricFacingAngle;
 import frc.robot.subsystems.Index.IndexBase;
 import frc.robot.subsystems.Index.IndexIOKraken;
@@ -34,6 +34,7 @@ import frc.robot.subsystems.Vision.VisionIOLimelight;
 
 import frc.robot.utility.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Translation2d;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
@@ -60,7 +61,7 @@ public class RobotContainer {
     private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final VisionIOLimelight visionIO = new VisionIOLimelight();
     private final VisionBase vision = new VisionBase(visionIO, drivetrain);
-    private final SetHubHeading autoHeading = new SetHubHeading(vision);
+    private final SetHeading autoHeading = new SetHeading(vision);
     private final ExtensionIOKraken extensionIO = new ExtensionIOKraken();
     private final RollerIOKraken rollerIOKraken = new RollerIOKraken();
     private final RollerIOSim rollerIOSim = new RollerIOSim();
@@ -134,13 +135,21 @@ public class RobotContainer {
         }));
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Y button toggles face reef center - also disables auto heading if it's on
+        // Right bumper toggles hub heading - disables passing if it's on
         m_driverController.rightBumper().onTrue(Commands.runOnce(() -> {
             if (autoHeading.isEnabled()) {
                 autoHeading.disableFaceHub();
+            } else {
+                autoHeading.toggleFaceHub();
             }
-            else{
-            autoHeading.toggleFaceHub();
+        }));
+
+        // Left bumper toggles passing mode - disables hub heading if it's on
+        m_driverController.leftBumper().onTrue(Commands.runOnce(() -> {
+            if (autoHeading.isPassingEnabled()) {
+                autoHeading.disablePassing();
+            } else {
+                autoHeading.togglePassing();
             }
         }));
 
@@ -148,13 +157,14 @@ public class RobotContainer {
             new IntakeCommand(intake)
         );
 
-        m_driverController.rightTrigger(0.2).whileTrue(
+       m_driverController.rightTrigger(0.2).whileTrue(
             new ShootCommand(
                 shooter,
                 index,
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getFieldVelocity(),
-                () -> vision.isRedAlliance()
+                () -> vision.isRedAlliance(),
+                () -> autoHeading.isPassingEnabled()
             )
         );
 
@@ -180,19 +190,26 @@ public class RobotContainer {
                 
                 // Check if driver is manually rotating
                 boolean driverRotating = autoHeading.isDriverRotating(rotSpeed);
-                
-                // Determine which auto-heading mode to use
-                boolean useAutoHeading = autoHeading.isEnabled() && !driverRotating;
 
-                // Update virtual goal for shoot-while-moving when auto heading is enabled
-                if (useAutoHeading) {
+                // Determine which auto-heading mode to use
+                boolean useHubHeading = autoHeading.isEnabled() && !driverRotating;
+                boolean usePassingHeading = autoHeading.isPassingEnabled() && !driverRotating;
+
+                // Update heading based on active mode
+                if (useHubHeading) {
                     autoHeading.updateVirtualGoal(drivetrain.getPose(), drivetrain.getFieldVelocity());
                     headingDrive.withVirtualTarget(autoHeading.getVirtualGoal());
+                } else if (usePassingHeading) {
+                    autoHeading.updatePassingHeading(drivetrain.getPose());
+                    // For passing, we use a fixed heading (toward wall), not a virtual target point
+                    // Set a far-away point in the direction we want to face
+                    boolean isRed = vision.isRedAlliance();
+                    double targetX = isRed ? FieldPoses.fieldLengthMeters + 10.0 : -10.0;
+                    headingDrive.withVirtualTarget(new Translation2d(targetX, drivetrain.getPose().getY()));
                 } else {
                     headingDrive.clearVirtualTarget();
                 }
-
-                if (useAutoHeading) {
+                if (useHubHeading || usePassingHeading) {
                     drivetrain.setControl(
                         headingDrive
                         .withVelocityX(xSpeed * MaxSpeed)

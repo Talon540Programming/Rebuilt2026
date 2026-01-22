@@ -77,11 +77,11 @@ public final class Constants {
   public static final class FieldPoses {
 
     public static final double[] fieldSize = {17.55, 8.05};
+    public static final double fieldLengthMeters = 17.55;
     // Wall thickness is 0.051
-    // Hub positions for 2026 REBUILT game - TODO: Update with actual field coordinates
-    
-    public static final Pose2d blueHub = new Pose2d(4.5, 4.0, new Rotation2d()); // Placeholder
-    public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  // Placeholder
+    // Hub positions
+    public static final Pose2d blueHub = new Pose2d(4.5, 4.0, new Rotation2d());
+    public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  
 
   }
 
@@ -107,7 +107,7 @@ public final class Constants {
     
     // Hood angle limits (same as ShooterConstants for reference)
     public static final double hoodMinAngle = Math.PI / 12;     // 15 degrees
-    public static final double hoodMaxAngle = Math.PI / 3;     // 60 degrees
+    public static final double hoodMaxAngle = Math.toRadians(54);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
         new LoggedTunableNumber("Shooting/CompensationFactorX", 0.3);
@@ -120,6 +120,21 @@ public final class Constants {
         new LoggedTunableNumber("Shooting/ShooterOffsetXInches", 6.6);
     public static final LoggedTunableNumber shooterOffsetYInches = 
         new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 3.5);
+  }
+
+  public static final class PassingConstants {
+    // Landing zone X coordinates (meters)
+    public static final double blueLandingZoneX = 2.0;
+    public static final double redLandingZoneX = 14.0;
+    
+    // Trench X positions (meters) - where the ball must clear
+    public static final double blueTrenchX = 4.5;
+    public static final double redTrenchX = 12.0;
+    
+    // Trench clearance requirements (inches)
+    public static final double trenchHeightInches = 40.5;
+    public static final double trenchClearanceInches = 6.0;
+    public static final double totalTrenchClearanceInches = trenchHeightInches + trenchClearanceInches; // 46.5"
   }
 
   public static final class HeadingPID {
