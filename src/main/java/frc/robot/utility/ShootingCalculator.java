@@ -402,7 +402,7 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
         double launchAngle;
         double velocity;
         
-        if (!trenchInPath || distanceToTrench < 0.1) {
+        if (!trenchInPath) {
             // Robot is past trench or very close - use flattest angle (max hood angle)
             double hoodAngle = ShootingConstants.hoodMaxAngle;
             launchAngle = (Math.PI / 2) - hoodAngle;
