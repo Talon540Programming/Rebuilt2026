@@ -331,24 +331,21 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
         return new ShootingSolution(hoodAngle, flywheelRPM, distance);
     }
 
-    // ==================== PASSING SHOT CALCULATIONS ====================
+   // ==================== PASSING SHOT CALCULATIONS ====================
     
     /**
-     * Container class for passing solution (hood angle + flywheel RPM + time of flight).
+     * Container class for passing solution (hood angle + flywheel RPM).
      */
     public static class PassingSolution {
         public final double hoodAngleRadians;
         public final double flywheelRPM;
         public final double distanceMeters;
-        public final double timeOfFlightSeconds;
         public final boolean isValid;
         
-        public PassingSolution(double hoodAngleRadians, double flywheelRPM, double distanceMeters, 
-                double timeOfFlightSeconds, boolean isValid) {
+        public PassingSolution(double hoodAngleRadians, double flywheelRPM, double distanceMeters, boolean isValid) {
             this.hoodAngleRadians = hoodAngleRadians;
             this.flywheelRPM = flywheelRPM;
             this.distanceMeters = distanceMeters;
-            this.timeOfFlightSeconds = timeOfFlightSeconds;
             this.isValid = isValid;
         }
         
@@ -358,260 +355,162 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
     }
     
     /**
-     * Calculate the complete passing solution for lobbing the ball to the alliance wall.
-     * Uses minimum angle that clears the trench, with fallback to steeper angles if needed.
+     * Calculate the passing solution using closed-form trajectory equations.
+     * Finds the unique trajectory that clears the trench (with margin) and lands at the target.
      * 
      * @param robotPose Current robot pose
      * @param isRedAlliance True if on red alliance
      * @return PassingSolution containing hood angle, flywheel RPM, and validity
      */
     public static PassingSolution calculatePassingSolution(Pose2d robotPose, boolean isRedAlliance) {
+        // Get trench X from hub position (they're at the same X)
+        double trenchX = isRedAlliance ? FieldPoses.redHub.getX() : FieldPoses.blueHub.getX();
+        
+        // Calculate landing X from trench position and fixed distance
+        // Blue: landing is toward X=0, so subtract. Red: landing is toward X=max, so add.
+        double landingX = isRedAlliance 
+            ? trenchX + PassingConstants.trenchToLandingDistanceMeters 
+            : trenchX - PassingConstants.trenchToLandingDistanceMeters;
+        
+        // Get shooter X position
         Translation2d shooterPos = getShooterPosition(robotPose);
-        
-        // Determine target and trench positions based on alliance
-        double landingX = isRedAlliance ? PassingConstants.redLandingZoneX : PassingConstants.blueLandingZoneX;
-        double trenchX = isRedAlliance ? PassingConstants.redTrenchX : PassingConstants.blueTrenchX;
-        
-        // Calculate horizontal distances (all positive values)
         double shooterX = shooterPos.getX();
-        double totalDistance = Math.abs(shooterX - landingX);
-        double distanceToTrench = Math.abs(shooterX - trenchX);
         
-        // Convert heights to meters for consistency
-        double launchHeightMeters = Units.inchesToMeters(ShootingConstants.shooterHeightInches);
-        double trenchClearanceMeters = Units.inchesToMeters(PassingConstants.totalTrenchClearanceInches);
+        // Calculate distances (all positive)
+        double distanceToTrench = Math.abs(shooterX - trenchX);
+        double totalDistance = Math.abs(shooterX - landingX);
+        
+        // Heights in meters
+        double launchHeight = Units.inchesToMeters(ShootingConstants.shooterHeightInches);
+        double trenchClearanceHeight = Units.inchesToMeters(
+            PassingConstants.trenchHeightInches + PassingConstants.trenchClearanceMarginInches.get()
+        );
+        double gravity = Units.inchesToMeters(ShootingConstants.gravityInchesPerSecSq);
         
         // Log inputs
         Logger.recordOutput("Passing/ShooterX", shooterX);
-        Logger.recordOutput("Passing/LandingX", landingX);
         Logger.recordOutput("Passing/TrenchX", trenchX);
-        Logger.recordOutput("Passing/TotalDistanceMeters", totalDistance);
-        Logger.recordOutput("Passing/DistanceToTrenchMeters", distanceToTrench);
+        Logger.recordOutput("Passing/LandingX", landingX);
+        Logger.recordOutput("Passing/DistanceToTrench", distanceToTrench);
+        Logger.recordOutput("Passing/TotalDistance", totalDistance);
         
-        // Find the optimal angle (minimum angle that clears trench)
-        double optimalAngle = findOptimalPassingAngle(totalDistance, distanceToTrench, 
-                launchHeightMeters, trenchClearanceMeters);
+        // Check if robot is past the trench (no clearance needed)
+        boolean trenchInPath = isRedAlliance 
+            ? (shooterX < trenchX) 
+            : (shooterX > trenchX);
         
-        if (Double.isNaN(optimalAngle)) {
+        double launchAngle;
+        double velocity;
+        
+        if (!trenchInPath || distanceToTrench < 0.1) {
+            // Robot is past trench or very close - use flattest angle (max hood angle)
+            double hoodAngle = ShootingConstants.hoodMaxAngle;
+            launchAngle = (Math.PI / 2) - hoodAngle;
+            velocity = calculatePassingVelocity(totalDistance, launchAngle, launchHeight, gravity);
+            
+            Logger.recordOutput("Passing/TrenchInPath", false);
+            Logger.recordOutput("Passing/HoodAngleDeg", Math.toDegrees(hoodAngle));
+            Logger.recordOutput("Passing/VelocityMps", velocity);
+            
+            double rpm = velocityToFlywheelRPM(velocity);
+            rpm = MathUtil.clamp(rpm, ShootingConstants.minFlywheelRPM, ShootingConstants.maxFlywheelRPM);
+            boolean isValid = !Double.isNaN(velocity) && velocity > 0;
+            
+            Logger.recordOutput("Passing/FlywheelRPM", rpm);
+            Logger.recordOutput("Passing/Valid", isValid);
+            
+            return new PassingSolution(hoodAngle, rpm, totalDistance, isValid);
+        }
+        
+        Logger.recordOutput("Passing/TrenchInPath", true);
+        
+        // Closed-form solution for trajectory through two points:
+        // Point 1: (distanceToTrench, trenchClearanceHeight)
+        // Point 2: (totalDistance, 0)
+        // Starting from: (0, launchHeight)
+        //
+        // tan(θ) = ((y₁ - h)*x₂ + h*x₁) / (x₁*(x₂ - x₁))
+        
+        double x1 = distanceToTrench;
+        double y1 = trenchClearanceHeight;
+        double x2 = totalDistance;
+        double h = launchHeight;
+        
+        double numerator = (y1 - h) * x2 + h * x1;
+        double denominator = x1 * (x2 - x1);
+        
+        // Check for invalid geometry
+        if (denominator <= 0 || x2 <= x1) {
             Logger.recordOutput("Passing/Valid", false);
-            Logger.recordOutput("Passing/Error", "No valid angle found");
-            return new PassingSolution(0, 0, totalDistance, 0, false);
+            Logger.recordOutput("Passing/Error", "Invalid geometry");
+            return new PassingSolution(0, 0, totalDistance, false);
         }
         
-        // optimalAngle is the HOOD angle, convert to launch angle for calculations
-        double launchAngle = hoodAngleToLaunchAngle(optimalAngle);
+        double tanTheta = numerator / denominator;
+        launchAngle = Math.atan(tanTheta);
         
-        // Calculate required velocity for this launch angle
-        double velocityMps = calculatePassingVelocity(totalDistance, launchAngle, launchHeightMeters);
+        // Convert launch angle to hood angle
+        double hoodAngle = (Math.PI / 2) - launchAngle;
         
-        // Convert velocity to flywheel RPM
-        double rpm = velocityToFlywheelRPM(velocityMps);
+        // Clamp hood angle to mechanical limits
+        hoodAngle = MathUtil.clamp(hoodAngle, ShootingConstants.hoodMinAngle, ShootingConstants.hoodMaxAngle);
         
-        // Check if RPM is within limits
-        boolean isValid = true;
-        if (rpm > ShootingConstants.maxFlywheelRPM) {
-            // Try to find a different angle that reduces required velocity
-            optimalAngle = findFallbackPassingAngle(totalDistance, distanceToTrench,
-                    launchHeightMeters, trenchClearanceMeters);
-            
-            if (Double.isNaN(optimalAngle)) {
-                Logger.recordOutput("Passing/Valid", false);
-                Logger.recordOutput("Passing/Error", "RPM too high, no fallback angle");
-                return new PassingSolution(0, 0, totalDistance, 0, false);
-            }
-            
-            // Recalculate with new hood angle
-            launchAngle = hoodAngleToLaunchAngle(optimalAngle);
-            velocityMps = calculatePassingVelocity(totalDistance, launchAngle, launchHeightMeters);
-            rpm = velocityToFlywheelRPM(velocityMps);
-            
-            if (rpm > ShootingConstants.maxFlywheelRPM || rpm < ShootingConstants.minFlywheelRPM) {
-                isValid = false;
-            }
-        }
+        // Recalculate launch angle after clamping
+        launchAngle = (Math.PI / 2) - hoodAngle;
+        
+        // Calculate required velocity
+        velocity = calculatePassingVelocity(totalDistance, launchAngle, launchHeight, gravity);
+        
+        // Convert to RPM
+        double rpm = velocityToFlywheelRPM(velocity);
+        boolean isValid = !Double.isNaN(velocity) && velocity > 0 
+            && rpm >= ShootingConstants.minFlywheelRPM 
+            && rpm <= ShootingConstants.maxFlywheelRPM;
         
         rpm = MathUtil.clamp(rpm, ShootingConstants.minFlywheelRPM, ShootingConstants.maxFlywheelRPM);
         
-        // Calculate time of flight using launch angle
-        double horizontalVelocity = velocityMps * Math.cos(launchAngle);
-        double timeOfFlight = horizontalVelocity > 0 ? totalDistance / horizontalVelocity : 0;
-        
         // Log outputs
-        Logger.recordOutput("Passing/Valid", isValid);
-        Logger.recordOutput("Passing/HoodAngleDeg", Math.toDegrees(optimalAngle));
+        Logger.recordOutput("Passing/HoodAngleDeg", Math.toDegrees(hoodAngle));
+        Logger.recordOutput("Passing/LaunchAngleDeg", Math.toDegrees(launchAngle));
+        Logger.recordOutput("Passing/VelocityMps", velocity);
         Logger.recordOutput("Passing/FlywheelRPM", rpm);
-        Logger.recordOutput("Passing/VelocityMps", velocityMps);
-        Logger.recordOutput("Passing/TimeOfFlight", timeOfFlight);
+        Logger.recordOutput("Passing/Valid", isValid);
         
-        return new PassingSolution(optimalAngle, rpm, totalDistance, timeOfFlight, isValid);
-    }
-    
-   /**
-     * Find the optimal hood angle that clears the trench with minimum time of flight.
-     * Since hood angle 0 = straight up (90° launch) and hood max = flattest shot,
-     * we search from max hood angle (flattest) to min hood angle (steepest) to find
-     * the flattest trajectory that still clears the trench.
-     * 
-     * @param totalDistance Horizontal distance to landing zone (meters)
-     * @param distanceToTrench Horizontal distance to trench (meters)
-     * @param launchHeight Height of shooter from ground (meters)
-     * @param trenchClearanceHeight Required clearance height at trench (meters)
-     * @return Optimal hood angle in radians, or NaN if no valid angle exists
-     */
-    private static double findOptimalPassingAngle(double totalDistance, double distanceToTrench,
-            double launchHeight, double trenchClearanceHeight) {
-        
-        double gravity = Units.inchesToMeters(ShootingConstants.gravityInchesPerSecSq);
-        
-        // Search from max hood angle (flattest) to min hood angle (steepest)
-        // This finds the minimum time of flight trajectory that clears the trench
-        double angleStep = Math.toRadians(0.5); // 0.5 degree steps
-        
-        for (double hoodAngle = ShootingConstants.hoodMaxAngle; hoodAngle >= ShootingConstants.hoodMinAngle; hoodAngle -= angleStep) {
-            // Convert hood angle to launch angle (hood 0 = 90° launch, hood 54° = 36° launch)
-            double launchAngle = hoodAngleToLaunchAngle(hoodAngle);
-            
-            // Calculate velocity needed to land at target with this launch angle
-            double velocity = calculatePassingVelocity(totalDistance, launchAngle, launchHeight);
-            
-            if (Double.isNaN(velocity) || velocity <= 0) {
-                continue;
-            }
-            
-            // Check if this trajectory clears the trench
-            double heightAtTrench = calculateHeightAtDistance(distanceToTrench, launchAngle, velocity, launchHeight, gravity);
-            
-            if (heightAtTrench >= trenchClearanceHeight) {
-                // Return the HOOD angle (not launch angle)
-                return hoodAngle;
-            }
-        }
-        
-        return Double.NaN; // No valid angle found
+        return new PassingSolution(hoodAngle, rpm, totalDistance, isValid);
     }
     
     /**
-     * Find a fallback hood angle when the flattest angle requires too much velocity.
-     * Searches for the hood angle that minimizes required velocity while still clearing trench.
-     * 
-     * @return Fallback hood angle in radians, or NaN if none found
-     */
-    private static double findFallbackPassingAngle(double totalDistance, double distanceToTrench,
-            double launchHeight, double trenchClearanceHeight) {
-        
-        double gravity = Units.inchesToMeters(ShootingConstants.gravityInchesPerSecSq);
-        double bestHoodAngle = Double.NaN;
-        double lowestRPM = Double.MAX_VALUE;
-        
-        double angleStep = Math.toRadians(0.5);
-        
-        for (double hoodAngle = ShootingConstants.hoodMinAngle; hoodAngle <= ShootingConstants.hoodMaxAngle; hoodAngle += angleStep) {
-            // Convert hood angle to launch angle
-            double launchAngle = hoodAngleToLaunchAngle(hoodAngle);
-            
-            double velocity = calculatePassingVelocity(totalDistance, launchAngle, launchHeight);
-            
-            if (Double.isNaN(velocity) || velocity <= 0) {
-                continue;
-            }
-            
-            // Check trench clearance
-            double heightAtTrench = calculateHeightAtDistance(distanceToTrench, launchAngle, velocity, launchHeight, gravity);
-            
-            if (heightAtTrench >= trenchClearanceHeight) {
-               // Calculate RPM for this velocity
-                double rpm = velocityToFlywheelRPM(velocity);
-                
-                if (rpm < lowestRPM && rpm <= ShootingConstants.maxFlywheelRPM) {
-                    lowestRPM = rpm;
-                    bestHoodAngle = hoodAngle;
-                }
-            }
-        }
-        
-        return bestHoodAngle;
-    }
-    
-    /**
-     * Calculate the required launch velocity to hit a target at a given distance and angle.
-     * Accounts for launching above ground level and landing at ground level.
+     * Calculate the required launch velocity to land at a given distance.
      * 
      * @param distance Horizontal distance to target (meters)
-     * @param angle Launch angle (radians)
+     * @param launchAngle Launch angle from horizontal (radians)
      * @param launchHeight Height of launch point (meters)
+     * @param gravity Gravitational acceleration (m/s²)
      * @return Required velocity in m/s, or NaN if impossible
      */
-    private static double calculatePassingVelocity(double distance, double angle, double launchHeight) {
-        double gravity = Units.inchesToMeters(ShootingConstants.gravityInchesPerSecSq);
-        double cosAngle = Math.cos(angle);
-        double tanAngle = Math.tan(angle);
+    private static double calculatePassingVelocity(double distance, double launchAngle, 
+            double launchHeight, double gravity) {
+        double cosAngle = Math.cos(launchAngle);
+        double tanAngle = Math.tan(launchAngle);
         
-        // Projectile motion equation solved for initial velocity
-        // Landing at ground level (y = 0) from height h:
-        // 0 = h + x*tan(θ) - (g*x²)/(2*v²*cos²(θ))
-        // Solving for v:
-        // v² = (g*x²) / (2*cos²(θ)*(h + x*tan(θ)))
+        double num = gravity * distance * distance;
+        double denom = 2 * cosAngle * cosAngle * (launchHeight + distance * tanAngle);
         
-        double numerator = gravity * distance * distance;
-        double denominator = 2 * cosAngle * cosAngle * (launchHeight + distance * tanAngle);
-        
-        if (denominator <= 0) {
+        if (denom <= 0) {
             return Double.NaN;
         }
         
-        return Math.sqrt(numerator / denominator);
+        return Math.sqrt(num / denom);
     }
     
     /**
-     * Calculate the height of the projectile at a given horizontal distance.
-     * 
-     * @param distance Horizontal distance from launch point (meters)
-     * @param angle Launch angle (radians)
-     * @param velocity Initial velocity (m/s)
-     * @param launchHeight Initial height (meters)
-     * @param gravity Gravitational acceleration (m/s²)
-     * @return Height at the given distance (meters)
-     */
-    private static double calculateHeightAtDistance(double distance, double angle, double velocity,
-            double launchHeight, double gravity) {
-        double cosAngle = Math.cos(angle);
-        double sinAngle = Math.sin(angle);
-        
-        // Time to reach this distance
-        double horizontalVelocity = velocity * cosAngle;
-        if (horizontalVelocity <= 0) {
-            return Double.NEGATIVE_INFINITY;
-        }
-        double time = distance / horizontalVelocity;
-        
-        // Height at this time: y = y0 + vy*t - 0.5*g*t²
-        double height = launchHeight + (velocity * sinAngle * time) - (0.5 * gravity * time * time);
-        
-        return height;
-    }
-
-    /**
      * Convert linear velocity to flywheel RPM.
-     * 
-     * @param velocityMps Velocity in meters per second
-     * @return Flywheel RPM
      */
     private static double velocityToFlywheelRPM(double velocityMps) {
-        double velocityFps = velocityMps * 3.28084; // m/s to ft/s
+        double velocityFps = velocityMps * 3.28084;
         double wheelRadiusFeet = ShootingConstants.flywheelRadiusInches / 12.0;
         double omegaRadPerSec = velocityFps / wheelRadiusFeet;
         return (omegaRadPerSec * 60.0) / (2.0 * Math.PI);
-    }
-
-    /**
-     * Convert hood angle to launch angle.
-     * Hood angle 0 = 90° launch (straight up), Hood angle 54° = 36° launch.
-     * 
-     * @param hoodAngleRadians Hood angle in radians
-     * @return Launch angle in radians (from horizontal)
-     */
-    private static double hoodAngleToLaunchAngle(double hoodAngleRadians) {
-        return (Math.PI / 2) - hoodAngleRadians;
     }
     
     /**
@@ -621,12 +520,10 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
      * @return Heading in radians (toward alliance wall)
      */
     public static double calculatePassingHeading(boolean isRedAlliance) {
-        // Blue alliance: face toward X = 0 (heading = π or 180°)
-        // Red alliance: face toward X = field length (heading = 0°)
         if (isRedAlliance) {
-            return 0.0; // Face toward positive X (red alliance wall)
+            return 0.0;
         } else {
-            return Math.PI; // Face toward negative X (blue alliance wall)
+            return Math.PI;
         }
     }
 }

@@ -8,7 +8,6 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
-
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -34,7 +33,6 @@ public class HoodIOKraken implements HoodIO {
     
     private double targetPositionRadians = 0.0;
     
-    
     public HoodIOKraken() {
         motor = new TalonFX(ShooterConstants.hoodMotorId, TunerConstants.kCANBus);
         
@@ -48,7 +46,7 @@ public class HoodIOKraken implements HoodIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         // Gear ratio: converts rotor rotations to mechanism rotations

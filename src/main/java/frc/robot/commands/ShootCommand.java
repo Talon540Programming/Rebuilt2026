@@ -98,10 +98,6 @@ public class ShootCommand extends Command {
         shooter.setFlywheelVelocity(flywheelRPM);
         shooter.setHoodAngle(hoodAngleRadians);
         
-       // Always update flywheel and hood targets (continuous auto-aim)
-        shooter.setFlywheelVelocity(flywheelRPM);
-        shooter.setHoodAngle(hoodAngleRadians);
-        
         // Wait for flywheel to spin up the FIRST time only
         if (!flywheelSpunUp) {
             if (shooter.isFlywheelAtSetpoint() && shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get()) {

@@ -40,7 +40,7 @@ public class IndexIOKraken implements IndexIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - may need to change based on testing
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         motor.getConfigurator().apply(config);

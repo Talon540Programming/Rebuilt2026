@@ -50,7 +50,7 @@ public class FlywheelIOKraken implements FlywheelIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - both spin same way, configure on robot
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         
         // Slot 0 gains for Motion Magic Velocity

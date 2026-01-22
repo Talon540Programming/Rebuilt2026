@@ -41,11 +41,11 @@ public class ExtensionIOKraken implements ExtensionIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - adjust based on your mechanism
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Scale rotor -> mechanism rotations
-        config.Feedback.SensorToMechanismRatio = IntakeConstants.extensionSensorToMechanismRatio.get(); //
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.extensionSensorToMechanismRatio.get(); //TODO need to tune for real bot
 
         // Slot0 PID
         config.Slot0.kP = IntakeConstants.extensionkP.get();

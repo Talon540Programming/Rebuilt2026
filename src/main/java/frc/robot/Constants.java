@@ -123,18 +123,15 @@ public final class Constants {
   }
 
   public static final class PassingConstants {
-    // Landing zone X coordinates (meters)
-    public static final double blueLandingZoneX = 2.0;
-    public static final double redLandingZoneX = 14.0;
-    
-    // Trench X positions (meters) - where the ball must clear
-    public static final double blueTrenchX = 4.5;
-    public static final double redTrenchX = 12.0;
+    // Distance from trench (hub X) to landing zone (meters)
+    public static final double trenchToLandingDistanceMeters = 2.0;
     
     // Trench clearance requirements (inches)
     public static final double trenchHeightInches = 40.5;
-    public static final double trenchClearanceInches = 6.0;
-    public static final double totalTrenchClearanceInches = trenchHeightInches + trenchClearanceInches; // 46.5"
+    
+    // Tunable margin above trench (inches)
+    public static final LoggedTunableNumber trenchClearanceMarginInches = 
+        new LoggedTunableNumber("Passing/TrenchClearanceMarginInches", 6.0);
   }
 
   public static final class HeadingPID {
