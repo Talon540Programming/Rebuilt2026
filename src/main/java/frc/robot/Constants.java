@@ -161,4 +161,11 @@ public final class Constants {
     }
   }
 
+  public static final class RobotDimensions {
+    // Robot dimensions WITH bumpers (in meters)
+    public static final double robotWidthMeters = Units.inchesToMeters(29.0);  // left to right (Y axis)
+    public static final double robotLengthMeters = Units.inchesToMeters(29.0); // front to back (X axis)
+    public static final double bumperHeightMeters = Units.inchesToMeters(5.5); // floor to top of bumpers
+  }
+
 }

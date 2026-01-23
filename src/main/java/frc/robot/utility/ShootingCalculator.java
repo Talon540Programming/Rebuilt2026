@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.FieldPoses;
@@ -525,5 +526,41 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
         } else {
             return 0.0;
         }
+    }
+
+    /**
+     * Calculate the 3D launch velocity vector for fuel simulation.
+     * 
+     * @param robotPose Current robot pose (used for heading direction)
+     * @param distanceMeters Distance to target (used to calculate speed and angle)
+     * @return Translation3d velocity vector in m/s (field-relative)
+     */
+    public static Translation3d calculateLaunchVelocity(
+            Pose2d robotPose, double distanceMeters) {
+        
+        // Get the launch angle (theta) - this is angle from horizontal
+        // Note: calculateHoodAngle returns (PI/2 - theta), so we reverse it
+        double hoodAngle = calculateHoodAngle(distanceMeters);
+        double launchAngle = (Math.PI / 2) - hoodAngle;
+        
+        // Get initial velocity in m/s
+        double velocityFPS = calculateInitialVelocityFPS(distanceMeters);
+        double velocityMPS = velocityFPS * 0.3048; // feet to meters
+        
+        // Calculate horizontal and vertical components
+        double horizontalSpeed = velocityMPS * Math.cos(launchAngle);
+        double verticalSpeed = velocityMPS * Math.sin(launchAngle);
+        
+        // Get robot heading (direction the robot is facing)
+        // Shooter is angled 11 degrees toward center (right side), so subtract the offset
+        double shooterAngleOffset = Math.toRadians(-11.0);
+        double heading = robotPose.getRotation().getRadians() + shooterAngleOffset;
+        
+        // Split horizontal speed into X and Y based on robot heading
+        double vx = horizontalSpeed * Math.cos(heading);
+        double vy = horizontalSpeed * Math.sin(heading);
+        double vz = verticalSpeed;
+        
+        return new Translation3d(vx, vy, vz);
     }
 }

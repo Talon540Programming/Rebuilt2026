@@ -4,14 +4,20 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.utility.FuelSim;
 import frc.robot.utility.ShootingCalculator;
 import frc.robot.utility.ShootingCalculator.ShootingSolution;
 import frc.robot.subsystems.Index.IndexBase;
 import frc.robot.subsystems.Shooter.ShooterBase;
 import frc.robot.subsystems.Shooter.ShooterConstants;
 import frc.robot.utility.ShootingCalculator.PassingSolution;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
+import frc.robot.Robot;
+import frc.robot.Constants.ShootingConstants;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -32,6 +38,10 @@ public class ShootCommand extends Command {
     private final BooleanSupplier isPassingEnabledSupplier;
 
     private boolean flywheelSpunUp = false;
+    // Fuel simulation timing
+    private static final double fuelSpawnInterval = 0.125; // 8 balls per second
+    private double timeSinceLastSpawn = 0.0;
+    private static final double loopPeriod = 0.02; // 20ms loop
     
     /**
      * Creates a ShootCommand with auto-aiming based on robot position and velocity.
@@ -62,6 +72,7 @@ public class ShootCommand extends Command {
     @Override
     public void initialize() {
         flywheelSpunUp = false;
+        timeSinceLastSpawn = fuelSpawnInterval; // Spawn immediately on first feed
     }
     
     @Override
@@ -114,6 +125,15 @@ public class ShootCommand extends Command {
         // Once spun up, continuously run index and kickup
         index.feed();
         shooter.runKickup();
+
+        // Spawn fuel in simulation
+        if (Robot.isSimulation()) {
+            timeSinceLastSpawn += loopPeriod;
+            if (timeSinceLastSpawn >= fuelSpawnInterval) {
+                timeSinceLastSpawn = 0.0;
+                spawnSimulatedFuel();
+            }
+        }
     }
     
     @Override
@@ -131,5 +151,35 @@ public class ShootCommand extends Command {
     @Override
     public String getName() {
         return "ShootCommand";
+    }
+
+    /**
+     * Spawns a simulated fuel ball at the shooter position with calculated velocity.
+     */
+    private void spawnSimulatedFuel() {
+        Pose2d robotPose = poseSupplier.get();
+        boolean isRed = isRedAllianceSupplier.getAsBoolean();
+        
+        // Calculate distance to hub for velocity/angle calculation
+        double distance = ShootingCalculator.getDistanceToHub(robotPose, isRed);
+        
+        // Get shooter position in field coordinates
+        Translation2d shooterPos2d = ShootingCalculator.getShooterPosition(robotPose);
+        double shooterHeight = Units.inchesToMeters(ShootingConstants.shooterHeightInches);
+        Translation3d spawnPosition = new Translation3d(
+            shooterPos2d.getX(),
+            shooterPos2d.getY(),
+            shooterHeight
+        );
+        
+        // Calculate launch velocity
+        Translation3d launchVelocity = ShootingCalculator.calculateLaunchVelocity(robotPose, distance);
+        
+        // Spawn the fuel
+        FuelSim.getInstance().spawnFuel(spawnPosition, launchVelocity);
+        
+        Logger.recordOutput("ShootCommand/SimFuelSpawned", true);
+        Logger.recordOutput("ShootCommand/SimSpawnPos", spawnPosition);
+        Logger.recordOutput("ShootCommand/SimLaunchVel", launchVelocity);
     }
 }

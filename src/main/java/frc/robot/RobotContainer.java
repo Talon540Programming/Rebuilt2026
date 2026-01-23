@@ -31,7 +31,8 @@ import frc.robot.subsystems.Shooter.Kickup.KickupIOKraken;
 import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
-
+import frc.robot.Constants.RobotDimensions;
+import frc.robot.utility.FuelSim;
 import frc.robot.utility.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -122,8 +123,27 @@ public class RobotContainer {
         }
 
         configureBindings();
+
+        // In simulation, always shoot when enabled
+        if (Robot.isSimulation()) {
+            autoHeading.enableFaceHub();
+            
+            shooter.setDefaultCommand(
+                new ShootCommand(
+                    shooter,
+                    index,
+                    () -> drivetrain.getPose(),
+                    () -> drivetrain.getFieldVelocity(),
+                    () -> vision.isRedAlliance(),
+                    () -> autoHeading.isPassingEnabled()
+                )
+            );
+        }
         
         autoChooser = AutoBuilder.buildAutoChooser("default auto"); //pick a default
+        if (Robot.isSimulation()) {
+            configureFuelSim();
+        }
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
@@ -237,6 +257,8 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
+    
+
     /*
      * Final check for gyro initialization at Auto start.
      * If gyro hasn't been initialized, try one last time from cameras.
@@ -272,5 +294,19 @@ public class RobotContainer {
         }
         return Commands.none();
     }
+
+    private void configureFuelSim() {
+    FuelSim instance = FuelSim.getInstance();
+    
+    instance.registerRobot(
+        RobotDimensions.robotWidthMeters,
+        RobotDimensions.robotLengthMeters,
+        RobotDimensions.bumperHeightMeters,
+        drivetrain::getPose,
+        drivetrain::getFieldVelocity
+    );
+    
+    instance.start();
+}
 
 }
