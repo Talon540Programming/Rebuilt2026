@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.Constants.HeadingPID;
 import frc.robot.utility.ShootingCalculator;
 
 /**
@@ -70,7 +71,7 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         
         // Calculate target heading at 250Hz
         // Calculate target heading at 250Hz using shooter position offset
-        double targetRadians = ShootingCalculator.calculateAimingHeading(currentPose, target);
+        double targetRadians = ShootingCalculator.calculateAimingHeading(currentPose, target) + HeadingPID.shooterThetaOffset.get();
         
         Rotation2d angleToFace = new Rotation2d(targetRadians);
         if (forwardPerspective == ForwardPerspectiveValue.OperatorPerspective) {
