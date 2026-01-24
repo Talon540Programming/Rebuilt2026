@@ -21,6 +21,9 @@ public class SetHeading {
     
     private boolean faceHubEnabled = false;
     private boolean passingEnabled = false;
+    private boolean emergencyModeEnabled = false;
+    private boolean emergencyShootingMode = false;
+    private boolean emergencyPassingMode = false;
     private Rotation2d targetHeading = new Rotation2d();
     private Translation2d virtualGoal = null;
     private double distanceToHub = 0.0;
@@ -30,6 +33,7 @@ public class SetHeading {
     }
 
     public void enableFaceHub() {
+        if (emergencyModeEnabled) return; // Locked out in emergency mode
         faceHubEnabled = true;
         passingEnabled = false;
         Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
@@ -37,6 +41,7 @@ public class SetHeading {
     }
     
     public void toggleFaceHub() {
+        if (emergencyModeEnabled) return; // Locked out in emergency mode
         faceHubEnabled = !faceHubEnabled;
         if (faceHubEnabled) {
             passingEnabled = false;
@@ -130,6 +135,7 @@ public class SetHeading {
      // ==================== PASSING MODE ====================
     
     public void enablePassing() {
+        if (emergencyModeEnabled) return; // Locked out in emergency mode
         passingEnabled = true;
         faceHubEnabled = false;
         Logger.recordOutput("Passing/Enabled", passingEnabled);
@@ -137,6 +143,7 @@ public class SetHeading {
     }
     
     public void togglePassing() {
+        if (emergencyModeEnabled) return; // Locked out in emergency mode
         passingEnabled = !passingEnabled;
         if (passingEnabled) {
             faceHubEnabled = false;
@@ -174,5 +181,55 @@ public class SetHeading {
      */
     public Translation2d getVirtualGoal() {
         return virtualGoal;
+    }
+
+    // ==================== EMERGENCY MODE ====================
+    
+    public void toggleEmergencyMode() {
+        emergencyModeEnabled = !emergencyModeEnabled;
+        if (emergencyModeEnabled) {
+            // Disable all auto-heading when entering emergency mode
+            faceHubEnabled = false;
+            passingEnabled = false;
+            emergencyShootingMode = false;
+            emergencyPassingMode = false;
+        }
+        Logger.recordOutput("EmergencyMode/Enabled", emergencyModeEnabled);
+        Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+        Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+        Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+    }
+    
+    public boolean isEmergencyModeEnabled() {
+        return emergencyModeEnabled;
+    }
+    
+    public void toggleEmergencyShooting() {
+        if (!emergencyModeEnabled) return;
+        emergencyShootingMode = !emergencyShootingMode;
+        if (emergencyShootingMode) {
+            emergencyPassingMode = false;
+        }
+        Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+        Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+    }
+    
+    public void toggleEmergencyPassing() {
+        if (!emergencyModeEnabled) return;
+        emergencyPassingMode = !emergencyPassingMode;
+        if (emergencyPassingMode) {
+            emergencyShootingMode = false;
+        }
+        Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+        Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+    }
+    
+    public boolean isEmergencyShootingMode() {
+        return emergencyModeEnabled && emergencyShootingMode;
+    }
+    
+    public boolean isEmergencyPassingMode() {
+        return emergencyModeEnabled && emergencyPassingMode;
     }
 }

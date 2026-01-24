@@ -87,10 +87,10 @@ public final class Constants {
 
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
-    public static final double backDistanceInches = 20.0;      
-    public static final double shooterHeightInches = 20.0;     // Height of shooter exit from ground
+    public static final double backDistanceInches = 10.0;      
+    public static final double shooterHeightInches = 19.793581;     // Height of shooter exit from ground
     public static final double heightOfHubInches = 72.0;       // Height of hub opening
-    public static final double clearanceInches = 12.0;         // Desired clearance over hub rim
+    public static final double clearanceInches = 20.0;         // Desired clearance over hub rim
     
     // Derived value
     public static final double maxHeightInches = (heightOfHubInches + clearanceInches) - shooterHeightInches;
@@ -110,9 +110,9 @@ public final class Constants {
     public static final double hoodMaxAngle = Math.toRadians(54);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
-        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.15);
+        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.1);
     public static final LoggedTunableNumber compensationFactorY = 
-        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.15);
+        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.1);
 
     // Shooter position offset from robot center (in inches)
     // Positive X = forward, Positive Y = left
@@ -166,6 +166,16 @@ public final class Constants {
     public static final double robotWidthMeters = Units.inchesToMeters(29.0);  // left to right (Y axis)
     public static final double robotLengthMeters = Units.inchesToMeters(29.0); // front to back (X axis)
     public static final double bumperHeightMeters = Units.inchesToMeters(5.5); // floor to top of bumpers
+  }
+
+  public static final class EmergencyModeConstants {
+    // Emergency shooting preset (hub shot)
+    public static final double shootingRPM = 1150.0;
+    public static final double shootingHoodAngleDegrees = 23.625;
+    
+    // Emergency passing preset (lob shot) - TODO: Update with real values
+    public static final double passingRPM = 1500.0;
+    public static final double passingHoodAngleDegrees = 35.0;
   }
 
 }

@@ -49,6 +49,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 
 /**
@@ -139,21 +140,35 @@ public class RobotContainer {
         }));
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Right bumper toggles hub heading - disables passing if it's on
+       // Dpad down + B toggles emergency mode
+        Trigger emergencyModeTrigger = m_driverController.povDown().and(m_driverController.b());
+        emergencyModeTrigger.onTrue(Commands.runOnce(() -> {
+            autoHeading.toggleEmergencyMode();
+        }));
+
+        // Right bumper - hub heading (normal) or emergency shooting mode
         m_driverController.rightBumper().onTrue(Commands.runOnce(() -> {
-            if (autoHeading.isEnabled()) {
-                autoHeading.disableFaceHub();
+            if (autoHeading.isEmergencyModeEnabled()) {
+                autoHeading.toggleEmergencyShooting();
             } else {
-                autoHeading.toggleFaceHub();
+                if (autoHeading.isEnabled()) {
+                    autoHeading.disableFaceHub();
+                } else {
+                    autoHeading.toggleFaceHub();
+                }
             }
         }));
 
-        // Left bumper toggles passing mode - disables hub heading if it's on
+        // Left bumper - passing heading (normal) or emergency passing mode
         m_driverController.leftBumper().onTrue(Commands.runOnce(() -> {
-            if (autoHeading.isPassingEnabled()) {
-                autoHeading.disablePassing();
+            if (autoHeading.isEmergencyModeEnabled()) {
+                autoHeading.toggleEmergencyPassing();
             } else {
-                autoHeading.togglePassing();
+                if (autoHeading.isPassingEnabled()) {
+                    autoHeading.disablePassing();
+                } else {
+                    autoHeading.togglePassing();
+                }
             }
         }));
 
@@ -161,14 +176,16 @@ public class RobotContainer {
             new IntakeCommand(intake)
         );
 
-       m_driverController.rightTrigger(0.2).whileTrue(
+      m_driverController.rightTrigger(0.2).whileTrue(
             new ShootCommand(
                 shooter,
                 index,
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getFieldVelocity(),
                 () -> vision.isRedAlliance(),
-                () -> autoHeading.isPassingEnabled()
+                () -> autoHeading.isPassingEnabled(),
+                () -> autoHeading.isEmergencyShootingMode(),
+                () -> autoHeading.isEmergencyPassingMode()
             )
         );
 

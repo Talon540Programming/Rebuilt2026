@@ -17,6 +17,7 @@ import frc.robot.utility.ShootingCalculator.PassingSolution;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
+import frc.robot.Constants.EmergencyModeConstants;
 import frc.robot.Constants.ShootingConstants;
 
 import org.littletonrobotics.junction.Logger;
@@ -36,10 +37,12 @@ public class ShootCommand extends Command {
     private final Supplier<ChassisSpeeds> velocitySupplier;
     private final BooleanSupplier isRedAllianceSupplier;
     private final BooleanSupplier isPassingEnabledSupplier;
+    private final BooleanSupplier isEmergencyShootingSupplier;
+    private final BooleanSupplier isEmergencyPassingSupplier;
 
     private boolean flywheelSpunUp = false;
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = 0.250; // 8 balls per second
+    private static final double fuelSpawnInterval = 0.250; // 4 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
     
@@ -57,13 +60,17 @@ public class ShootCommand extends Command {
                         Supplier<Pose2d> poseSupplier, 
                         Supplier<ChassisSpeeds> velocitySupplier,
                         BooleanSupplier isRedAllianceSupplier,
-                        BooleanSupplier isPassingEnabledSupplier) {
+                        BooleanSupplier isPassingEnabledSupplier,
+                        BooleanSupplier isEmergencyShootingSupplier,
+                        BooleanSupplier isEmergencyPassingSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
         this.velocitySupplier = velocitySupplier;
         this.isRedAllianceSupplier = isRedAllianceSupplier;
         this.isPassingEnabledSupplier = isPassingEnabledSupplier;
+        this.isEmergencyShootingSupplier = isEmergencyShootingSupplier;
+        this.isEmergencyPassingSupplier = isEmergencyPassingSupplier;
         
         // Require both subsystems
         addRequirements(shooter);
@@ -80,8 +87,20 @@ public class ShootCommand extends Command {
         double flywheelRPM;
         double hoodAngleRadians;
         
-        // Check if we're in passing mode or hub shooting mode
-        if (isPassingEnabledSupplier.getAsBoolean()) {
+        // Check for emergency mode first
+        if (isEmergencyShootingSupplier.getAsBoolean()) {
+            // Emergency shooting mode - use preset values
+            flywheelRPM = EmergencyModeConstants.shootingRPM;
+            hoodAngleRadians = Math.toRadians(EmergencyModeConstants.shootingHoodAngleDegrees);
+            
+            Logger.recordOutput("ShootCommand/Mode", "EmergencyShooting");
+        } else if (isEmergencyPassingSupplier.getAsBoolean()) {
+            // Emergency passing mode - use preset values
+            flywheelRPM = EmergencyModeConstants.passingRPM;
+            hoodAngleRadians = Math.toRadians(EmergencyModeConstants.passingHoodAngleDegrees);
+            
+            Logger.recordOutput("ShootCommand/Mode", "EmergencyPassing");
+        } else if (isPassingEnabledSupplier.getAsBoolean()) {
             // Passing mode - use passing calculator
             PassingSolution passingSolution = ShootingCalculator.calculatePassingSolution(
                 poseSupplier.get(),
@@ -126,12 +145,12 @@ public class ShootCommand extends Command {
         index.feed();
         shooter.runKickup();
 
-        // Spawn fuel in simulation
+        /// Spawn fuel in simulation
         if (Robot.isSimulation()) {
             timeSinceLastSpawn += loopPeriod;
             if (timeSinceLastSpawn >= fuelSpawnInterval) {
                 timeSinceLastSpawn = 0.0;
-                spawnSimulatedFuel();
+                spawnSimulatedFuel(flywheelRPM, hoodAngleRadians);
             }
         }
     }
@@ -152,16 +171,15 @@ public class ShootCommand extends Command {
     public String getName() {
         return "ShootCommand";
     }
-
-    /**
+/**
      * Spawns a simulated fuel ball at the shooter position with calculated velocity.
+     * Uses the actual RPM and hood angle being sent to the shooter.
+     * 
+     * @param flywheelRPM The flywheel RPM being commanded
+     * @param hoodAngleRadians The hood angle being commanded (radians)
      */
-    private void spawnSimulatedFuel() {
+    private void spawnSimulatedFuel(double flywheelRPM, double hoodAngleRadians) {
         Pose2d robotPose = poseSupplier.get();
-        boolean isRed = isRedAllianceSupplier.getAsBoolean();
-        
-        // Calculate distance to hub for velocity/angle calculation
-        double distance = ShootingCalculator.getDistanceToHub(robotPose, isRed);
         
         // Get shooter position in field coordinates
         Translation2d shooterPos2d = ShootingCalculator.getShooterPosition(robotPose);
@@ -172,8 +190,32 @@ public class ShootCommand extends Command {
             shooterHeight
         );
         
-        // Calculate launch velocity
-        Translation3d launchVelocity = ShootingCalculator.calculateLaunchVelocity(robotPose, distance);
+        // Convert RPM to linear velocity (m/s)
+        // RPM = (omega * 60) / (2 * PI)
+        // omega = RPM * 2 * PI / 60
+        // v = omega * r
+        double wheelRadiusMeters = Units.inchesToMeters(ShootingConstants.flywheelRadiusInches);
+        double omegaRadPerSec = flywheelRPM * 2.0 * Math.PI / 60.0;
+        double velocityMPS = omegaRadPerSec * wheelRadiusMeters;
+        
+        // Hood angle is measured from vertical (0 = straight up, 54 = relatively flat)
+        // Launch angle from horizontal = 90 - hood angle
+        double launchAngle = (Math.PI / 2) - hoodAngleRadians;
+        
+        // Calculate horizontal and vertical components
+        double horizontalSpeed = velocityMPS * Math.cos(launchAngle);
+        double verticalSpeed = velocityMPS * Math.sin(launchAngle);
+        
+        // Get robot heading (direction the robot is facing)
+        double shooterAngleOffset = -frc.robot.Constants.HeadingPID.shooterThetaOffset.get();
+        double heading = robotPose.getRotation().getRadians() + shooterAngleOffset;
+        
+        // Split horizontal speed into X and Y based on robot heading
+        double vx = horizontalSpeed * Math.cos(heading);
+        double vy = horizontalSpeed * Math.sin(heading);
+        double vz = verticalSpeed;
+        
+        Translation3d launchVelocity = new Translation3d(vx, vy, vz);
         
         // Spawn the fuel
         FuelSim.getInstance().spawnFuel(spawnPosition, launchVelocity);
@@ -181,5 +223,7 @@ public class ShootCommand extends Command {
         Logger.recordOutput("ShootCommand/SimFuelSpawned", true);
         Logger.recordOutput("ShootCommand/SimSpawnPos", spawnPosition);
         Logger.recordOutput("ShootCommand/SimLaunchVel", launchVelocity);
+        Logger.recordOutput("ShootCommand/SimRPM", flywheelRPM);
+        Logger.recordOutput("ShootCommand/SimHoodAngleDeg", Math.toDegrees(hoodAngleRadians));
     }
 }
