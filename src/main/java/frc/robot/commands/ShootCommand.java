@@ -39,7 +39,7 @@ public class ShootCommand extends Command {
 
     private boolean flywheelSpunUp = false;
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = 0.125; // 8 balls per second
+    private static final double fuelSpawnInterval = 0.250; // 8 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
     

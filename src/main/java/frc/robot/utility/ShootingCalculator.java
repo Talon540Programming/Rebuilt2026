@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.FieldPoses;
+import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.ShootingConstants;
 import frc.robot.Constants.PassingConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -553,7 +554,7 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
         
         // Get robot heading (direction the robot is facing)
         // Shooter is angled 11 degrees toward center (right side), so subtract the offset
-        double shooterAngleOffset = Math.toRadians(-11.0);
+        double shooterAngleOffset = -HeadingPID.shooterThetaOffset.get();
         double heading = robotPose.getRotation().getRadians() + shooterAngleOffset;
         
         // Split horizontal speed into X and Y based on robot heading

@@ -123,22 +123,6 @@ public class RobotContainer {
         }
 
         configureBindings();
-
-        // In simulation, always shoot when enabled
-        if (Robot.isSimulation()) {
-            autoHeading.enableFaceHub();
-            
-            shooter.setDefaultCommand(
-                new ShootCommand(
-                    shooter,
-                    index,
-                    () -> drivetrain.getPose(),
-                    () -> drivetrain.getFieldVelocity(),
-                    () -> vision.isRedAlliance(),
-                    () -> autoHeading.isPassingEnabled()
-                )
-            );
-        }
         
         autoChooser = AutoBuilder.buildAutoChooser("default auto"); //pick a default
         if (Robot.isSimulation()) {

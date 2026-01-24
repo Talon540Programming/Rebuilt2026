@@ -110,9 +110,9 @@ public final class Constants {
     public static final double hoodMaxAngle = Math.toRadians(54);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
-        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.3);
+        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.15);
     public static final LoggedTunableNumber compensationFactorY = 
-        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.45);
+        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.15);
 
     // Shooter position offset from robot center (in inches)
     // Positive X = forward, Positive Y = left
@@ -142,7 +142,7 @@ public final class Constants {
     public static LoggedTunableNumber headingD =
         new LoggedTunableNumber("AutoSetHeading/HeadingD");
     public static LoggedTunableNumber shooterThetaOffset =
-        new LoggedTunableNumber("Shooter/ShooterThetaOffset", Math.toRadians(11));
+        new LoggedTunableNumber("Shooter/ShooterThetaOffset", Math.toRadians(17.443637));
   }
 
   static {
