@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.utility.FuelSim;
 
 /**
@@ -79,24 +80,30 @@ public class Robot extends LoggedRobot {
 
 
      m_robotContainer.finalGyroCheck();
-
+     
     final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
-
-    if(homingCommand != null){
-      CommandScheduler.getInstance().schedule(homingCommand);
-    }
-
     final Command hoodHomingCommand = m_robotContainer.getHoodHomingCommand();
-    
-    if (hoodHomingCommand != null) {
-        CommandScheduler.getInstance().schedule(hoodHomingCommand);
-    }
-
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    // Build homing sequence (run both in parallel since they use different subsystems)
+    Command homingSequence;
+    if (homingCommand != null && hoodHomingCommand != null) {
+        homingSequence = homingCommand.alongWith(hoodHomingCommand);
+    } else if (homingCommand != null) {
+        homingSequence = homingCommand;
+    } else if (hoodHomingCommand != null) {
+        homingSequence = hoodHomingCommand;
+    } else {
+        homingSequence = null;
+    }
+    
+    // Run homing THEN auto
+    if (homingSequence != null && m_autonomousCommand != null) {
+        CommandScheduler.getInstance().schedule(homingSequence.andThen(m_autonomousCommand));
+    } else if (homingSequence != null) {
+        CommandScheduler.getInstance().schedule(homingSequence);
+    } else if (m_autonomousCommand != null) {
+        CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }
 

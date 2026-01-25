@@ -36,6 +36,7 @@ import frc.robot.subsystems.Vision.VisionIOLimelight;
 import frc.robot.Constants.RobotDimensions;
 import frc.robot.Constants.ShootingConstants;
 import frc.robot.utility.FuelSim;
+import frc.robot.utility.ShootingCalculator;
 import frc.robot.utility.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -44,6 +45,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import frc.robot.generated.TunerConstants;
@@ -127,6 +129,7 @@ public class RobotContainer {
         index = new IndexBase(indexIOKraken);
         }
 
+        configureNamedCommands();
         configureBindings();
         
         autoChooser = AutoBuilder.buildAutoChooser("default auto"); //pick a default
@@ -343,17 +346,122 @@ public class RobotContainer {
     }
 
     private void configureFuelSim() {
-    FuelSim instance = FuelSim.getInstance();
-    
-    instance.registerRobot(
-        RobotDimensions.robotWidthMeters,
-        RobotDimensions.robotLengthMeters,
-        RobotDimensions.bumperHeightMeters,
-        drivetrain::getPose,
-        drivetrain::getFieldVelocity
-    );
-    
-    instance.start();
-}
+        FuelSim instance = FuelSim.getInstance();
+        
+        instance.registerRobot(
+            RobotDimensions.robotWidthMeters,
+            RobotDimensions.robotLengthMeters,
+            RobotDimensions.bumperHeightMeters,
+            drivetrain::getPose,
+            drivetrain::getFieldVelocity
+        );
+        
+        instance.start();
+    }
+
+    /**
+     * Register all named commands for PathPlanner auto routines.
+     */
+    private void configureNamedCommands() {
+        // ==================== SHOOTING COMMANDS ====================
+        
+        // "Shoot" - Full auto shooting (calculates velocity/angle, waits for spinup, feeds)
+        // Runs until interrupted by PathPlanner
+        NamedCommands.registerCommand("Shoot", 
+            new ShootCommand(
+                shooter,
+                index,
+                () -> drivetrain.getPose(),
+                () -> drivetrain.getFieldVelocity(),
+                () -> vision.isRedAlliance(),
+                () -> false, // Not passing mode
+                () -> false, // Not emergency shooting
+                () -> false, // Not emergency passing
+                () -> {}     // No callback needed for auto
+            )
+        );
+        
+        // "PrepareToShoot" - Spin up flywheel and set hood angle without feeding
+        // Use this while driving to shooting position
+        NamedCommands.registerCommand("PrepareToShoot",
+            Commands.run(() -> {
+                var solution = ShootingCalculator.calculateSolutionWithMovement(
+                    drivetrain.getPose(),
+                    drivetrain.getFieldVelocity(),
+                    vision.isRedAlliance()
+                );
+                shooter.setFlywheelVelocity(solution.flywheelRPM);
+                shooter.setHoodAngle(solution.hoodAngleRadians);
+            }, shooter)
+        );
+        
+        // "StopShooting" - Stop flywheel, hood, and kickup
+        NamedCommands.registerCommand("StopShooting",
+            Commands.runOnce(() -> {
+                shooter.stopAll();
+            }, shooter)
+        );
+        
+        // ==================== PASSING COMMANDS ====================
+        
+        // "Pass" - Full auto passing (calculates lob trajectory, waits for spinup, feeds)
+        // Runs until interrupted by PathPlanner
+        NamedCommands.registerCommand("Pass",
+            new ShootCommand(
+                shooter,
+                index,
+                () -> drivetrain.getPose(),
+                () -> drivetrain.getFieldVelocity(),
+                () -> vision.isRedAlliance(),
+                () -> true,  // Passing mode enabled
+                () -> false, // Not emergency shooting
+                () -> false, // Not emergency passing
+                () -> {}     // No callback needed for auto
+            )
+        );
+        
+        // "PrepareToPass" - Spin up flywheel and set hood angle for passing without feeding
+        NamedCommands.registerCommand("PrepareToPass",
+            Commands.run(() -> {
+                var solution = frc.robot.utility.ShootingCalculator.calculatePassingSolution(
+                    drivetrain.getPose(),
+                    vision.isRedAlliance()
+                );
+                shooter.setFlywheelVelocity(solution.flywheelRPM);
+                shooter.setHoodAngle(solution.hoodAngleRadians);
+            }, shooter)
+        );
+        
+        // ==================== INTAKE COMMANDS ====================
+        
+        // "StartIntake" - Deploy intake and run rollers (doesn't end on its own)
+        NamedCommands.registerCommand("StartIntake",
+            Commands.runOnce(() -> {
+                intake.deploy();
+            }, intake)
+        );
+        
+        // "StopIntake" - Retract intake
+        NamedCommands.registerCommand("StopIntake",
+            Commands.runOnce(() -> {
+                intake.retract();
+            }, intake)
+        );
+        
+        // "Intake" - Full intake command (deploys, runs until interrupted)
+        // Use this if you want PathPlanner to control the full intake cycle
+        NamedCommands.registerCommand("Intake",
+            new IntakeCommand(intake)
+        );
+        
+        // ==================== HOOD COMMANDS ====================
+        
+        // "RetractHood" - Set hood to minimum angle (for going under trench)
+        NamedCommands.registerCommand("RetractHood",
+            Commands.runOnce(() -> {
+                shooter.retractHood();
+            }, shooter)
+        );
+    }
 
 }

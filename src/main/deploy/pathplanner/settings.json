@@ -28,5 +28,16 @@
   "brModuleY": -0.286,
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
-  "robotFeatures": []
+  "robotFeatures": [],
+  "namedCommands": [
+    "Shoot",
+    "PrepareToShoot",
+    "StopShooting",
+    "Pass",
+    "PrepareToPass",
+    "StartIntake",
+    "StopIntake",
+    "Intake",
+    "RetractHood"
+  ]
 }
