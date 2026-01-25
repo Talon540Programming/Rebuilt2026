@@ -74,34 +74,37 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-
      // Final attempt to initialize gyro from vision if not already done
-
-
      m_robotContainer.finalGyroCheck();
 
-    final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
-    final Command hoodHomingCommand = m_robotContainer.getHoodHomingCommand();
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    // Check what needs homing
+    boolean needsIntakeHoming = m_robotContainer.needsIntakeHoming();
+    boolean needsHoodHoming = m_robotContainer.needsHoodHoming();
+    
+    // Get fresh auto command
+    Command autoCommand = m_robotContainer.getAutonomousCommand();
 
-    // Build homing sequence (run both in parallel since they use different subsystems)
-    Command homingSequence;
-    if (homingCommand != null && hoodHomingCommand != null) {
-        homingSequence = homingCommand.alongWith(hoodHomingCommand);
-    } else if (homingCommand != null) {
-        homingSequence = homingCommand;
-    } else if (hoodHomingCommand != null) {
-        homingSequence = hoodHomingCommand;
+    // Build the sequence based on what's needed
+    if (needsIntakeHoming && needsHoodHoming) {
+        // Both need homing - run in parallel, then auto
+        Command intakeHoming = m_robotContainer.getIntakeHomingCommand();
+        Command hoodHoming = m_robotContainer.getHoodHomingCommand();
+        m_autonomousCommand = intakeHoming.alongWith(hoodHoming).andThen(autoCommand);
+    } else if (needsIntakeHoming) {
+        // Only intake needs homing
+        Command intakeHoming = m_robotContainer.getIntakeHomingCommand();
+        m_autonomousCommand = intakeHoming.andThen(autoCommand);
+    } else if (needsHoodHoming) {
+        // Only hood needs homing
+        Command hoodHoming = m_robotContainer.getHoodHomingCommand();
+        m_autonomousCommand = hoodHoming.andThen(autoCommand);
     } else {
-        homingSequence = null;
+        // Nothing needs homing, just run auto
+        m_autonomousCommand = autoCommand;
     }
     
-    // Run homing THEN auto
-    if (homingSequence != null && m_autonomousCommand != null) {
-        CommandScheduler.getInstance().schedule(homingSequence.andThen(m_autonomousCommand));
-    } else if (homingSequence != null) {
-        CommandScheduler.getInstance().schedule(homingSequence);
-    } else if (m_autonomousCommand != null) {
+    // Schedule the command
+    if (m_autonomousCommand != null) {
         CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }

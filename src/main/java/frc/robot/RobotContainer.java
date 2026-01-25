@@ -423,7 +423,7 @@ public class RobotContainer {
         // "PrepareToPass" - Spin up flywheel and set hood angle for passing without feeding
         NamedCommands.registerCommand("PrepareToPass",
             Commands.run(() -> {
-                var solution = frc.robot.utility.ShootingCalculator.calculatePassingSolution(
+                var solution = ShootingCalculator.calculatePassingSolution(
                     drivetrain.getPose(),
                     vision.isRedAlliance()
                 );
@@ -462,6 +462,19 @@ public class RobotContainer {
                 shooter.retractHood();
             }, shooter)
         );
+    }
+    /**
+     * Check if intake needs homing
+     */
+    public boolean needsIntakeHoming() {
+        return !intake.isHomed();
+    }
+    
+    /**
+     * Check if hood needs homing
+     */
+    public boolean needsHoodHoming() {
+        return !shooter.isHoodHomed();
     }
 
 }

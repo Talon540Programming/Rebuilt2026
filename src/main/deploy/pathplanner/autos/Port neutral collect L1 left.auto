@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "Port start"
+          }
+        },
+        {
           "type": "race",
           "data": {
             "commands": [
@@ -24,9 +30,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Start to depot port"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Trench to neutral zone port"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "RetractHood"
+                }
+              }
+            ]
           }
         },
         {
@@ -38,15 +57,15 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "path",
                       "data": {
-                        "name": "StartIntake"
+                        "pathName": "Neutral zone intake port"
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "named",
                       "data": {
-                        "pathName": "Intake from depot port"
+                        "name": "StartIntake"
                       }
                     }
                   ]
@@ -62,9 +81,35 @@
           }
         },
         {
-          "type": "path",
+          "type": "sequential",
           "data": {
-            "pathName": "Depot to shoot port "
+            "commands": [
+              {
+                "type": "parallel",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Intake neutal zone to line up trench port"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "RetractHood"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Line up trench to shoot from neutral port"
+                }
+              }
+            ]
           }
         },
         {
@@ -80,7 +125,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 2.4
+                  "waitTime": 4.0
                 }
               }
             ]
@@ -89,7 +134,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Depot shoot to line up climb port"
+            "pathName": "Shoot from neutral to line up climb port"
           }
         },
         {
