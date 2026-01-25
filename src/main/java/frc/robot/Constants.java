@@ -106,8 +106,8 @@ public final class Constants {
     public static final double maxFlywheelRPM = 6000.0;        // Maximum safe RPM
     
     // Hood angle limits (same as ShooterConstants for reference)
-    public static final double hoodMinAngle = Math.PI / 12;     // 15 degrees
-    public static final double hoodMaxAngle = Math.toRadians(54);     // 54 degrees
+    public static final double hoodMinAngle = Math.toRadians(18);     // 15 degrees
+    public static final double hoodMaxAngle = Math.toRadians(55);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
         new LoggedTunableNumber("Shooting/CompensationFactorX", 0.1);
@@ -120,6 +120,8 @@ public final class Constants {
         new LoggedTunableNumber("Shooting/ShooterOffsetXInches", 6.6);
     public static final LoggedTunableNumber shooterOffsetYInches = 
         new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 3.5);
+        // Hood auto-retraction near trench
+    public static final double hoodRetractionDistanceMeters = 0.7;
   }
 
   public static final class PassingConstants {

@@ -39,10 +39,11 @@ public class ShootCommand extends Command {
     private final BooleanSupplier isPassingEnabledSupplier;
     private final BooleanSupplier isEmergencyShootingSupplier;
     private final BooleanSupplier isEmergencyPassingSupplier;
+    private final Runnable onShootingEndCallback;
 
     private boolean flywheelSpunUp = false;
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = 0.250; // 4 balls per second
+    private static final double fuelSpawnInterval = .1; // 4 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
     
@@ -62,7 +63,8 @@ public class ShootCommand extends Command {
                         BooleanSupplier isRedAllianceSupplier,
                         BooleanSupplier isPassingEnabledSupplier,
                         BooleanSupplier isEmergencyShootingSupplier,
-                        BooleanSupplier isEmergencyPassingSupplier) {
+                        BooleanSupplier isEmergencyPassingSupplier,
+                        Runnable onShootingEndCallback) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
@@ -71,6 +73,7 @@ public class ShootCommand extends Command {
         this.isPassingEnabledSupplier = isPassingEnabledSupplier;
         this.isEmergencyShootingSupplier = isEmergencyShootingSupplier;
         this.isEmergencyPassingSupplier = isEmergencyPassingSupplier;
+        this.onShootingEndCallback = onShootingEndCallback;
         
         // Require both subsystems
         addRequirements(shooter);
@@ -159,6 +162,11 @@ public class ShootCommand extends Command {
     public void end(boolean interrupted) {
         // Stop shooter - index will return to default command behavior
         shooter.stopAll();
+        
+        // Revert from hood retract mode if needed
+        if (onShootingEndCallback != null) {
+            onShootingEndCallback.run();
+        }
     }
     
     @Override

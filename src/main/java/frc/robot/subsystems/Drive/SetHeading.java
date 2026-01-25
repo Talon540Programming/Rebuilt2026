@@ -24,6 +24,8 @@ public class SetHeading {
     private boolean emergencyModeEnabled = false;
     private boolean emergencyShootingMode = false;
     private boolean emergencyPassingMode = false;
+    private boolean emergencyHoodRetractMode = false;
+    private boolean previousWasShootingMode = true; // Default to shooting mode
     private Rotation2d targetHeading = new Rotation2d();
     private Translation2d virtualGoal = null;
     private double distanceToHub = 0.0;
@@ -193,12 +195,15 @@ public class SetHeading {
             passingEnabled = false;
             emergencyShootingMode = false;
             emergencyPassingMode = false;
+            emergencyHoodRetractMode = false;
+            previousWasShootingMode = true; // Reset to default (shooting)
         }
         Logger.recordOutput("EmergencyMode/Enabled", emergencyModeEnabled);
         Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
         Logger.recordOutput("Passing/Enabled", passingEnabled);
         Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
         Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+        Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
     }
     
     public boolean isEmergencyModeEnabled() {
@@ -210,9 +215,12 @@ public class SetHeading {
         emergencyShootingMode = !emergencyShootingMode;
         if (emergencyShootingMode) {
             emergencyPassingMode = false;
+            emergencyHoodRetractMode = false;
+            previousWasShootingMode = true;
         }
         Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
         Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+        Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
     }
     
     public void toggleEmergencyPassing() {
@@ -220,9 +228,12 @@ public class SetHeading {
         emergencyPassingMode = !emergencyPassingMode;
         if (emergencyPassingMode) {
             emergencyShootingMode = false;
+            emergencyHoodRetractMode = false;
+            previousWasShootingMode = false;
         }
         Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
         Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+        Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
     }
     
     public boolean isEmergencyShootingMode() {
@@ -231,5 +242,42 @@ public class SetHeading {
     
     public boolean isEmergencyPassingMode() {
         return emergencyModeEnabled && emergencyPassingMode;
+    }
+
+    public void toggleEmergencyHoodRetract() {
+        if (!emergencyModeEnabled) return;
+        emergencyHoodRetractMode = !emergencyHoodRetractMode;
+        if (emergencyHoodRetractMode) {
+            emergencyShootingMode = false;
+            emergencyPassingMode = false;
+        }
+        Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
+        Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+        Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+    }
+    
+    public boolean isEmergencyHoodRetractMode() {
+        return emergencyModeEnabled && emergencyHoodRetractMode;
+    }
+
+    /**
+     * Revert from hood retract mode to the previous shooting/passing mode.
+     * Called after shooting completes.
+     */
+    public void revertFromHoodRetract() {
+        if (!emergencyModeEnabled || !emergencyHoodRetractMode) return;
+        
+        emergencyHoodRetractMode = false;
+        if (previousWasShootingMode) {
+            emergencyShootingMode = true;
+            emergencyPassingMode = false;
+        } else {
+            emergencyPassingMode = true;
+            emergencyShootingMode = false;
+        }
+        
+        Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
+        Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
+        Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
     }
 }

@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import org.littletonrobotics.junction.Logger;
+
 import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.OperatorConstants;
@@ -32,9 +34,11 @@ import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
 import frc.robot.Constants.RobotDimensions;
+import frc.robot.Constants.ShootingConstants;
 import frc.robot.utility.FuelSim;
 import frc.robot.utility.Telemetry;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -172,6 +176,11 @@ public class RobotContainer {
             }
         }));
 
+        // Dpad left - toggle hood retraction in emergency mode
+        m_driverController.povLeft().onTrue(Commands.runOnce(() -> {
+            autoHeading.toggleEmergencyHoodRetract();
+        }));
+
         m_driverController.leftTrigger().toggleOnTrue(
             new IntakeCommand(intake)
         );
@@ -185,7 +194,8 @@ public class RobotContainer {
                 () -> vision.isRedAlliance(),
                 () -> autoHeading.isPassingEnabled(),
                 () -> autoHeading.isEmergencyShootingMode(),
-                () -> autoHeading.isEmergencyPassingMode()
+                () -> autoHeading.isEmergencyPassingMode(),
+                () -> autoHeading.revertFromHoodRetract()
             )
         );
 
@@ -253,6 +263,42 @@ public class RobotContainer {
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
+        );
+
+        // Shooter default command - auto-retract hood near trench OR emergency hood retract mode
+        shooter.setDefaultCommand(
+            shooter.run(() -> {
+                // Get robot position
+                Pose2d robotPose = drivetrain.getPose();
+                double robotX = robotPose.getX();
+                
+                // Check distance to both trenches (hub X positions)
+                double blueTrenchX = FieldPoses.blueHub.getX();
+                double redTrenchX = FieldPoses.redHub.getX();
+                
+                double distanceToBlue = Math.abs(robotX - blueTrenchX);
+                double distanceToRed = Math.abs(robotX - redTrenchX);
+                double minDistance = Math.min(distanceToBlue, distanceToRed);
+                
+                // Check if emergency hood retract mode is active
+                boolean emergencyRetract = autoHeading.isEmergencyHoodRetractMode();
+                
+                // Check if near trench (only when NOT in emergency mode)
+                boolean nearTrench = !autoHeading.isEmergencyModeEnabled() && 
+                    minDistance < ShootingConstants.hoodRetractionDistanceMeters;
+                
+                // Auto-retract if emergency retract mode OR near trench
+                if (emergencyRetract || nearTrench) {
+                    shooter.retractHood();
+                    Logger.recordOutput("Shooter/AutoRetract", true);
+                    Logger.recordOutput("Shooter/AutoRetractReason", emergencyRetract ? "EmergencyMode" : "NearTrench");
+                } else {
+                    Logger.recordOutput("Shooter/AutoRetract", false);
+                    Logger.recordOutput("Shooter/AutoRetractReason", "None");
+                }
+                
+                Logger.recordOutput("Shooter/DistanceToNearestTrench", minDistance);
+            })
         );
 
         drivetrain.registerTelemetry(logger::telemeterize);

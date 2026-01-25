@@ -155,6 +155,13 @@ public class ShooterBase extends SubsystemBase {
     public double getHoodAngleRadians() {
         return hoodInputs.positionRadians;
     }
+
+    /**
+     * Retract hood to minimum angle (stowed position)
+     */
+    public void retractHood() {
+        setHoodAngle(ShootingConstants.hoodMinAngle);
+    }
     
     /**
      * Zero the hood encoder - call at beginning of auto and teleop
