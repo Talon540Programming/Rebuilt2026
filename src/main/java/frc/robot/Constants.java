@@ -88,7 +88,7 @@ public final class Constants {
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
     public static final double backDistanceInches = 10.0;      
-    public static final double shooterHeightInches = 19.793581;     // Height of shooter exit from ground
+    public static final double shooterHeightInches = 19.25;     // Height of shooter exit from ground
     public static final double heightOfHubInches = 72.0;       // Height of hub opening
     public static final double clearanceInches = 20.0;         // Desired clearance over hub rim
     
@@ -134,6 +134,9 @@ public final class Constants {
     // Tunable margin above trench (inches)
     public static final LoggedTunableNumber trenchClearanceMarginInches = 
         new LoggedTunableNumber("Passing/TrenchClearanceMarginInches", 6.0);
+
+    // Fixed angle for derived passing method (degrees)
+    public static final double fixedPassingAngleDegrees = 40.0;
   }
 
   public static final class HeadingPID {

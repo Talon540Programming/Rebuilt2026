@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.utility.FuelSim;
 
 /**
@@ -80,7 +79,7 @@ public class Robot extends LoggedRobot {
 
 
      m_robotContainer.finalGyroCheck();
-     
+
     final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
     final Command hoodHomingCommand = m_robotContainer.getHoodHomingCommand();
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
