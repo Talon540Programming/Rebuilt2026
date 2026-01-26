@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Homing"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Port start"
@@ -23,10 +29,41 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 2.5
+                  "waitTime": 2.4
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StopShooting"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RetractHood"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.2
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start to intake neutral zone port"
           }
         },
         {
@@ -34,82 +71,30 @@
           "data": {
             "commands": [
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "Trench to neutral zone port"
+                  "name": "StartIntake"
                 }
               },
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "RetractHood"
+                  "pathName": "Intake neutral port"
                 }
               }
             ]
           }
         },
         {
-          "type": "sequential",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "parallel",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Neutral zone intake port"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "StartIntake"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "StopIntake"
-                }
-              }
-            ]
+            "name": "StopIntake"
           }
         },
         {
-          "type": "sequential",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "parallel",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Intake neutal zone to line up trench port"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "RetractHood"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Line up trench to shoot from neutral port"
-                }
-              }
-            ]
+            "pathName": "From neutral intake to shoot port"
           }
         },
         {
@@ -132,15 +117,21 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Shoot from neutral to line up climb port"
+            "name": "RetractHood"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Line up climb to climb port"
+            "pathName": "Shoot from neutral to climb line up port"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Climb left"
           }
         }
       ]

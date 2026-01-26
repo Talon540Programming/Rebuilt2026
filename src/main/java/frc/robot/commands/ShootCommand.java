@@ -76,7 +76,7 @@ public class ShootCommand extends Command {
         this.onShootingEndCallback = onShootingEndCallback;
         
         // Require both subsystems
-        addRequirements(shooter);
+        addRequirements(shooter, index);
     }
     
     @Override
@@ -160,8 +160,9 @@ public class ShootCommand extends Command {
     
     @Override
     public void end(boolean interrupted) {
-        // Stop shooter - index will return to default command behavior
+        // Stop shooter and index
         shooter.stopAll();
+        index.stop();
         
         // Revert from hood retract mode if needed
         if (onShootingEndCallback != null) {

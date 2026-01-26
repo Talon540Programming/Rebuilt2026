@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -72,38 +73,14 @@ public class Robot extends LoggedRobot {
   public void disabledPeriodic() {}
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
-  @Override
+ @Override
   public void autonomousInit() {
      // Final attempt to initialize gyro from vision if not already done
      m_robotContainer.finalGyroCheck();
 
-    // Check what needs homing
-    boolean needsIntakeHoming = m_robotContainer.needsIntakeHoming();
-    boolean needsHoodHoming = m_robotContainer.needsHoodHoming();
-    
-    // Get fresh auto command
-    Command autoCommand = m_robotContainer.getAutonomousCommand();
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-    // Build the sequence based on what's needed
-    if (needsIntakeHoming && needsHoodHoming) {
-        // Both need homing - run in parallel, then auto
-        Command intakeHoming = m_robotContainer.getIntakeHomingCommand();
-        Command hoodHoming = m_robotContainer.getHoodHomingCommand();
-        m_autonomousCommand = intakeHoming.alongWith(hoodHoming).andThen(autoCommand);
-    } else if (needsIntakeHoming) {
-        // Only intake needs homing
-        Command intakeHoming = m_robotContainer.getIntakeHomingCommand();
-        m_autonomousCommand = intakeHoming.andThen(autoCommand);
-    } else if (needsHoodHoming) {
-        // Only hood needs homing
-        Command hoodHoming = m_robotContainer.getHoodHomingCommand();
-        m_autonomousCommand = hoodHoming.andThen(autoCommand);
-    } else {
-        // Nothing needs homing, just run auto
-        m_autonomousCommand = autoCommand;
-    }
-    
-    // Schedule the command
+    // Schedule the autonomous command
     if (m_autonomousCommand != null) {
         CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
@@ -123,13 +100,17 @@ public class Robot extends LoggedRobot {
       m_autonomousCommand.cancel();
     }
 
-    final Command homingCommand = m_robotContainer.getIntakeHomingCommand();
+    Command intakeHoming = m_robotContainer.getIntakeHomingCommand();
+    Command hoodHoming = m_robotContainer.getHoodHomingCommand();
 
-    if(homingCommand != null){
-      CommandScheduler.getInstance().schedule(homingCommand);
+    if (intakeHoming != null) {
+      CommandScheduler.getInstance().schedule(intakeHoming);
+    }
+    if (hoodHoming != null) {
+      CommandScheduler.getInstance().schedule(hoodHoming);
     }
   }
-
+  
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {}

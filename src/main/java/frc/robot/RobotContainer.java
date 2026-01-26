@@ -330,7 +330,7 @@ public class RobotContainer {
             return intake.homingSequence();
         }
 
-        return Commands.none();
+        return null;
     }
 
     public Command getAutonomousCommand() {
@@ -342,7 +342,7 @@ public class RobotContainer {
         if (!shooter.isHoodHomed()) {
             return shooter.hoodHomingSequence();
         }
-        return Commands.none();
+        return null;
     }
 
     private void configureFuelSim() {
@@ -462,7 +462,26 @@ public class RobotContainer {
                 shooter.retractHood();
             }, shooter)
         );
+
+        // "Homing" - Run intake and hood homing in parallel
+        // Add this as the FIRST command in your PathPlanner autos
+        NamedCommands.registerCommand("Homing",
+            Commands.parallel(
+                Commands.either(
+                    Commands.defer(() -> intake.homingSequence(), java.util.Set.of(intake)),
+                    Commands.none(),
+                    () -> !intake.isHomed()
+                ),
+                Commands.either(
+                    Commands.defer(() -> shooter.hoodHomingSequence(), java.util.Set.of(shooter)),
+                    Commands.none(),
+                    () -> !shooter.isHoodHomed()
+                )
+            ).withTimeout(1.0)
+        );
     }
+
+    
     /**
      * Check if intake needs homing
      */

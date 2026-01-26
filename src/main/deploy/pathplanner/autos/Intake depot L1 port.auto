@@ -5,6 +5,18 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Homing"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Port start"
+          }
+        },
+        {
           "type": "race",
           "data": {
             "commands": [
@@ -26,45 +38,38 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start to depot port"
+            "pathName": "Start to depot intake port"
           }
         },
         {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "parallel",
+                "type": "path",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "StartIntake"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Intake from depot port"
-                      }
-                    }
-                  ]
+                  "pathName": "Intake depot to shoot"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "StopIntake"
+                  "name": "StartIntake"
                 }
               }
             ]
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "StopIntake"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Depot to shoot port "
+            "pathName": "Shoot from depot port"
           }
         },
         {
@@ -80,7 +85,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 2.4
+                  "waitTime": 4.0
                 }
               }
             ]
@@ -89,19 +94,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Depot shoot to line up climb port"
+            "pathName": "Shoot from depot line up climb port"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Line up climb to climb port"
+            "pathName": "Climb left"
           }
         }
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
