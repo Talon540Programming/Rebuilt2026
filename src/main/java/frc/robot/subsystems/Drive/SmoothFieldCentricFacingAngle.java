@@ -9,7 +9,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -73,11 +72,9 @@ public class SmoothFieldCentricFacingAngle implements SwerveRequest {
         // Calculate target heading at 250Hz using shooter position offset
         double targetRadians = ShootingCalculator.calculateAimingHeading(currentPose, target) + HeadingPID.shooterThetaOffset.get();
         
-        Rotation2d angleToFace = new Rotation2d(targetRadians);
-        if (forwardPerspective == ForwardPerspectiveValue.OperatorPerspective) {
-            angleToFace = angleToFace.rotateBy(parameters.operatorForwardDirection);
-        }
-        double adjustedTargetRadians = angleToFace.getRadians();
+        // Don't apply operator perspective rotation to heading target
+        // The heading should be absolute field-relative (always face the hub the same way)
+        double adjustedTargetRadians = targetRadians;
 
         // Calculate target rate feedforward from how fast the target is changing
         double targetRateFeedforward = 0.0;
