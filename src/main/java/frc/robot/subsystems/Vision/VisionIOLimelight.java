@@ -2,7 +2,7 @@ package frc.robot.subsystems.Vision;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
-import frc.robot.utility.LimelightHelpers;
+import frc.robot.LimelightHelpers;
 
 public class VisionIOLimelight implements VisionIO {
     private final String limelightOne = VisionConstants.limelightOne;

@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Vision.VisionIO.VisionIOInputs;
-import frc.robot.utility.LimelightHelpers;
+import frc.robot.LimelightHelpers;
 
 public class VisionBase extends SubsystemBase{
 
