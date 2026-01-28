@@ -34,4 +34,7 @@ public interface HoodIO {
 
     /** Sets the current position (in mechanism rotations). Used for zeroing after homing. */
     default void setEncoderPosition(double positionRotations) {}
+
+    /** Enable or disable software limits (disable during homing) */
+    default void setSoftLimitsEnabled(boolean enabled) {}
 }

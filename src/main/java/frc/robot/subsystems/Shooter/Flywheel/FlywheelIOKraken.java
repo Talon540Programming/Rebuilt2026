@@ -134,4 +134,10 @@ public class FlywheelIOKraken implements FlywheelIO {
         leaderMotor.setNeutralMode(mode);
         followerMotor.setNeutralMode(mode);
     }
+
+    @Override
+    public void stop() {
+        leaderMotor.stopMotor();
+        targetVelocityRPM = 0.0;
+    }
 }

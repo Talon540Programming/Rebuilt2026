@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Intake.IntakeConstants;
 
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -30,7 +31,7 @@ public class ExtensionIOKraken implements ExtensionIO {
     private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0.0);
 
     public ExtensionIOKraken() {
-        pivot = new TalonFX(IntakeConstants.extensionMotorId);
+        pivot = new TalonFX(IntakeConstants.extensionMotorId, TunerConstants.kCANBus);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         
@@ -113,6 +114,11 @@ public class ExtensionIOKraken implements ExtensionIO {
         public void setPosition(double positionRotations) {
             // Sets the integrated sensor position. This value affects subsequent position reads.
             pivot.setPosition(positionRotations);
+    }
+
+    @Override
+    public void setDutyCycle(double dutyCycle) {
+        pivot.set(dutyCycle);
     }
 
 

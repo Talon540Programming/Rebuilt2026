@@ -2,6 +2,7 @@ package frc.robot.subsystems.Shooter.Hood;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -66,11 +67,11 @@ public class HoodIOKraken implements HoodIO {
         config.MotionMagic.MotionMagicAcceleration = ShooterConstants.hoodMMAccelRotPerSec2.get();
         config.MotionMagic.MotionMagicJerk = ShooterConstants.hoodMMJerkRotPerSec3.get();
         
-        // Software limits (in mechanism rotations)
+        // Software limits (in motor rotations)
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShootingConstants.hoodMaxAngle + 0.01;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShooterConstants.hoodMaxPositionRot.get() + 0.01;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShootingConstants.hoodMinAngle - 0.01;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShooterConstants.hoodMinPositionRot.get() - 0.01;
         
         motor.getConfigurator().apply(config);
         
@@ -106,8 +107,15 @@ public class HoodIOKraken implements HoodIO {
         );
         
         inputs.positionRotations = positionRotations.getValueAsDouble();
-        // Convert mechanism rotations to radians
-        inputs.positionRadians = inputs.positionRotations * (2 * Math.PI);
+        // Convert motor position (rotations) to hood angle (radians)
+        // Reverse linear interpolation
+        double minAngle = ShootingConstants.hoodMinAngle;
+        double maxAngle = ShootingConstants.hoodMaxAngle;
+        double minPos = ShooterConstants.hoodMinPositionRot.get();
+        double maxPos = ShooterConstants.hoodMaxPositionRot.get();
+        
+        double t = (inputs.positionRotations - minPos) / (maxPos - minPos);
+        inputs.positionRadians = minAngle + t * (maxAngle - minAngle);
         inputs.velocityRotPerSec = velocityRotPerSec.getValueAsDouble();
         inputs.appliedVolts = appliedVolts.getValueAsDouble();
         inputs.currentAmps = currentAmps.getValueAsDouble();
@@ -123,15 +131,23 @@ public class HoodIOKraken implements HoodIO {
     public void setPosition(double positionRadians) {
         targetPositionRadians = positionRadians;
         
-        // Convert radians to mechanism rotations
-        double mechanismRotations = positionRadians / (2 * Math.PI);
-        motor.setControl(positionControl.withPosition(mechanismRotations));
+        // Map hood angle (radians) to motor position (rotations)
+        // Linear interpolation from min angle -> min position, max angle -> max position
+        double minAngle = ShootingConstants.hoodMinAngle;
+        double maxAngle = ShootingConstants.hoodMaxAngle;
+        double minPos = ShooterConstants.hoodMinPositionRot.get();
+        double maxPos = ShooterConstants.hoodMaxPositionRot.get();
+        
+        double t = (positionRadians - minAngle) / (maxAngle - minAngle);
+        double motorRotations = minPos + t * (maxPos - minPos);
+        
+        motor.setControl(positionControl.withPosition(motorRotations));
     }
     
     @Override
     public void zeroEncoder() {
         // Zero the encoder - assumes hood is at minimum position when called
-        motor.setPosition(ShootingConstants.hoodMinAngle);
+        motor.setPosition(ShooterConstants.hoodMinPositionRot.get());
     }
     
     @Override
@@ -142,5 +158,29 @@ public class HoodIOKraken implements HoodIO {
     @Override
     public void setEncoderPosition(double positionRotations) {
         motor.setPosition(positionRotations);
-}
+    }
+
+    @Override
+    public void stop() {
+        motor.stopMotor();
+    }
+
+    @Override
+    public void setDutyCycle(double dutyCycle) {
+        motor.set(dutyCycle);
+    }
+
+    @Override
+    public void setSoftLimitsEnabled(boolean enabled) {
+        var config = new SoftwareLimitSwitchConfigs();
+        config.ForwardSoftLimitEnable = enabled;
+        config.ReverseSoftLimitEnable = enabled;
+        if (enabled) {
+            double maxAngleRotations = ShootingConstants.hoodMaxAngle / (2 * Math.PI);
+            double minAngleRotations = ShootingConstants.hoodMinAngle / (2 * Math.PI);
+            config.ForwardSoftLimitThreshold = maxAngleRotations + 0.01;
+            config.ReverseSoftLimitThreshold = minAngleRotations - 0.01;
+        }
+        motor.getConfigurator().apply(config);
+    }
 }

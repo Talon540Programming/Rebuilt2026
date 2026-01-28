@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Intake.IntakeConstants;
 
 
@@ -27,7 +28,7 @@ public class RollerIOKraken implements RollerIO {
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     public RollerIOKraken() {
-        roller = new TalonFX(IntakeConstants.rollerMotorId);
+        roller = new TalonFX(IntakeConstants.rollerMotorId, TunerConstants.kCANBus);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         

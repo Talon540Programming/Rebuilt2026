@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Set;
+
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants.FieldPoses;
@@ -33,6 +35,10 @@ import frc.robot.subsystems.Shooter.Kickup.KickupIOKraken;
 import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
+import frc.robot.subsystems.Climberz.ClimberzBase;
+import frc.robot.subsystems.Climberz.ClimberzIOKraken;
+import frc.robot.subsystems.Climberz.ClimberzIOSim;
+import frc.robot.subsystems.Climberz.ClimberzConstants;
 import frc.robot.Constants.RobotDimensions;
 import frc.robot.Constants.ShootingConstants;
 import frc.robot.utility.FuelSim;
@@ -82,9 +88,12 @@ public class RobotContainer {
     private final KickupIOSim kickupIOSim = new KickupIOSim(); 
     private final IndexIOKraken indexIOKraken = new IndexIOKraken();
     private final IndexIOSim indexIOSim = new IndexIOSim();
+    private final ClimberzIOKraken climberzIOKraken = new ClimberzIOKraken();
+    private final ClimberzIOSim climberzIOSim = new ClimberzIOSim();
     private final IntakeBase intake;
     private final ShooterBase shooter;
     private final IndexBase index;
+    private final ClimberzBase climberz;
 
     private final SendableChooser<Command> autoChooser;
 
@@ -95,6 +104,8 @@ public class RobotContainer {
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(4);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(4);
     private final SlewRateLimiter rotLimiter = new SlewRateLimiter(4);
+
+    // Double tap detection for climber
 
     private static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(edu.wpi.first.units.Units.MetersPerSecond);
     private double MaxAngularRate = RotationsPerSecond.of(1.5).in(RadiansPerSecond);
@@ -121,12 +132,14 @@ public class RobotContainer {
         intake = new IntakeBase(extensionIOSim, rollerIOSim);
         shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
         index = new IndexBase(indexIOSim);
+        climberz = new ClimberzBase(climberzIOSim);
         shooter.forceHoodHomed();
         } 
         else {
         intake = new IntakeBase(extensionIO, rollerIOKraken);
         shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
         index = new IndexBase(indexIOKraken);
+        climberz = new ClimberzBase(climberzIOKraken);
         }
 
         configureNamedCommands();
@@ -188,19 +201,38 @@ public class RobotContainer {
             new IntakeCommand(intake)
         );
 
-      m_driverController.rightTrigger(0.2).whileTrue(
-            new ShootCommand(
-                shooter,
-                index,
-                () -> drivetrain.getPose(),
-                () -> drivetrain.getFieldVelocity(),
-                () -> vision.isRedAlliance(),
-                () -> autoHeading.isPassingEnabled(),
-                () -> autoHeading.isEmergencyShootingMode(),
-                () -> autoHeading.isEmergencyPassingMode(),
-                () -> autoHeading.revertFromHoodRetract()
+   // Climber controls - dpad down to climb (retract), dpad up to release (extend)
+        m_driverController.povDown()
+            .and(m_driverController.b().negate()) // Don't activate if B is also pressed (emergency mode)
+            .whileTrue(Commands.run(() -> climberz.climbUp(), climberz))
+            .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
+        
+        m_driverController.povUp()
+            .whileTrue(Commands.run(() -> climberz.climbDown(), climberz))
+            .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
+        
+        // Y button - auto retract climber for 1.5 seconds
+        m_driverController.y().onTrue(
+            Commands.sequence(
+                Commands.runOnce(() -> climberz.climbUp(), climberz),
+                Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
+                Commands.runOnce(() -> climberz.stop(), climberz)
             )
         );
+
+        m_driverController.rightTrigger(0.2).whileTrue(
+                new ShootCommand(
+                    shooter,
+                    index,
+                    () -> drivetrain.getPose(),
+                    () -> drivetrain.getFieldVelocity(),
+                    () -> vision.isRedAlliance(),
+                    () -> autoHeading.isPassingEnabled(),
+                    () -> autoHeading.isEmergencyShootingMode(),
+                    () -> autoHeading.isEmergencyPassingMode(),
+                    () -> autoHeading.revertFromHoodRetract()
+                )
+            );
 
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
@@ -449,7 +481,6 @@ public class RobotContainer {
         );
         
         // "Intake" - Full intake command (deploys, runs until interrupted)
-        // Use this if you want PathPlanner to control the full intake cycle
         NamedCommands.registerCommand("Intake",
             new IntakeCommand(intake)
         );
@@ -463,21 +494,50 @@ public class RobotContainer {
             }, shooter)
         );
 
-        // "Homing" - Run intake and hood homing in parallel
+        // "Homing" - Run intake, hood, and climber homing in parallel
         // Add this as the FIRST command in your PathPlanner autos
         NamedCommands.registerCommand("Homing",
             Commands.parallel(
                 Commands.either(
-                    Commands.defer(() -> intake.homingSequence(), java.util.Set.of(intake)),
+                    Commands.defer(() -> intake.homingSequence(), Set.of(intake)),
                     Commands.none(),
                     () -> !intake.isHomed()
                 ),
                 Commands.either(
-                    Commands.defer(() -> shooter.hoodHomingSequence(), java.util.Set.of(shooter)),
+                    Commands.defer(() -> shooter.hoodHomingSequence(), Set.of(shooter)),
                     Commands.none(),
                     () -> !shooter.isHoodHomed()
                 )
             ).withTimeout(1.0)
+        );
+        
+        // ==================== CLIMBER COMMANDS ====================
+        
+        // "ClimbUp" - Retract climber (lift robot) - brake mode + duty cycle
+        // Runs until interrupted by PathPlanner
+        NamedCommands.registerCommand("ClimbUp",
+            Commands.run(() -> climberz.climbUp(), climberz)
+                .finallyDo(() -> climberz.stop())
+        );
+        
+        // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
+        // Runs until interrupted by PathPlanner
+        NamedCommands.registerCommand("ClimbRelease",
+            Commands.run(() -> climberz.climbDown(), climberz)
+                .finallyDo(() -> climberz.stop())
+        );
+        
+        // "ClimbStop" - Stop climber and hold position (brake mode)
+        NamedCommands.registerCommand("ClimbStop",
+            Commands.runOnce(() -> climberz.stop(), climberz)
+        );
+
+        NamedCommands.registerCommand("RetractClimb",
+            Commands.sequence(
+                    Commands.runOnce(() -> climberz.retract(), climberz),
+                    Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
+                    Commands.runOnce(() -> climberz.stop(), climberz)
+                )
         );
     }
 

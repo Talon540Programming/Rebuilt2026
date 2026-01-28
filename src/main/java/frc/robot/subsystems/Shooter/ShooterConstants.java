@@ -74,6 +74,14 @@ public class ShooterConstants {
     
     public static final LoggedTunableNumber hoodSensorToMechanismRatio = 
         new LoggedTunableNumber("Shooter/Hood/SensorToMechanismRatio");
+
+    // Hood position limits (in motor rotations after gear ratio)
+    // These define the motor positions at min and max hood angles
+    // TODO: Measure actual values on robot
+    public static final LoggedTunableNumber hoodMinPositionRot = 
+        new LoggedTunableNumber("Shooter/Hood/MinPositionRot");
+    public static final LoggedTunableNumber hoodMaxPositionRot = 
+        new LoggedTunableNumber("Shooter/Hood/MaxPositionRot");
     
     // Hood tolerances
     public static final LoggedTunableNumber hoodPosToleranceRot = 
@@ -160,7 +168,10 @@ public class ShooterConstants {
                 hoodMMAccelRotPerSec2.initDefault(160);    // 160 rps/s
                 hoodMMJerkRotPerSec3.initDefault(1600);    // 1600 rps/s/s
             
-                hoodSensorToMechanismRatio.initDefault(50);  // 50:1 gear ratio
+                hoodSensorToMechanismRatio.initDefault(5);  // 50:1 gear ratio
+
+                hoodMinPositionRot.initDefault(0.0);   // TODO: measure on real robot
+                hoodMaxPositionRot.initDefault(5.0);   // TODO: measure on real robot
                 
                 hoodPosToleranceRot.initDefault(0.005);  // ~2 degrees
                 hoodVelToleranceRotPerSec.initDefault(0.1);
@@ -194,8 +205,11 @@ public class ShooterConstants {
                 hoodMMCruiseVelRotPerSec.initDefault(0);  // TODO: tune
                 hoodMMAccelRotPerSec2.initDefault(0);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
+
+                hoodMinPositionRot.initDefault(0.0);   // TODO: measure on real robot
+                hoodMaxPositionRot.initDefault(5.0);   // TODO: measure on real robot
                 
-                hoodSensorToMechanismRatio.initDefault(50);  // TODO: verify
+                hoodSensorToMechanismRatio.initDefault(5);  // TODO: verify
                 
                 hoodPosToleranceRot.initDefault(0.005);
                 hoodVelToleranceRotPerSec.initDefault(0.1);

@@ -88,7 +88,7 @@ public class KickupIOKraken implements KickupIO {
     
     @Override
     public void stop() {
-        motor.setControl(dutyCycleControl.withOutput(0));
+        motor.stopMotor();
     }
     
     @Override

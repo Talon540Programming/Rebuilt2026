@@ -3,6 +3,7 @@ package frc.robot.subsystems.Climberz;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.subsystems.Climberz.ClimberzIO.ClimberzIOInputs;
 
 public class ClimberzBase extends SubsystemBase {
@@ -27,48 +28,52 @@ public class ClimberzBase extends SubsystemBase {
         io.updateInputs(inputs);
         
         // Manual logging
-        Logger.recordOutput("Climberz/PositionRotations", inputs.positionRotations);
-        Logger.recordOutput("Climberz/VelocityRotPerSec", inputs.velocityRotPerSec);
         Logger.recordOutput("Climberz/AppliedVolts", inputs.appliedVolts);
-        Logger.recordOutput("Climberz/LeaderCurrentAmps", inputs.leaderCurrentAmps);
-        Logger.recordOutput("Climberz/FollowerCurrentAmps", inputs.followerCurrentAmps);
-        Logger.recordOutput("Climberz/TotalCurrentAmps", inputs.leaderCurrentAmps + inputs.followerCurrentAmps);
-        Logger.recordOutput("Climberz/LeaderTempCelsius", inputs.leaderTempCelsius);
-        Logger.recordOutput("Climberz/FollowerTempCelsius", inputs.followerTempCelsius);
+        Logger.recordOutput("Climberz/CurrentAmps", inputs.currentAmps);
+        Logger.recordOutput("Climberz/TempCelsius", inputs.tempCelsius);
         Logger.recordOutput("Climberz/State", currentState.toString());
+        
+        // Only log position/velocity in simulation (no encoder feedback in real life)
+        if (Robot.isSimulation()) {
+            Logger.recordOutput("Climberz/Sim/PositionRotations", inputs.positionRotations);
+            Logger.recordOutput("Climberz/Sim/VelocityRotPerSec", inputs.velocityRotPerSec);
+        }
     }
     
     // ==================== BASIC CONTROL ====================
     
     /**
-     * Run climber up (pull robot up)
+     * Run climber up (pull robot up) - brake mode + positive duty cycle
      */
     public void climbUp() {
         currentState = ClimberState.CLIMBING_UP;
+        io.setBrakeMode(true);
         io.setDutyCycle(ClimberzConstants.climbUpDutyCycle);
     }
     
     /**
-     * Run climber down (extend arm)
+     * Release climber (let springs extend) - coast mode + zero duty cycle
      */
     public void climbDown() {
         currentState = ClimberState.CLIMBING_DOWN;
-        io.setDutyCycle(ClimberzConstants.climbDownDutyCycle);
+        io.setBrakeMode(false);
+        io.setDutyCycle(0);
     }
     
     /**
-     * Stop the climber
+     * Stop the climber - brake mode to hold position
      */
     public void stop() {
         currentState = ClimberState.STOPPED;
+        io.setBrakeMode(true);
         io.stop();
     }
     
     /**
-     * Run climber at specified duty cycle
+     * Retract the climber (for homing or general use) - same as climbUp
      */
-    public void setDutyCycle(double dutyCycle) {
-        io.setDutyCycle(dutyCycle);
+    public void retract() {
+        climbUp();
     }
     
     // ==================== GETTERS ====================
@@ -81,8 +86,8 @@ public class ClimberzBase extends SubsystemBase {
         return inputs.positionRotations;
     }
     
-    public double getTotalCurrent() {
-        return inputs.leaderCurrentAmps + inputs.followerCurrentAmps;
+    public double getCurrent() {
+        return inputs.currentAmps;
     }
     
 }

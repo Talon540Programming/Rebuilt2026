@@ -6,10 +6,8 @@ public interface ClimberzIO {
         public double positionRotations = 0.0;
         public double velocityRotPerSec = 0.0;
         public double appliedVolts = 0.0;
-        public double leaderCurrentAmps = 0.0;
-        public double followerCurrentAmps = 0.0;
-        public double leaderTempCelsius = 0.0;
-        public double followerTempCelsius = 0.0;
+        public double currentAmps = 0.0;
+        public double tempCelsius = 0.0;
     }
     
     /** Update the set of loggable inputs */

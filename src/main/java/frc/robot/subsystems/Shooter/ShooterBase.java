@@ -201,7 +201,7 @@ public class ShooterBase extends SubsystemBase {
      * Zero hood encoder at minimum position - call when at hard stop
      */
     public void zeroHoodAtMin() {
-        hoodIO.setEncoderPosition(ShootingConstants.hoodMinAngle);
+        hoodIO.setEncoderPosition(ShooterConstants.hoodMinPositionRot.get());
         hoodHomed = true;
         Logger.recordOutput("Shooter/Hood/Homed", true);
     }

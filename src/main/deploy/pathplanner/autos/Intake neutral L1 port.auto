@@ -17,19 +17,32 @@
           }
         },
         {
-          "type": "race",
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "race",
                 "data": {
-                  "name": "Shoot"
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Shoot"
+                      }
+                    },
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 2.4
+                      }
+                    }
+                  ]
                 }
               },
               {
-                "type": "wait",
+                "type": "named",
                 "data": {
-                  "waitTime": 2.4
+                  "name": "RetractClimb"
                 }
               }
             ]
@@ -108,6 +121,12 @@
                 }
               },
               {
+                "type": "named",
+                "data": {
+                  "name": "ClimbRelease"
+                }
+              },
+              {
                 "type": "wait",
                 "data": {
                   "waitTime": 4.0
@@ -133,11 +152,17 @@
           "data": {
             "pathName": "Climb left"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ClimbUp"
+          }
         }
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
