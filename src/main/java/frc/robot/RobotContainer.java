@@ -160,8 +160,8 @@ public class RobotContainer {
         }));
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
-       // Dpad down + B toggles emergency mode
-        Trigger emergencyModeTrigger = m_driverController.povDown().and(m_driverController.b());
+       // Dpad right + B toggles emergency mode
+        Trigger emergencyModeTrigger = m_driverController.povRight().and(m_driverController.b());
         emergencyModeTrigger.onTrue(Commands.runOnce(() -> {
             autoHeading.toggleEmergencyMode();
         }));
@@ -203,7 +203,6 @@ public class RobotContainer {
 
    // Climber controls - dpad down to climb (retract), dpad up to release (extend)
         m_driverController.povDown()
-            .and(m_driverController.b().negate()) // Don't activate if B is also pressed (emergency mode)
             .whileTrue(Commands.run(() -> climberz.climbUp(), climberz))
             .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
         
