@@ -88,7 +88,7 @@ public final class Constants {
    public static final class ShootingConstants {
     // Physical measurements (in inches for trajectory calculation)
     public static final double backDistanceInches = 10.0;      
-    public static final double shooterHeightInches = 19.25;     // Height of shooter exit from ground
+    public static final double shooterHeightInches = 19;     // Height of shooter exit from ground
     public static final double heightOfHubInches = 72.0;       // Height of hub opening
     public static final double clearanceInches = 20.0;         // Desired clearance over hub rim
     
@@ -117,9 +117,9 @@ public final class Constants {
     // Shooter position offset from robot center (in inches)
     // Positive X = forward, Positive Y = left
     public static final LoggedTunableNumber shooterOffsetXInches = 
-        new LoggedTunableNumber("Shooting/ShooterOffsetXInches", 6.6);
+        new LoggedTunableNumber("Shooting/ShooterOffsetXInches", 6.3);
     public static final LoggedTunableNumber shooterOffsetYInches = 
-        new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 3.5);
+        new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 4.598);
         // Hood auto-retraction near trench
     public static final double hoodRetractionDistanceMeters = 0.7;
   }

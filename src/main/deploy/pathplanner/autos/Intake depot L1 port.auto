@@ -87,6 +87,12 @@
                 "data": {
                   "waitTime": 4.0
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ClimbRelease"
+                }
               }
             ]
           }
@@ -101,6 +107,25 @@
           "type": "path",
           "data": {
             "pathName": "Climb left"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "ClimbUp"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 4.0
+                }
+              }
+            ]
           }
         }
       ]
