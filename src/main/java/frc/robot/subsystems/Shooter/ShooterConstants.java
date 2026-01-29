@@ -31,10 +31,18 @@ public class ShooterConstants {
         new LoggedTunableNumber("Shooter/Flywheel/MMAccelRotPerSec2");
     public static final LoggedTunableNumber flywheelMMJerkRotPerSec3 = 
         new LoggedTunableNumber("Shooter/Flywheel/MMJerkRotPerSec3");
-    
-    // Flywheel tolerances
+
+        // Flywheel tolerances
     public static final LoggedTunableNumber flywheelVelToleranceRPM = 
         new LoggedTunableNumber("Shooter/Flywheel/VelToleranceRPM");
+    
+    // Bang-bang controller constants
+    public static final LoggedTunableNumber flywheelBangBangTorqueCurrent = 
+        new LoggedTunableNumber("Shooter/Flywheel/BangBangTorqueCurrent");
+    public static final LoggedTunableNumber flywheelTorqueCurrentTolerance = 
+        new LoggedTunableNumber("Shooter/Flywheel/TorqueCurrentTolerance");
+    public static final LoggedTunableNumber flywheelBangBangDebounceSeconds = 
+        new LoggedTunableNumber("Shooter/Flywheel/BangBangDebounceSeconds");
     
     // Current limits
     public static final LoggedTunableNumber flywheelStatorCurrentLimit = 
@@ -155,6 +163,10 @@ public class ShooterConstants {
                 flywheelVelToleranceRPM.initDefault(50);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
+                flywheelBangBangTorqueCurrent.initDefault(80);  // Amps for torque current bang-bang
+                flywheelTorqueCurrentTolerance.initDefault(100);  // RPM tolerance to switch to torque current mode
+                flywheelBangBangDebounceSeconds.initDefault(0.025);
+                
                 
                 // ===== Hood Sim Defaults =====
                 hoodkP.initDefault(4.8);
@@ -193,6 +205,10 @@ public class ShooterConstants {
                 flywheelVelToleranceRPM.initDefault(50);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
+                flywheelBangBangTorqueCurrent.initDefault(80);  // TODO: tune
+                flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
+                flywheelBangBangDebounceSeconds.initDefault(0.025);
+                
                 
                 // ===== Hood Comp Defaults =====
                 hoodkP.initDefault(0.0);  // TODO: tune

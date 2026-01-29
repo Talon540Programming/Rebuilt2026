@@ -3,11 +3,13 @@ package frc.robot.subsystems.Shooter.Flywheel;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -31,7 +33,10 @@ public class FlywheelIOKraken implements FlywheelIO {
     private final StatusSignal<Temperature> tempCelsius;
     
     // Control requests
+    // Control requests
     private final MotionMagicVelocityVoltage velocityControl = new MotionMagicVelocityVoltage(0);
+    private final TorqueCurrentFOC torqueCurrentControl = new TorqueCurrentFOC(0);
+    private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
     
     private double targetVelocityRPM = 0.0;
     
@@ -139,5 +144,45 @@ public class FlywheelIOKraken implements FlywheelIO {
     public void stop() {
         leaderMotor.stopMotor();
         targetVelocityRPM = 0.0;
+    }
+    
+    @Override
+    public void setDutyCycle(double dutyCycle) {
+        targetVelocityRPM = 0.0;
+        leaderMotor.setControl(dutyCycleControl.withOutput(dutyCycle));
+    }
+    
+    @Override
+    public void runBangBang(double velocityRPM, FlywheelControlMode mode) {
+        targetVelocityRPM = velocityRPM;
+        double currentRPM = velocityRotPerSec.getValueAsDouble() * 60.0;
+        double tolerance = ShooterConstants.flywheelVelToleranceRPM.get();
+        
+        switch (mode) {
+            case COAST:
+                leaderMotor.stopMotor();
+                break;
+                
+            case DUTY_CYCLE_BANG_BANG:
+                // Full duty cycle if below target (with deadband)
+                if (currentRPM < velocityRPM - tolerance) {
+                    leaderMotor.setControl(dutyCycleControl.withOutput(1.0));
+                } else if (currentRPM > velocityRPM + tolerance) {
+                    leaderMotor.stopMotor();
+                }
+                // In deadband: maintain previous output (hysteresis)
+                break;
+                
+            case TORQUE_CURRENT_BANG_BANG:
+                // Torque current if below target (with deadband)
+                if (currentRPM < velocityRPM - tolerance) {
+                    leaderMotor.setControl(torqueCurrentControl
+                        .withOutput(ShooterConstants.flywheelBangBangTorqueCurrent.get()));
+                } else if (currentRPM > velocityRPM + tolerance) {
+                    leaderMotor.stopMotor();
+                }
+                // In deadband: maintain previous output (hysteresis)
+                break;
+        }
     }
 }
