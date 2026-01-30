@@ -15,6 +15,7 @@ public class IntakeConstants {
     public static final double dployDutyCycle = 0.5;
     public static final double rollerIntakeDutyCycle = 0.8;
     public static final double rollerEjectDutyCycle = -0.5;
+    public static final double rollerStartDelaySeconds = 0.25;
 
     // ===================== Pivot Motion Magic =====================
     public static final LoggedTunableNumber extensionSensorToMechanismRatio = 

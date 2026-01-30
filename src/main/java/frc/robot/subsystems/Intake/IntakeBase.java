@@ -137,12 +137,18 @@ public class IntakeBase extends SubsystemBase {
     }
     
     /**
-     * Deploy the intake and run rollers
+     * Deploy the intake (extension only, no rollers)
      */
     public void deploy() {
         intakeEnabled = true;
         setGoal(Goal.DEPLOYED);
         currentState = IntakeState.DEPLOYING;
+    }
+    
+    /**
+     * Start the intake rollers
+     */
+    public void startRollers() {
         rollerIO.setDutyCycle(IntakeConstants.rollerIntakeDutyCycle);
     }
 

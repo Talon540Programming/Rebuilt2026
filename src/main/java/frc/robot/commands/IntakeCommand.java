@@ -1,7 +1,9 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Intake.IntakeBase;
+import frc.robot.subsystems.Intake.IntakeConstants;
 
 /**
  * Command that coordinates intake and index during intaking.
@@ -12,7 +14,9 @@ import frc.robot.subsystems.Intake.IntakeBase;
  */
 public class IntakeCommand extends Command {
     
-    private final IntakeBase intake;    
+    private final IntakeBase intake;
+    private double deployStartTime;
+    private boolean rollersStarted;
     
     public IntakeCommand(IntakeBase intake) {
         this.intake = intake;
@@ -22,12 +26,19 @@ public class IntakeCommand extends Command {
     
     @Override
     public void initialize() { 
-        // Deploy intake (this also runs rollers)
         intake.deploy();
+        deployStartTime = Timer.getFPGATimestamp();
+        rollersStarted = false;
     }
     
     @Override
-    public void execute() {}
+    public void execute() {
+        if (!rollersStarted && 
+            Timer.getFPGATimestamp() - deployStartTime >= IntakeConstants.rollerStartDelaySeconds) {
+            intake.startRollers();
+            rollersStarted = true;
+        }
+    }
     
     @Override
     public void end(boolean interrupted) {
