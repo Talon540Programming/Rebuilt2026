@@ -50,7 +50,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Intake neutral starboard to shoot"
+            "pathName": "Intake neutral starboard stop"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StopIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Neutral Stop to Shoot Starboard"
           }
         },
         {
@@ -68,12 +80,6 @@
                 "data": {
                   "waitTime": 2.0
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "StopIntake"
-                }
               }
             ]
           }
@@ -82,12 +88,6 @@
           "type": "path",
           "data": {
             "pathName": "Shoot to Climb Right"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Climb right"
           }
         }
       ]
