@@ -42,9 +42,28 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Start to depot intake port"
+            "name": "RetractHood"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "StartIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "start to neutral"
+                }
+              }
+            ]
           }
         },
         {
@@ -54,13 +73,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Intake depot to shoot"
+                  "pathName": "neutral to shoot"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "StartIntake"
+                  "name": "StopIntake"
                 }
               }
             ]
@@ -69,13 +88,7 @@
         {
           "type": "named",
           "data": {
-            "name": "StopIntake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Shoot from depot port"
+            "name": "Homing"
           }
         },
         {
@@ -98,31 +111,19 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "shoot to depot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StartIntake"
-          }
-        },
-        {
-          "type": "race",
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "wait",
+                "type": "path",
                 "data": {
-                  "waitTime": 1.5
+                  "pathName": "Start to depot intake port"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "StopIntake"
+                  "name": "StartIntake"
                 }
               }
             ]
@@ -131,7 +132,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "depot(middle) to shoot"
+            "pathName": "Intake depot to shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StopIntake"
           }
         },
         {
