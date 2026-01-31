@@ -526,7 +526,7 @@ public class RobotContainer {
                 .finallyDo(() -> climberz.stop())
         );
         
-        // "ClimbStop" - Stop climber and hold position (brake mode)
+        // "ClimbStop" - Stop climber and hold position (brake mode) commit change
         NamedCommands.registerCommand("ClimbStop",
             Commands.runOnce(() -> climberz.stop(), climberz)
         );
