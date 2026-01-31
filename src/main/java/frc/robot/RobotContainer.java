@@ -8,12 +8,28 @@ import static edu.wpi.first.units.Units.*;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Util.Telemetry;
+import frc.robot.commands.FuelManagementCommands;
+import frc.robot.commands.IntakeCommands;
+import frc.robot.commands.ShooterCommands;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.DriveToPose;
 import frc.robot.subsystems.Drive.SetReefCenterHeading;
 import frc.robot.subsystems.Drive.SetReefSideHeading;
+import frc.robot.subsystems.Hood.Hood;
+import frc.robot.subsystems.Hood.HoodIOTalonFX;
+import frc.robot.subsystems.Indexer.Indexer;
+import frc.robot.subsystems.Indexer.IndexerIOTalonFX;
+import frc.robot.subsystems.Indexer.IndexerSensor;
+import frc.robot.subsystems.Intake.Intake;
+import frc.robot.subsystems.Intake.IntakeIOTalonFX;
+import frc.robot.subsystems.Kickup.Kickup;
+import frc.robot.subsystems.Kickup.KickupIOTalonFX;
+import frc.robot.subsystems.Shooter.Shooter;
+import frc.robot.subsystems.Shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
+import frc.robot.subsystems.Wrist.Wrist;
+import frc.robot.subsystems.Wrist.WristIOTalonFX;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
@@ -46,6 +62,17 @@ public class RobotContainer {
     private final SetReefSideHeading autoHeading = new SetReefSideHeading(vision);
     private final SetReefCenterHeading faceReefCenter = new SetReefCenterHeading(vision);
 
+    // Shooter mechanism subsystems
+    private final Shooter shooter = new Shooter(new frc.robot.subsystems.Shooter.ShooterIOSim());
+    private final Hood hood = new Hood(new frc.robot.subsystems.Hood.HoodIOSim());
+    private final Kickup kickup = new Kickup(new frc.robot.subsystems.Kickup.KickupIOSim());
+    
+    // Intake mechanism subsystems
+    private final Intake intake = new Intake(new frc.robot.subsystems.Intake.IntakeIOSim());
+    private final Indexer indexer = new Indexer(new frc.robot.subsystems.Indexer.IndexerIOSim());
+    private final IndexerSensor indexerSensor = new IndexerSensor();
+    private final Wrist wrist = new Wrist(new frc.robot.subsystems.Wrist.WristIOSim());
+
     private final SendableChooser<Command> autoChooser;
 
     // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -77,9 +104,41 @@ public class RobotContainer {
     public RobotContainer() {
 
         configureBindings();
+        configureSmartDashboard();
         
         autoChooser = AutoBuilder.buildAutoChooser("default auto"); //pick a default
         SmartDashboard.putData("Auto Chooser", autoChooser);
+    }
+
+    /**
+     * Configures SmartDashboard outputs for telemetry.
+     */
+    private void configureSmartDashboard() {
+        // Shooter telemetry - updated in periodic
+        SmartDashboard.putNumber("Shooter/CurrentBottomVelocityRPS", 0);
+        SmartDashboard.putNumber("Shooter/CurrentTopVelocityRPS", 0);
+        SmartDashboard.putNumber("Shooter/TargetVelocityRPS", 0);
+        SmartDashboard.putBoolean("Shooter/AtTargetVelocity", false);
+        
+        // Hood telemetry
+        SmartDashboard.putNumber("Hood/CurrentAngleDegrees", 0);
+        SmartDashboard.putNumber("Hood/TargetAngleDegrees", 0);
+        SmartDashboard.putBoolean("Hood/AtTargetPosition", false);
+        
+        // Shooter position reference
+        double[] shooterOffset = frc.robot.Util.TrajectoryCalculator.getShooterOffsetFromLimelight2();
+        SmartDashboard.putNumber("Shooter/OffsetLeftFromLL2_Inches", shooterOffset[0]);
+        SmartDashboard.putNumber("Shooter/OffsetForwardFromLL2_Inches", shooterOffset[1]);
+        SmartDashboard.putNumber("Shooter/OffsetUpFromLL2_Inches", shooterOffset[2]);
+        SmartDashboard.putNumber("Shooter/HeightAboveGround_Inches", 
+            frc.robot.Util.TrajectoryCalculator.getShooterHeight());
+        
+        // Trajectory calculation info
+        SmartDashboard.putNumber("Shooter/DistanceToTargetInches", 0);
+        
+        // Fuel management
+        SmartDashboard.putNumber("Indexer/FuelCount", 0);
+        SmartDashboard.putBoolean("Indexer/HasFuel", false);
     }
 
   
@@ -117,6 +176,105 @@ public class RobotContainer {
 
         m_driverController.leftTrigger().whileTrue(
             (driveToPose.createStationPathCommand().until(() -> driveToPose.haveStationConditionsChanged()).repeatedly()));
+
+        // ========== INTAKE AND INDEXER CONTROLS ==========
+        
+        // Right Trigger - Full intake sequence with fuel counting
+        m_driverController.rightTrigger().whileTrue(
+            FuelManagementCommands.intakeWithCounting(intake, indexer, wrist, indexerSensor)
+        ).onFalse(
+            IntakeCommands.stopIntake(intake, indexer, wrist)
+        );
+        
+        // A Button - Deploy wrist
+        m_driverController.a().onTrue(
+            IntakeCommands.deployWrist(wrist)
+        );
+        
+        // Back Button - Retract wrist (stow)
+        m_driverController.back().onTrue(
+            IntakeCommands.retractWrist(wrist)
+        );
+        
+        
+        // ========== SHOOTER CONTROLS ==========
+        
+        // X Button - Auto-aim and shoot sequence with proper velocity waiting
+        // Order: 1) Calculate trajectory, 2) Set hood angle and spin up flywheel, 3) Wait for ready, 4) Start kickup
+        m_driverController.x().whileTrue(
+            Commands.sequence(
+                // Step 1: Calculate trajectory and command shooter/hood (runs once)
+                Commands.runOnce(() -> {
+                    var robotPose = drivetrain.getPose();
+                    var targetPose = frc.robot.Util.TrajectoryCalculator.getTargetPose(vision.isRedAlliance());
+                    
+                    frc.robot.Util.TrajectoryCalculator calc = new frc.robot.Util.TrajectoryCalculator();
+                    
+                    if (calc.calculateTrajectory(robotPose, targetPose)) {
+                        // Set hood angle
+                        double hoodAngle = calc.getLaunchAngleRadians();
+                        hood.setAngleRadians(hoodAngle);
+                        
+                        // Set shooter velocity
+                        double launchVelocity = calc.getLaunchVelocityFeetPerSecond();
+                        double wheelDiameter = 4.0; // TODO: Measure actual wheel diameter
+                        double flywheelRPS = frc.robot.Util.TrajectoryCalculator.velocityToFlywheelRPS(
+                            launchVelocity, 
+                            wheelDiameter
+                        );
+                        shooter.setVelocity(flywheelRPS);
+                        
+                        // Log trajectory data for SmartDashboard
+                        SmartDashboard.putNumber("Shooter/TargetVelocityRPS", flywheelRPS);
+                        SmartDashboard.putNumber("Shooter/TargetAngleDegrees", Math.toDegrees(hoodAngle));
+                        SmartDashboard.putNumber("Shooter/DistanceToTargetInches", calc.getHorizontalDistanceInches());
+                    }
+                }, shooter, hood),
+                
+                // Step 2: Keep shooter and hood active while waiting for them to reach target
+                Commands.run(() -> {
+                    // Continuously maintain shooter and hood commands
+                    // This keeps the subsystems "required" so they can't be interrupted
+                    
+                    boolean shooterReady = shooter.isAtTargetVelocity();
+                    boolean hoodReady = hood.isAtTargetPosition();
+                    
+                    // Update SmartDashboard with ready status
+                    SmartDashboard.putBoolean("Shooter/ShooterAtVelocity", shooterReady);
+                    SmartDashboard.putBoolean("Shooter/HoodAtPosition", hoodReady);
+                }, shooter, hood).until(() -> 
+                    shooter.isAtTargetVelocity() && hood.isAtTargetPosition()
+                ),
+                
+                // Step 3: Both are ready - now start feeding fuel
+                Commands.parallel(
+                    Commands.run(() -> indexer.feed(), indexer),
+                    Commands.run(() -> kickup.feed(), kickup)
+                )
+            )
+        ).onFalse(
+            // Stop everything when button released
+            Commands.parallel(
+                Commands.runOnce(() -> shooter.stop(), shooter),
+                Commands.runOnce(() -> kickup.stop(), kickup),
+                Commands.runOnce(() -> indexer.stop(), indexer)
+            )
+        );
+        
+        // Y Button - Eject fuel (reverse intake)
+        m_driverController.y().whileTrue(
+            IntakeCommands.ejectFuel(intake, indexer)
+        ).onFalse(
+            Commands.parallel(
+                Commands.runOnce(() -> intake.stop(), intake),
+                Commands.runOnce(() -> indexer.stop(), indexer)
+            )
+        );
+        
+        // POV Left - Reset fuel count
+        m_driverController.povLeft().onTrue(
+            FuelManagementCommands.resetFuelCount(indexerSensor)
+        );
 
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(11, 0.1, 0.5);
@@ -200,6 +358,27 @@ public class RobotContainer {
                 vision.setGyroInitialized();
             }
         }
+    }
+
+    /**
+     * Periodic method to update SmartDashboard values.
+     * Call this from Robot.java robotPeriodic() or teleopPeriodic().
+     */
+    public void updateTelemetry() {
+        // Update shooter current velocities
+        SmartDashboard.putNumber("Shooter/CurrentBottomVelocityRPS", shooter.getBottomVelocity());
+        SmartDashboard.putNumber("Shooter/CurrentTopVelocityRPS", shooter.getTopVelocity());
+        SmartDashboard.putNumber("Shooter/TargetVelocityRPS", shooter.getTargetVelocity());
+        SmartDashboard.putBoolean("Shooter/AtTargetVelocity", shooter.isAtTargetVelocity());
+        
+        // Update hood current angle
+        SmartDashboard.putNumber("Hood/CurrentAngleDegrees", hood.getAngleDegrees());
+        SmartDashboard.putNumber("Hood/TargetAngleDegrees", Math.toDegrees(hood.getTargetPosition() * 2 * Math.PI));
+        SmartDashboard.putBoolean("Hood/AtTargetPosition", hood.isAtTargetPosition());
+        
+        // Update fuel count
+        SmartDashboard.putNumber("Indexer/FuelCount", indexerSensor.getFuelCount());
+        SmartDashboard.putBoolean("Indexer/HasFuel", indexerSensor.hasFuel());
     }
 
     public Command getAutonomousCommand() {
