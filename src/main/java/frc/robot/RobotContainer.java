@@ -531,7 +531,7 @@ public class RobotContainer {
             Commands.runOnce(() -> climberz.stop(), climberz)
         );
 
-        NamedCommands.registerCommand("RetractClimb",
+        NamedCommands.registerCommand("RwetractClimb",
             Commands.sequence(
                     Commands.runOnce(() -> climberz.retract(), climberz),
                     Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
