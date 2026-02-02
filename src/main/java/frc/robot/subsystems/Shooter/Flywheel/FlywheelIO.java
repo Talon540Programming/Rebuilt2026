@@ -36,4 +36,6 @@ public interface FlywheelIO {
     
     /** Enable or disable brake mode */
     public default void setBrakeMode(boolean brake) {}
+
+    public default void simulateShot() {}
 }

@@ -340,5 +340,12 @@ public class ShooterBase extends SubsystemBase {
         return new HoodHomingCommand(this).withTimeout(3.0);
     }
     
+     /**
+     * Simulate a shot stealing energy from the flywheel (sim only)
+     */
+    public void simulateFlywheelShot() {
+        flywheelIO.simulateShot();
+    }
+    
    
 }

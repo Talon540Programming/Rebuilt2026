@@ -12,6 +12,8 @@ public class FlywheelIOSim implements FlywheelIO {
     // Constants for simulation - 2x X60 motors
     private static final double kGearing = 1.0; // Direct drive flywheel
     private static final double kMOI = 0.01; // kg*m^2 - flywheel with Colson wheels
+    // Shot velocity drop (percentage of current RPM lost per shot)
+    private static final double kShotVelocityDropPercent = 0.10;
     
     // Create the plant (linear system model) first - WPILib 2026 API
     private final LinearSystem<N1, N1, N1> plant = LinearSystemId.createFlywheelSystem(
@@ -136,5 +138,16 @@ public class FlywheelIOSim implements FlywheelIO {
                 // In deadband: maintain previous output (hysteresis)
                 break;
         }
+    }
+
+    @Override
+    public void simulateShot() {
+        double currentRPM = sim.getAngularVelocityRPM();
+        double dropRPM = currentRPM * kShotVelocityDropPercent;
+        double newRPM = currentRPM - dropRPM;
+        
+        // Convert RPM to rad/s and set the sim state
+        double newAngularVelocity = newRPM * 2.0 * Math.PI / 60.0;
+        sim.setAngularVelocity(newAngularVelocity);
     }
 }

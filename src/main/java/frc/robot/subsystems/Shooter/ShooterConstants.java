@@ -160,7 +160,7 @@ public class ShooterConstants {
                 flywheelMMAccelRotPerSec2.initDefault(400);  // 400 rps/s
                 flywheelMMJerkRotPerSec3.initDefault(4000);  // 4000 rps/s/s
                 
-                flywheelVelToleranceRPM.initDefault(50);
+                flywheelVelToleranceRPM.initDefault(10);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
                 flywheelBangBangTorqueCurrent.initDefault(80);  // Amps for torque current bang-bang

@@ -153,7 +153,8 @@ public class ShootCommand extends Command {
             timeSinceLastSpawn += loopPeriod;
             if (timeSinceLastSpawn >= fuelSpawnInterval) {
                 timeSinceLastSpawn = 0.0;
-                spawnSimulatedFuel(flywheelRPM, hoodAngleRadians);
+                spawnSimulatedFuel(shooter.getFlywheelVelocityRPM(), hoodAngleRadians);
+                shooter.simulateFlywheelShot();
             }
         }
     }
