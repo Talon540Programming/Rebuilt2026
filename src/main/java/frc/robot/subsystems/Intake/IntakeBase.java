@@ -11,6 +11,7 @@ import frc.robot.subsystems.Intake.Roller.RollerIO;
 import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
 
@@ -67,10 +68,10 @@ public class IntakeBase extends SubsystemBase {
         pivotIO.updateInputs(extensionInputs);
         rollerIO.updateInputs(rollerInputs);
 
-        if (edu.wpi.first.wpilibj.DriverStation.isEnabled() && homed) {
+        if (DriverStation.isEnabled() && homed) {
             pivotIO.runMotionMagicPosition(goalPosRot, 0.0);
             } 
-            else if (!edu.wpi.first.wpilibj.DriverStation.isEnabled()) {
+            else if (!DriverStation.isEnabled()) {
                 pivotIO.stop();
         }
 
@@ -87,13 +88,13 @@ public class IntakeBase extends SubsystemBase {
             currentState = atPivotGoal ? IntakeState.STOWED : IntakeState.RETRACTING;
         }
 
-        final double nowSec = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+        final double nowSec = Timer.getFPGATimestamp();
         final boolean settledAfterGoalChange =
             (nowSec - goalChangeTimestampSec) > IntakeConstants.extensionCrashIgnoreAfterGoalChangeSecs.get();
 
         final boolean crashCondition =
             homed
-            && edu.wpi.first.wpilibj.DriverStation.isEnabled()
+            && DriverStation.isEnabled()
             && goal == Goal.DEPLOYED
             && settledAfterGoalChange
             && Math.abs(errorRot) > IntakeConstants.extensionCrashMinErrorRot.get()
@@ -152,6 +153,10 @@ public class IntakeBase extends SubsystemBase {
         rollerIO.setDutyCycle(IntakeConstants.rollerIntakeDutyCycle);
     }
 
+    public void stopRollers(){
+        rollerIO.setDutyCycle(0);
+    }
+
     
     /**
      * Retract the intake and stop rollers
@@ -169,10 +174,10 @@ public class IntakeBase extends SubsystemBase {
     public void toggle() {
         if (goal == Goal.DEPLOYED) {
         retract();
-    } 
+        } 
         else {
         deploy();
-    }
+        }
     }
     
     /**
@@ -235,6 +240,10 @@ public class IntakeBase extends SubsystemBase {
         goalPosRot = (goal == Goal.DEPLOYED)
             ? IntakeConstants.extensionDeployedPosRot.get()
             : IntakeConstants.extensionStowedPosRot.get();
+    }
+
+    public double getRollerVolts(){
+        return rollerInputs.appliedVolts;
     }
 
     // ==================== HOMING HELPERS ====================

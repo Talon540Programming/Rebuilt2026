@@ -197,9 +197,18 @@ public class RobotContainer {
             autoHeading.toggleEmergencyHoodRetract();
         }));
 
-        m_driverController.leftTrigger().toggleOnTrue(
+        m_driverController.x().toggleOnTrue(
             new IntakeCommand(intake)
         );
+
+        m_driverController.leftTrigger().onTrue(Commands.runOnce(() ->{
+            if(intake.getRollerVolts() <= 0){
+                intake.startRollers();
+            }
+            else{
+                intake.stopRollers();
+            }
+        }));
 
    // Climber controls - dpad down to climb (retract), dpad up to release (extend)
         m_driverController.povDown()
@@ -210,10 +219,19 @@ public class RobotContainer {
             .whileTrue(Commands.run(() -> climberz.climbDown(), climberz))
             .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
         
-        // Y button - auto retract climber for 1.5 seconds
-        m_driverController.y().onTrue(
+        // Y button - auto extend climber for 1.5 seconds
+        m_driverController.a().onTrue(
             Commands.sequence(
                 Commands.runOnce(() -> climberz.climbUp(), climberz),
+                Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
+                Commands.runOnce(() -> climberz.stop(), climberz)
+            )
+        );
+
+        // A button - auto retract climber for 1.5 seconds
+        m_driverController.y().onTrue(
+            Commands.sequence(
+                Commands.runOnce(() -> climberz.climbDown(), climberz),
                 Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
                 Commands.runOnce(() -> climberz.stop(), climberz)
             )
