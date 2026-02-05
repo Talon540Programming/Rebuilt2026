@@ -130,6 +130,12 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.8
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Intake depot to shoot"
