@@ -38,6 +38,12 @@
         {
           "type": "path",
           "data": {
+            "pathName": "prepare to go to intake starboard"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "go to intake starboard"
           }
         },
@@ -63,6 +69,12 @@
           "type": "path",
           "data": {
             "pathName": "go to shoot starboard"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "turn to shoot starboard"
           }
         },
         {
@@ -94,6 +106,12 @@
           "type": "path",
           "data": {
             "pathName": "Climb right"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ClimbRelease"
           }
         },
         {
