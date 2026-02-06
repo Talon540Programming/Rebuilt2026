@@ -3,6 +3,8 @@ package frc.robot.subsystems.Shooter.Flywheel;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.subsystems.Shooter.ShooterConstants;
@@ -28,31 +30,28 @@ public class FlywheelIOSim implements FlywheelIO {
     
     private double appliedVolts = 0.0;
     private double torqueCurrentAmps = 0.0;
-    private boolean closedLoop = false;
     private double targetVelocityRPM = 0.0;
-    @SuppressWarnings("unused")
-    private FlywheelControlMode currentMode = FlywheelControlMode.COAST;
+    private FlywheelState currentState = FlywheelState.COAST;
+    private long shotCount = 0;
     
-    // Simple velocity control gains for simulation
-    private static final double kSimFF = 0.0018; // Feedforward: volts per RPM
+    // Bang-bang state machine
+    private Debouncer idleDebouncer;
     
     // Velocity tolerance for "at setpoint" check (RPM)
     private static final double kVelocityTolerance = 50.0;
     
     // Motor model for torque current simulation
     private static final DCMotor kMotorModel = DCMotor.getKrakenX60(2);
+    
+    public FlywheelIOSim() {
+        idleDebouncer = new Debouncer(
+            ShooterConstants.flywheelBangBangDebounceSeconds.get(),
+            DebounceType.kRising
+        );
+    }
 
     @Override
     public void updateInputs(FlywheelIOInputs inputs) {
-        double currentRPM = sim.getAngularVelocityRPM();
-        
-        if (closedLoop) {
-            double error = targetVelocityRPM - currentRPM;
-            double simP = ShooterConstants.flywheelkP.get();
-            appliedVolts = (simP * error) + (kSimFF * targetVelocityRPM);
-            appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
-        }
-        
         sim.setInputVoltage(appliedVolts);
         sim.update(0.02);
         
@@ -64,28 +63,16 @@ public class FlywheelIOSim implements FlywheelIO {
         inputs.tempCelsius = 25.0;
         inputs.targetVelocityRPM = targetVelocityRPM;
         inputs.atSetpoint = Math.abs(inputs.velocityRPM - targetVelocityRPM) < kVelocityTolerance;
+        inputs.state = currentState;
+        inputs.shotCount = shotCount;
     }
     
    @Override
-    public void setVelocity(double velocityRPM) {
-        targetVelocityRPM = velocityRPM;
-        closedLoop = true;
-    }
-    
-    @Override
-    public void setDutyCycle(double dutyCycle) {
-        closedLoop = false;
-        targetVelocityRPM = 0.0;
-        appliedVolts = dutyCycle * 12.0;
-        sim.setInputVoltage(appliedVolts);
-    }
-    
-    @Override
     public void stop() {
-        closedLoop = false;
         targetVelocityRPM = 0.0;
         appliedVolts = 0.0;
-        sim.setInputVoltage(0.0);
+        torqueCurrentAmps = 0.0;
+        currentState = FlywheelState.COAST;
     }
     
     @Override
@@ -94,47 +81,91 @@ public class FlywheelIOSim implements FlywheelIO {
     }
     
     @Override
-    public void runBangBang(double velocityRPM, FlywheelControlMode mode) {
+    public void runBangBang(double velocityRPM) {
         targetVelocityRPM = velocityRPM;
-        currentMode = mode;
-        closedLoop = false;
         
+        // Calculate if we're within tolerance
         double currentRPM = sim.getAngularVelocityRPM();
-        double tolerance = ShooterConstants.flywheelVelToleranceRPM.get();
+        double error = Math.abs(currentRPM - velocityRPM);
+        boolean inTolerance = error <= ShooterConstants.flywheelTorqueCurrentTolerance.get();
+        boolean readyForIdle = idleDebouncer.calculate(inTolerance);
         
-        switch (mode) {
+        // State machine transitions
+        switch (currentState) {
+            case COAST:
+                if (velocityRPM > 0) {
+                    currentState = FlywheelState.STARTUP;
+                }
+                break;
+                
+            case STARTUP:
+                if (velocityRPM <= 0) {
+                    currentState = FlywheelState.COAST;
+                } else if (readyForIdle) {
+                    currentState = FlywheelState.IDLE;
+                }
+                break;
+                
+            case IDLE:
+                if (velocityRPM <= 0) {
+                    currentState = FlywheelState.COAST;
+                } else if (!inTolerance) {
+                    currentState = FlywheelState.RECOVERY;
+                    shotCount++;
+                }
+                break;
+                
+            case RECOVERY:
+                if (velocityRPM <= 0) {
+                    currentState = FlywheelState.COAST;
+                } else if (readyForIdle) {
+                    currentState = FlywheelState.IDLE;
+                }
+                break;
+        }
+        
+        // Apply control based on current state
+        switch (currentState) {
             case COAST:
                 appliedVolts = 0.0;
                 torqueCurrentAmps = 0.0;
                 break;
                 
-            case DUTY_CYCLE_BANG_BANG:
-                // Full voltage if below target (with deadband)
-                if (currentRPM < velocityRPM - tolerance) {
+            case STARTUP:
+            case RECOVERY:
+                // Max duty cycle for fastest spinup/recovery
+                torqueCurrentAmps = 0.0;
+                if (currentRPM < velocityRPM) {
                     appliedVolts = 12.0;
-                    torqueCurrentAmps = 0.0;
-                } else if (currentRPM > velocityRPM + tolerance) {
+                } else {
                     appliedVolts = 0.0;
-                    torqueCurrentAmps = 0.0;
                 }
-                // In deadband: maintain previous output (hysteresis)
                 break;
                 
-            case TORQUE_CURRENT_BANG_BANG:
-                // Simulate torque current control (with deadband)
-                if (currentRPM < velocityRPM - tolerance) {
+            case IDLE:
+                // Constant torque current for consistent ball exit velocity
+                if (currentRPM < velocityRPM) {
                     torqueCurrentAmps = ShooterConstants.flywheelBangBangTorqueCurrent.get();
-                    // Convert torque current to voltage: V = I * R + omega * Kv
+                    // Convert torque current to voltage: V = I * R + omega / Kv
                     double omegaRadPerSec = currentRPM * 2.0 * Math.PI / 60.0;
                     appliedVolts = (torqueCurrentAmps * kMotorModel.rOhms) 
                         + (omegaRadPerSec / kMotorModel.KvRadPerSecPerVolt);
                     appliedVolts = Math.min(appliedVolts, 12.0);
-                } else if (currentRPM > velocityRPM + tolerance) {
+                } else {
                     appliedVolts = 0.0;
                     torqueCurrentAmps = 0.0;
                 }
-                // In deadband: maintain previous output (hysteresis)
                 break;
         }
+    }
+    @Override
+    public void simulateShot() {
+        double currentRPM = sim.getAngularVelocityRPM();
+        double dropRPM = currentRPM;
+        double newRPM = currentRPM - dropRPM;
+        
+        // Convert RPM to rad/s and set the sim state
+        double newAngularVelocity = newRPM * 2.0 * Math.PI / 60.0;
+        sim.setAngularVelocity(newAngularVelocity);
     }
 }

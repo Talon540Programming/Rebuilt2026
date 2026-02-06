@@ -271,9 +271,7 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
     );
     
     Pose2d shooterPose = robotPose.transformBy(shooterOffset);
-    
-    Logger.recordOutput("Shooting/ShooterPosition", shooterPose.getTranslation());
-    
+        
     return shooterPose.getTranslation();
 }
 
@@ -293,9 +291,7 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
         double dx = target.getX() - shooterPos.getX();
         double dy = target.getY() - shooterPos.getY();
         double angleToTarget = Math.atan2(dy, dx);
-        
-        Logger.recordOutput("Shooting/AimingHeadingDeg", Math.toDegrees(angleToTarget));
-        
+                
         return angleToTarget;
     }
     

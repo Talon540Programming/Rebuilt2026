@@ -10,28 +10,10 @@ public class ShooterConstants {
     public static final int hoodMotorId = 19;
 
     // ===================== Flywheel Constants =====================
-    public static final LoggedTunableNumber flywheelkP = 
-        new LoggedTunableNumber("Shooter/Flywheel/kP");
-    public static final LoggedTunableNumber flywheelkI = 
-        new LoggedTunableNumber("Shooter/Flywheel/kI");
-    public static final LoggedTunableNumber flywheelkD = 
-        new LoggedTunableNumber("Shooter/Flywheel/kD");
-    public static final LoggedTunableNumber flywheelkS = 
-        new LoggedTunableNumber("Shooter/Flywheel/kS");
-    public static final LoggedTunableNumber flywheelkV = 
-        new LoggedTunableNumber("Shooter/Flywheel/kV");
-    public static final LoggedTunableNumber flywheelkA = 
-        new LoggedTunableNumber("Shooter/Flywheel/kA");
 
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
     
-    // Motion Magic Velocity constraints (Acceleration and Jerk only - no CruiseVelocity)
-    public static final LoggedTunableNumber flywheelMMAccelRotPerSec2 = 
-        new LoggedTunableNumber("Shooter/Flywheel/MMAccelRotPerSec2");
-    public static final LoggedTunableNumber flywheelMMJerkRotPerSec3 = 
-        new LoggedTunableNumber("Shooter/Flywheel/MMJerkRotPerSec3");
-
         // Flywheel tolerances
     public static final LoggedTunableNumber flywheelVelToleranceRPM = 
         new LoggedTunableNumber("Shooter/Flywheel/VelToleranceRPM");
@@ -150,20 +132,10 @@ public class ShooterConstants {
         switch (Constants.getRobot()) {
             case SIMBOT -> {
                 // ===== Flywheel Sim Defaults =====
-                flywheelkP.initDefault(0.04);
-                flywheelkI.initDefault(0.0);
-                flywheelkD.initDefault(0.0);
-                flywheelkS.initDefault(0.1);
-                flywheelkV.initDefault(0.12);
-                flywheelkA.initDefault(0.01);
-                
-                flywheelMMAccelRotPerSec2.initDefault(400);  // 400 rps/s
-                flywheelMMJerkRotPerSec3.initDefault(4000);  // 4000 rps/s/s
-                
-                flywheelVelToleranceRPM.initDefault(50);
+                flywheelVelToleranceRPM.initDefault(10);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
-                flywheelBangBangTorqueCurrent.initDefault(80);  // Amps for torque current bang-bang
+                flywheelBangBangTorqueCurrent.initDefault(40);  // Amps for torque current bang-bang
                 flywheelTorqueCurrentTolerance.initDefault(100);  // RPM tolerance to switch to torque current mode
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
                 
@@ -192,20 +164,10 @@ public class ShooterConstants {
             }
             case COMPBOT -> {
                 // ===== Flywheel Comp Defaults =====
-                flywheelkP.initDefault(0.0);  // TODO: tune with SysId
-                flywheelkI.initDefault(0.0);
-                flywheelkD.initDefault(0.0);
-                flywheelkS.initDefault(0.0);  // TODO: tune with SysId
-                flywheelkV.initDefault(0.0);  // TODO: tune with SysId
-                flywheelkA.initDefault(0.0);  // TODO: tune with SysId
-                
-                flywheelMMAccelRotPerSec2.initDefault(400);  // TODO: tune
-                flywheelMMJerkRotPerSec3.initDefault(4000);  // TODO: tune
-                
                 flywheelVelToleranceRPM.initDefault(50);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
-                flywheelBangBangTorqueCurrent.initDefault(80);  // TODO: tune
+                flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
                 flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
                 
