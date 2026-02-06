@@ -2,12 +2,9 @@ package frc.robot.subsystems.Shooter;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
-import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelControlMode;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
 import frc.robot.subsystems.Shooter.Hood.HoodIO;
 import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
@@ -38,28 +35,14 @@ public class ShooterBase extends SubsystemBase {
     private final HoodIOInputs hoodInputs = new HoodIOInputs();
     private final KickupIOInputs kickupInputs = new KickupIOInputs();
     
-    private ShooterState currentState = ShooterState.IDLE;
+private ShooterState currentState = ShooterState.IDLE;
     // Hood homing state
     private boolean hoodHomed = false;
-    
-    // Bang-bang controller state
-    @SuppressWarnings("unused")
-    private double targetFlywheelRPM = 0.0;
-    private FlywheelControlMode currentFlywheelMode = FlywheelControlMode.COAST;
-    private Debouncer torqueCurrentDebouncer;
-    private boolean lastUsedTorqueCurrent = false;
-    private long shotCount = 0;
     
     public ShooterBase(FlywheelIO flywheelIO, HoodIO hoodIO, KickupIO kickupIO) {
         this.flywheelIO = flywheelIO;
         this.hoodIO = hoodIO;
         this.kickupIO = kickupIO;
-        
-        // Initialize debouncer for bang-bang mode switching
-        torqueCurrentDebouncer = new Debouncer(
-            ShooterConstants.flywheelBangBangDebounceSeconds.get(), 
-            DebounceType.kFalling
-        );
     }
     
     @Override
@@ -76,10 +59,10 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Flywheel/CurrentAmps", flywheelInputs.currentAmps);
         Logger.recordOutput("Shooter/Flywheel/TempCelsius", flywheelInputs.tempCelsius);
         Logger.recordOutput("Shooter/Flywheel/TargetVelocityRPM", flywheelInputs.targetVelocityRPM);
-        Logger.recordOutput("Shooter/Flywheel/ControlMode", currentFlywheelMode.toString());
-        Logger.recordOutput("Shooter/Flywheel/TorqueCurrentAmps", flywheelInputs.torqueCurrentAmps);
-        Logger.recordOutput("Shooter/Flywheel/ShotCount", shotCount);
-        
+        Logger.recordOutput("Shooter/Flywheel/AtSetpoint", flywheelInputs.atSetpoint);
+        Logger.recordOutput("Shooter/Flywheel/State", flywheelInputs.state.toString());        Logger.recordOutput("Shooter/Flywheel/TorqueCurrentAmps", flywheelInputs.torqueCurrentAmps);
+        Logger.recordOutput("Shooter/Flywheel/ShotCount", flywheelInputs.shotCount);
+       
         // Manual logging - Hood
         Logger.recordOutput("Shooter/Hood/Homed", hoodHomed);
         Logger.recordOutput("Shooter/Hood/PositionRadians", hoodInputs.positionRadians);
@@ -103,59 +86,29 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/State", currentState.toString());
         Logger.recordOutput("Shooter/ReadyToShoot", isReadyToShoot());
     }
-    
-    // ==================== FLYWHEEL CONTROL ====================
-    
+        
     // ==================== FLYWHEEL CONTROL ====================
     
     /**
-     * Set flywheel to target velocity using bang-bang control
-     * - Uses duty cycle bang-bang when far from target (fast spinup)
-     * - Switches to torque current bang-bang when near target (precise control)
+     * Set flywheel to target velocity using MA-style bang-bang control.
+     * Mode switching (duty cycle vs torque current) is handled in the IO layer.
      * @param velocityRPM target velocity in RPM
      */
     public void setFlywheelVelocity(double velocityRPM) {
         currentState = ShooterState.SPINNING_UP;
-        targetFlywheelRPM = velocityRPM;
-        
-        // Calculate if we're within tolerance for torque current mode
-        double error = Math.abs(flywheelInputs.velocityRPM - velocityRPM);
-        boolean inTolerance = error <= ShooterConstants.flywheelTorqueCurrentTolerance.get();
-        
-        // Debounce the mode switch (only switch to torque current after sustained in-tolerance)
-        boolean useTorqueCurrent = torqueCurrentDebouncer.calculate(inTolerance);
-        
-        // Detect shots (when we drop out of torque current mode)
-        if (!useTorqueCurrent && lastUsedTorqueCurrent) {
-            shotCount++;
-        }
-        lastUsedTorqueCurrent = useTorqueCurrent;
-        
-        // Select control mode
-        if (velocityRPM <= 0) {
-            currentFlywheelMode = FlywheelControlMode.COAST;
-        } else if (useTorqueCurrent) {
-            currentFlywheelMode = FlywheelControlMode.TORQUE_CURRENT_BANG_BANG;
-        } else {
-            currentFlywheelMode = FlywheelControlMode.DUTY_CYCLE_BANG_BANG;
-        }
-        
-        // Apply control
-        flywheelIO.runBangBang(velocityRPM, currentFlywheelMode);
+        flywheelIO.runBangBang(velocityRPM);
     }
     
     /**
      * Stop the flywheel
      */
     public void stopFlywheel() {
-        targetFlywheelRPM = 0.0;
-        currentFlywheelMode = FlywheelControlMode.COAST;
         flywheelIO.stop();
         if (currentState == ShooterState.SPINNING_UP || currentState == ShooterState.READY) {
             currentState = ShooterState.IDLE;
         }
     }
-    
+
     /**
      * Check if flywheel is at target velocity
      */
