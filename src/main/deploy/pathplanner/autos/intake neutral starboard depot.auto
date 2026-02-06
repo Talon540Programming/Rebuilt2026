@@ -97,21 +97,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "ClimbRelease"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ClimbUp"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "RetractClimb"
+            "pathName": "Climb left"
           }
         }
       ]
