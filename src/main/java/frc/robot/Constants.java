@@ -148,6 +148,8 @@ public final class Constants {
         new LoggedTunableNumber("AutoSetHeading/HeadingD");
     public static LoggedTunableNumber shooterThetaOffset =
         new LoggedTunableNumber("Shooter/ShooterThetaOffset", Math.toRadians(17.443637));
+    public static LoggedTunableNumber headingToleranceRadians = 
+        new LoggedTunableNumber("AutoSetHeading/HeadingToleranceRadians", Math.toRadians(3));
   }
 
   static {

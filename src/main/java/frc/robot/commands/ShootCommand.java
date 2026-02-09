@@ -40,8 +40,11 @@ public class ShootCommand extends Command {
     private final BooleanSupplier isEmergencyShootingSupplier;
     private final BooleanSupplier isEmergencyPassingSupplier;
     private final Runnable onShootingEndCallback;
+    private final Supplier<Double> currentHeadingSupplier;
+    private final Supplier<Double> targetHeadingSupplier;
+    private final Supplier<Boolean> headingAtTargetSupplier;
 
-    private boolean flywheelSpunUp = false;
+    private boolean readyToShoot = false;
     // Fuel simulation timing
     private static final double fuelSpawnInterval = .1; // 4 balls per second
     private double timeSinceLastSpawn = 0.0;
@@ -64,7 +67,10 @@ public class ShootCommand extends Command {
                         BooleanSupplier isPassingEnabledSupplier,
                         BooleanSupplier isEmergencyShootingSupplier,
                         BooleanSupplier isEmergencyPassingSupplier,
-                        Runnable onShootingEndCallback) {
+                        Runnable onShootingEndCallback,
+                        Supplier<Double> currentHeadingSupplier,
+                        Supplier<Double> targetHeadingSupplier,
+                        Supplier<Boolean> headingAtTargetSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
@@ -74,6 +80,9 @@ public class ShootCommand extends Command {
         this.isEmergencyShootingSupplier = isEmergencyShootingSupplier;
         this.isEmergencyPassingSupplier = isEmergencyPassingSupplier;
         this.onShootingEndCallback = onShootingEndCallback;
+        this.currentHeadingSupplier = currentHeadingSupplier;
+        this.targetHeadingSupplier = targetHeadingSupplier;
+        this.headingAtTargetSupplier = headingAtTargetSupplier;
         
         // Require both subsystems
         addRequirements(shooter, index);
@@ -81,7 +90,7 @@ public class ShootCommand extends Command {
     
     @Override
     public void initialize() {
-        flywheelSpunUp = false;
+        readyToShoot = false;
         timeSinceLastSpawn = fuelSpawnInterval; // Spawn immediately on first feed
     }
     
@@ -132,17 +141,28 @@ public class ShootCommand extends Command {
         shooter.setHoodAngle(hoodAngleRadians);
         
         // Wait for flywheel to spin up the FIRST time only
-        if (!flywheelSpunUp) {
-            if (shooter.isFlywheelAtSetpoint() && shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get()) {
-                // Flywheel just reached speed - mark as spun up
-                flywheelSpunUp = true;
+       // Wait for all conditions to be met the FIRST time only
+        if (!readyToShoot) {
+            boolean flywheelReady = shooter.isFlywheelAtSetpoint() && 
+                shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get();
+            boolean hoodReady = shooter.isHoodAtSetpoint();
+            boolean headingReady = headingAtTargetSupplier.get();
+            
+            Logger.recordOutput("ShootCommand/FlywheelReady", flywheelReady);
+            Logger.recordOutput("ShootCommand/HoodReady", hoodReady);
+            Logger.recordOutput("ShootCommand/HeadingReady", headingReady);
+            Logger.recordOutput("ShootCommand/CurrentHeading", Math.toDegrees(currentHeadingSupplier.get()));
+            Logger.recordOutput("ShootCommand/TargetHeading", Math.toDegrees(targetHeadingSupplier.get()));
+            
+            if (flywheelReady && hoodReady && headingReady) {
+                readyToShoot = true;
             }
-            Logger.recordOutput("ShootCommand/FlywheelSpunUp", flywheelSpunUp);
-            // Don't feed until spun up
+            Logger.recordOutput("ShootCommand/ReadyToShoot", readyToShoot);
+            // Don't feed until ready
             return;
         }
         
-        Logger.recordOutput("ShootCommand/FlywheelSpunUp", flywheelSpunUp);
+        Logger.recordOutput("ShootCommand/ReadyToShoot", readyToShoot);
         
         // Once spun up, continuously run index and kickup
         index.feed();

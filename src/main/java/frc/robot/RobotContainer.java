@@ -166,29 +166,17 @@ public class RobotContainer {
             autoHeading.toggleEmergencyMode();
         }));
 
-        // Right bumper - hub heading (normal) or emergency shooting mode
+        // Right bumper - emergency shooting mode only (normal mode handled by right trigger)
         m_driverController.rightBumper().onTrue(Commands.runOnce(() -> {
             if (autoHeading.isEmergencyModeEnabled()) {
                 autoHeading.toggleEmergencyShooting();
-            } else {
-                if (autoHeading.isEnabled()) {
-                    autoHeading.disableFaceHub();
-                } else {
-                    autoHeading.toggleFaceHub();
-                }
             }
         }));
 
-        // Left bumper - passing heading (normal) or emergency passing mode
+        // Left bumper - emergency passing mode only (normal mode handled by right trigger)
         m_driverController.leftBumper().onTrue(Commands.runOnce(() -> {
             if (autoHeading.isEmergencyModeEnabled()) {
                 autoHeading.toggleEmergencyPassing();
-            } else {
-                if (autoHeading.isPassingEnabled()) {
-                    autoHeading.disablePassing();
-                } else {
-                    autoHeading.togglePassing();
-                }
             }
         }));
 
@@ -237,7 +225,13 @@ public class RobotContainer {
             )
         );
 
-        m_driverController.rightTrigger(0.2).whileTrue(
+        m_driverController.rightTrigger(0.2)
+            .onTrue(Commands.runOnce(() -> {
+                if (!autoHeading.isEmergencyModeEnabled()) {
+                    autoHeading.enableAutoMode(drivetrain.getPose());
+                }
+            }))
+            .whileTrue(
                 new ShootCommand(
                     shooter,
                     index,
@@ -247,9 +241,17 @@ public class RobotContainer {
                     () -> autoHeading.isPassingEnabled(),
                     () -> autoHeading.isEmergencyShootingMode(),
                     () -> autoHeading.isEmergencyPassingMode(),
-                    () -> autoHeading.revertFromHoodRetract()
+                    () -> autoHeading.revertFromHoodRetract(),
+                    () -> drivetrain.getHeading().getRadians(),
+                    () -> autoHeading.getTargetHeading().getRadians(),
+                    () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians())
                 )
-            );
+            )
+            .onFalse(Commands.runOnce(() -> {
+                if (!autoHeading.isEmergencyModeEnabled()) {
+                    autoHeading.disableAutoMode();
+                }
+            }));
 
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
@@ -273,6 +275,11 @@ public class RobotContainer {
                 
                 // Check if driver is manually rotating
                 boolean driverRotating = autoHeading.isDriverRotating(rotSpeed);
+
+                // Update auto mode if active (switches between hub/passing based on position)
+                if (autoHeading.isAutoModeActive() && !autoHeading.isEmergencyModeEnabled()) {
+                    autoHeading.updateAutoMode(drivetrain.getPose());
+                }
 
                 // Determine which auto-heading mode to use
                 boolean useHubHeading = autoHeading.isEnabled() && !driverRotating;
@@ -409,6 +416,8 @@ public class RobotContainer {
         
         // "Shoot" - Full auto shooting (calculates velocity/angle, waits for spinup, feeds)
         // Runs until interrupted by PathPlanner
+        // "Shoot" - Full auto shooting (calculates velocity/angle, waits for spinup, feeds)
+        // Runs until interrupted by PathPlanner
         NamedCommands.registerCommand("Shoot", 
             new ShootCommand(
                 shooter,
@@ -419,7 +428,10 @@ public class RobotContainer {
                 () -> false, // Not passing mode
                 () -> false, // Not emergency shooting
                 () -> false, // Not emergency passing
-                () -> {}     // No callback needed for auto
+                () -> {},    // No callback needed for auto
+                () -> drivetrain.getHeading().getRadians(),
+                () -> 0.0,   // No target heading for auto
+                () -> true   // Always ready for auto (heading not checked)
             )
         );
         
@@ -448,6 +460,8 @@ public class RobotContainer {
         
         // "Pass" - Full auto passing (calculates lob trajectory, waits for spinup, feeds)
         // Runs until interrupted by PathPlanner
+        // "Pass" - Full auto passing (calculates lob trajectory, waits for spinup, feeds)
+        // Runs until interrupted by PathPlanner
         NamedCommands.registerCommand("Pass",
             new ShootCommand(
                 shooter,
@@ -458,7 +472,10 @@ public class RobotContainer {
                 () -> true,  // Passing mode enabled
                 () -> false, // Not emergency shooting
                 () -> false, // Not emergency passing
-                () -> {}     // No callback needed for auto
+                () -> {},    // No callback needed for auto
+                () -> drivetrain.getHeading().getRadians(),
+                () -> 0.0,   // No target heading for auto
+                () -> true   // Always ready for auto (heading not checked)
             )
         );
         

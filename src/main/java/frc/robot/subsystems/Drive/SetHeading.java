@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.utility.ShootingCalculator;
 import frc.robot.Constants.FieldPoses;
+import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Vision.VisionBase;
 
@@ -21,6 +22,7 @@ public class SetHeading {
     
     private boolean faceHubEnabled = false;
     private boolean passingEnabled = false;
+    private boolean autoModeActive = false;
     private boolean emergencyModeEnabled = false;
     private boolean emergencyShootingMode = false;
     private boolean emergencyPassingMode = false;
@@ -34,7 +36,7 @@ public class SetHeading {
         this.vision = vision;
     }
 
-    public void enableFaceHub() {
+   public void enableFaceHub() {
         if (emergencyModeEnabled) return; // Locked out in emergency mode
         faceHubEnabled = true;
         passingEnabled = false;
@@ -61,6 +63,94 @@ public class SetHeading {
         return faceHubEnabled;
     }
 
+    // ==================== AUTOMATIC MODE SELECTION ====================
+
+    /**
+     * Enable automatic heading mode based on field position.
+     * Automatically switches between hub facing and passing based on robot X position.
+     * 
+     * @param currentPose The current pose of the robot
+     */
+    public void enableAutoMode(Pose2d currentPose) {
+        if (emergencyModeEnabled) return;
+        
+        autoModeActive = true;
+        updateAutoMode(currentPose);
+        Logger.recordOutput("AutoMode/Active", autoModeActive);
+    }
+
+    /**
+     * Update the automatic mode selection based on current field position.
+     * Call this periodically while auto mode is active.
+     * 
+     * @param currentPose The current pose of the robot
+     */
+    public void updateAutoMode(Pose2d currentPose) {
+        if (!autoModeActive || emergencyModeEnabled) return;
+
+        boolean isRed = vision.isRedAlliance();
+        double robotX = currentPose.getX();
+        
+        // Determine if we're on our scoring side (shooting) or past the hub (passing)
+        boolean shouldShoot;
+        if (isRed) {
+            // Red alliance: our side is X > 12.0 (hub X)
+            shouldShoot = robotX > FieldPoses.redHub.getX();
+        } else {
+            // Blue alliance: our side is X < 4.5 (hub X)
+            shouldShoot = robotX < FieldPoses.blueHub.getX();
+        }
+
+        if (shouldShoot) {
+            faceHubEnabled = true;
+            passingEnabled = false;
+        } else {
+            faceHubEnabled = false;
+            passingEnabled = true;
+        }
+
+        Logger.recordOutput("AutoMode/ShouldShoot", shouldShoot);
+        Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+    }
+
+    /**
+     * Disable automatic heading mode.
+     */
+    public void disableAutoMode() {
+        autoModeActive = false;
+        faceHubEnabled = false;
+        passingEnabled = false;
+        Logger.recordOutput("AutoMode/Active", autoModeActive);
+        Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
+        Logger.recordOutput("Passing/Enabled", passingEnabled);
+    }
+
+    /**
+     * Check if automatic mode is active.
+     */
+    public boolean isAutoModeActive() {
+        return autoModeActive;
+    }
+
+    /**
+     * Check if heading is within tolerance of the target.
+     * 
+     * @param currentHeadingRadians Current robot heading in radians
+     * @return true if heading is within tolerance
+     */
+    public boolean isHeadingAtTarget(double currentHeadingRadians) {
+        double error = Math.abs(targetHeading.getRadians() - currentHeadingRadians);
+        // Handle wraparound
+        if (error > Math.PI) {
+            error = 2 * Math.PI - error;
+        }
+        boolean atTarget = error < HeadingPID.headingToleranceRadians.get();
+        Logger.recordOutput("AutoMode/HeadingError", Math.toDegrees(error));
+        Logger.recordOutput("AutoMode/HeadingAtTarget", atTarget);
+        return atTarget;
+    } 
+
     /**
      * Updates the target heading to face the center of the hub.
      * Also calculates and stores distance to hub for shooting calculations.
@@ -75,8 +165,9 @@ public class SetHeading {
         double dy = hubCenter.getY() - currentPose.getY();
         
         // Face TOWARD the hub (shooter faces hub)
-        // If your shooter is on the back of the robot, add Rotation2d.k180deg
-        targetHeading = new Rotation2d(Math.atan2(dy, dx));
+        // Include the shooter theta offset to match what SmoothFieldCentricFacingAngle uses
+        double aimingHeading = Math.atan2(dy, dx) + HeadingPID.shooterThetaOffset.get();
+        targetHeading = new Rotation2d(aimingHeading);
         
         // Calculate distance to hub
         distanceToHub = ShootingCalculator.getDistanceToHub(currentPose, isRed);
@@ -86,7 +177,6 @@ public class SetHeading {
         Logger.recordOutput("FaceHub/HubCenter", hubCenter);
         Logger.recordOutput("FaceHub/DistanceToHub", distanceToHub);
     }
-
     /**
      * Get the target heading to face the hub.
      */
@@ -122,7 +212,9 @@ public class SetHeading {
         virtualGoal = ShootingCalculator.calculateVirtualGoal(currentPose, fieldVelocity, isRed);
         
         // Calculate heading that points the shooter at the virtual goal
-        double aimingHeading = ShootingCalculator.calculateAimingHeading(currentPose, virtualGoal);
+        // Include the shooter theta offset to match what SmoothFieldCentricFacingAngle uses
+        double aimingHeading = ShootingCalculator.calculateAimingHeading(currentPose, virtualGoal) 
+            + HeadingPID.shooterThetaOffset.get();
         targetHeading = new Rotation2d(aimingHeading);
         
         // Distance is now to virtual goal
@@ -171,7 +263,9 @@ public class SetHeading {
     public void updatePassingHeading(Pose2d currentPose) {
         boolean isRed = vision.isRedAlliance();
         
-        double passingHeadingRad = ShootingCalculator.calculatePassingHeading(isRed);
+        // Include the shooter theta offset to match what SmoothFieldCentricFacingAngle uses
+        double passingHeadingRad = ShootingCalculator.calculatePassingHeading(isRed) 
+            + HeadingPID.shooterThetaOffset.get();
         targetHeading = new Rotation2d(passingHeadingRad);
         
         Logger.recordOutput("Passing/TargetHeading", targetHeading.getDegrees());
