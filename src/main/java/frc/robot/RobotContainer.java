@@ -363,15 +363,8 @@ public class RobotContainer {
      * If gyro hasn't been initialized, try one last time from cameras.
      * If cameras don't see anything, zero the gyro normally.
     */
-    public void finalGyroCheck() {
-        if (!vision.isGyroInitialized()) {
-            boolean success = vision.forceSetYawFromCameras(drivetrain);
-            if (!success) {
-                // No cameras saw tags, zero normally
-                drivetrain.seedFieldCentric();
-                vision.setGyroInitialized();
-            }
-        }
+    public Command finalGyroCheckCommand(){
+        return Commands.runOnce(() -> {vision.finalGyroCheck();});
     }
 
     public Command getIntakeHomingCommand() {

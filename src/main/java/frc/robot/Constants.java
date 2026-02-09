@@ -159,9 +159,9 @@ public final class Constants {
 
       }
       case COMPBOT ->{
-        HeadingPID.headingP.initDefault(0.0); //TODO
-        HeadingPID.headingI.initDefault(0.0); //TODO
-        HeadingPID.headingD.initDefault(0.0); //TODO
+        HeadingPID.headingP.initDefault(9.5); //TODO Tuned for proto
+        HeadingPID.headingI.initDefault(0.0); //TODO Tuned for proto
+        HeadingPID.headingD.initDefault(1); //TODO Tuned for proto
       }
     }
   }

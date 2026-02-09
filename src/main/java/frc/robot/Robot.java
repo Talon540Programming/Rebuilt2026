@@ -25,6 +25,7 @@ import frc.robot.utility.FuelSim;
  */
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
+  private Command getFinalGryoCheck;
 
   private final RobotContainer m_robotContainer;
   private final PowerDistribution pDHDistribution = new PowerDistribution(Constants.PDHCanId, ModuleType.kRev);
@@ -76,7 +77,11 @@ public class Robot extends LoggedRobot {
  @Override
   public void autonomousInit() {
      // Final attempt to initialize gyro from vision if not already done
-     m_robotContainer.finalGyroCheck();
+    getFinalGryoCheck = m_robotContainer.finalGyroCheckCommand();
+
+    if(getFinalGryoCheck != null){
+      CommandScheduler.getInstance().schedule(getFinalGryoCheck);
+    }
 
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -98,6 +103,12 @@ public class Robot extends LoggedRobot {
     // this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
+    }
+
+    getFinalGryoCheck = m_robotContainer.finalGyroCheckCommand();
+
+    if(getFinalGryoCheck != null){
+      CommandScheduler.getInstance().schedule(getFinalGryoCheck);
     }
 
     Command intakeHoming = m_robotContainer.getIntakeHomingCommand();

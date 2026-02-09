@@ -21,8 +21,8 @@ public class VisionBase extends SubsystemBase{
     private final VisionIOInputs limelightTwo = new VisionIOInputs();
     private final CommandSwerveDrivetrain drivetrain;
     private boolean hasInitializedGyro = false;
-    private int setYawTagCount = 0;
-    private double setYawTagDistance = 0;
+    private double setYawTagCount = 0;
+    private double setYawTagDistance = 67;
 
 
     public VisionBase(VisionIO vision, CommandSwerveDrivetrain drivetrain) {
@@ -33,9 +33,8 @@ public class VisionBase extends SubsystemBase{
     @Override
     public void periodic() {
 
-        if(DriverStation.isDisabled()){
-            setYawWithCameras(drivetrain);
-        }
+        setYawWithCameras(drivetrain);
+
         
         vision.updateLimelightYaw(drivetrain);
     
@@ -104,7 +103,7 @@ public class VisionBase extends SubsystemBase{
         }
         
         // Scale trust by distance (exponential falloff)
-        double distanceMultiplier = 1.0 + (input.avgTagDistance * input.avgTagDistance * 0.1);
+        double distanceMultiplier = 1.0 + (input.avgTagDistance * input.avgTagDistance * 0.05);
         xyStdDev *= distanceMultiplier;
         rotStdDev *= distanceMultiplier;
         
@@ -135,8 +134,7 @@ public class VisionBase extends SubsystemBase{
             if (mt1Estimate == null || mt1Estimate.tagCount == 0) {
                 continue;
             }
-
-            if(!hasInitializedGyro){
+            if(DriverStation.isDisabled() && setYawTagCount >= mt1Estimate.tagCount && mt1Estimate.avgTagDist <= setYawTagDistance){
                 Rotation2d visionYaw = mt1Estimate.pose.getRotation();
                 drivetrain.resetRotation(visionYaw);
                 hasInitializedGyro = true;
@@ -149,7 +147,7 @@ public class VisionBase extends SubsystemBase{
                 return;
             }
             else{
-                if(mt1Estimate.tagCount >= setYawTagCount || mt1Estimate.avgTagDist <= setYawTagDistance){
+                if(mt1Estimate.tagCount >= VisionConstants.teleopYawTagCount || mt1Estimate.avgTagDist <= VisionConstants.teleopYawTagDistance){
                     Rotation2d visionYaw = mt1Estimate.pose.getRotation();
                     drivetrain.resetRotation(visionYaw);
                 }
@@ -187,50 +185,61 @@ public class VisionBase extends SubsystemBase{
         return limelightOne.isRedAlliance;
     }    
 
- /**
- * Final attempt to set yaw from cameras before teleop, regardless of trustworthiness.
- * Only used if gyro hasn't been initialized yet.
- * @return true if a pose was found and applied, false if no cameras saw tags
- */
-public boolean forceSetYawFromCameras(CommandSwerveDrivetrain drivetrain) {
-    if (hasInitializedGyro) {
-        return true; // Already initialized, no need to force
+    /**
+     * Final attempt to set yaw from cameras before teleop, regardless of trustworthiness.
+     * Only used if gyro hasn't been initialized yet.
+     * @return true if a pose was found and applied, false if no cameras saw tags
+     */
+    public boolean forceSetYawFromCameras(CommandSwerveDrivetrain drivetrain) {
+        if (hasInitializedGyro) {
+            return true; // Already initialized, no need to force
+        }
+
+        LimelightHelpers.PoseEstimate mt1EstimateCameraOne = 
+            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightOne);
+
+        LimelightHelpers.PoseEstimate mt1EstimateCameraTwo = 
+            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightTwo);
+
+        // Try camera one first
+        if (mt1EstimateCameraOne != null && mt1EstimateCameraOne.tagCount > 0) {
+            Rotation2d visionYaw = mt1EstimateCameraOne.pose.getRotation();
+            drivetrain.resetRotation(visionYaw);
+            hasInitializedGyro = true;
+            Logger.recordOutput("Vision/GyroForcedFromVision", true);
+            Logger.recordOutput("Vision/ForcedYaw", visionYaw.getDegrees());
+            Logger.recordOutput("Vision/ForcedFromCamera", "One");
+            return true;
+        }
+
+        // Fall back to camera two
+        if (mt1EstimateCameraTwo != null && mt1EstimateCameraTwo.tagCount > 0) {
+            Rotation2d visionYaw = mt1EstimateCameraTwo.pose.getRotation();
+            drivetrain.resetRotation(visionYaw);
+            hasInitializedGyro = true;
+            Logger.recordOutput("Vision/GyroForcedFromVision", true);
+            Logger.recordOutput("Vision/ForcedYaw", visionYaw.getDegrees());
+            Logger.recordOutput("Vision/ForcedFromCamera", "Two");
+            return true;
+        }
+
+        // No cameras saw any tags
+        Logger.recordOutput("Vision/GyroForceAttemptFailed", true);
+        return false;
     }
 
-    LimelightHelpers.PoseEstimate mt1EstimateCameraOne = 
-        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightOne);
-
-    LimelightHelpers.PoseEstimate mt1EstimateCameraTwo = 
-        LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightTwo);
-
-    // Try camera one first
-    if (mt1EstimateCameraOne != null && mt1EstimateCameraOne.tagCount > 0) {
-        Rotation2d visionYaw = mt1EstimateCameraOne.pose.getRotation();
-        drivetrain.resetRotation(visionYaw);
-        hasInitializedGyro = true;
-        Logger.recordOutput("Vision/GyroForcedFromVision", true);
-        Logger.recordOutput("Vision/ForcedYaw", visionYaw.getDegrees());
-        Logger.recordOutput("Vision/ForcedFromCamera", "One");
-        return true;
+    public boolean isGyroInitialized() {
+        return hasInitializedGyro;
     }
 
-    // Fall back to camera two
-    if (mt1EstimateCameraTwo != null && mt1EstimateCameraTwo.tagCount > 0) {
-        Rotation2d visionYaw = mt1EstimateCameraTwo.pose.getRotation();
-        drivetrain.resetRotation(visionYaw);
-        hasInitializedGyro = true;
-        Logger.recordOutput("Vision/GyroForcedFromVision", true);
-        Logger.recordOutput("Vision/ForcedYaw", visionYaw.getDegrees());
-        Logger.recordOutput("Vision/ForcedFromCamera", "Two");
-        return true;
+    public void finalGyroCheck(){
+        if(!isGyroInitialized()){
+            boolean success = forceSetYawFromCameras(drivetrain);
+            if(!success){
+                drivetrain.seedFieldCentric();
+                setGyroInitialized();
+            }
+        }
     }
 
-    // No cameras saw any tags
-    Logger.recordOutput("Vision/GyroForceAttemptFailed", true);
-    return false;
-}
-
-public boolean isGyroInitialized() {
-    return hasInitializedGyro;
-}
 }
