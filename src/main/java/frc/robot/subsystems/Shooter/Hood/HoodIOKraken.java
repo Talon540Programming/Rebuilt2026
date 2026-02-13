@@ -69,9 +69,9 @@ public class HoodIOKraken implements HoodIO {
         
         // Software limits (in motor rotations)
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShooterConstants.hoodMaxPositionRot.get() + 0.01;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = ShooterConstants.hoodMaxPositionRot.get() - 0.01;
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShooterConstants.hoodMinPositionRot.get() - 0.01;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = ShooterConstants.hoodMinPositionRot.get() + 0.01;
         
         motor.getConfigurator().apply(config);
         

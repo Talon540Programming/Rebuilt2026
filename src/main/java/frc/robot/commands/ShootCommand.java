@@ -46,7 +46,7 @@ public class ShootCommand extends Command {
 
     private boolean readyToShoot = false;
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = .1; // 4 balls per second
+    private static final double fuelSpawnInterval = .1; // 10 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
     
