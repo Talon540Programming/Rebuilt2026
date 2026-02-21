@@ -57,9 +57,9 @@ public class ExtensionIOKraken implements ExtensionIO {
 
         // Software limits to prevent over-travel
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() + 0.05;  // Small buffer
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() - 0.05;  // Small buffer
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() - 0.05;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() + 0.05;
 
         // Motion Magic constraints:
         config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.extensionMMCruiseVelRotPerSec.get();
