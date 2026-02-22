@@ -15,7 +15,7 @@ public class LEDConstants {
     public static final double kStrobeSpeed = 0.95; // 10 flashes per second (fast as possible)
     public static final double kFlowSpeed = 0.7;    // Flowing animation speed
     public static final double kFireSpeed = 0.5;    // Fire animation speed
-    public static final double flickerSpeed = 0.1;
+    public static final double flickerSpeed = 0.05;
     
     // Brightness (0.0 to 1.0)
     public static final double kBrightness = 1.0;

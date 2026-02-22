@@ -31,8 +31,7 @@ public class LEDBase extends SubsystemBase {
         EMERGENCY_MODE,     // Emergency mode active - cyan flowing
         DISABLED_FMS,       // Disabled + connected to FMS - alliance colors + white flowing
         DISABLED_NO_FMS,    // Disabled + no FMS - red/yellow flowing
-        SHOOTING_READY,     // Flywheel at speed - fire animation
-        SHOOTING_SPINNING,  // Flywheel spinning up - flashing red
+        SHOOTING,     // Flywheel at speed - fire animation
         INTAKING_RED,
         INTAKING_BLUE,     
         IDLE                // Default state - alliance color larson
@@ -137,11 +136,7 @@ public class LEDBase extends SubsystemBase {
         
         // Priority 4: Shooting states (takes precedence over intake)
         if (isShootingSupplier.getAsBoolean()) {
-            if (isFlywheelReadySupplier.getAsBoolean()) {
-                return LEDState.SHOOTING_READY;
-            } else {
-                return LEDState.SHOOTING_SPINNING;
-            }
+            return LEDState.SHOOTING;
         }
         
         // Priority 5: Intaking (rollers running)
@@ -193,14 +188,9 @@ public class LEDBase extends SubsystemBase {
                 setFlowAnimation(LEDConstants.YELLOW);
                 break;
                 
-            case SHOOTING_READY:
+            case SHOOTING:
                 // Fire animation when flywheel is ready
                 setFireAnimation();
-                break;
-                
-            case SHOOTING_SPINNING:
-                // Flashing red while spinning up
-                setStrobeAnimation(LEDConstants.RED);
                 break;
                 
             case INTAKING_RED:

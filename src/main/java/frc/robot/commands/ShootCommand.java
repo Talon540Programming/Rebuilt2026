@@ -166,7 +166,7 @@ public class ShootCommand extends Command {
         
         // Once spun up, continuously run index and kickup
         index.feed();
-        shooter.runKickup();
+        shooter.shoot();  // This calls runKickup() AND sets state to SHOOTING
 
         /// Spawn fuel in simulation
         if (Robot.isSimulation()) {
