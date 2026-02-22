@@ -109,9 +109,9 @@ public class IntakeConstants {
             }
             case COMPBOT -> {
                 // Pivot Motion Magic
-                extensionSensorToMechanismRatio.initDefault(12);  // TODO: verify gear ratio
+                extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(0);  // TODO: tune on real robot
+                extensionDeployedPosRot.initDefault(81);  // TODO: Tuned CAD Real: 81.5283603089
                 extensionPosToleranceRot.initDefault(0.01);
                 extensionVelToleranceRotPerSec.initDefault(0.05);
 

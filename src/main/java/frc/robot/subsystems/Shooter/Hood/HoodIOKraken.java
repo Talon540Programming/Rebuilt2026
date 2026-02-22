@@ -47,7 +47,7 @@ public class HoodIOKraken implements HoodIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; //TODO Tuned CAD
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         // Gear ratio: converts rotor rotations to mechanism rotations
@@ -60,7 +60,7 @@ public class HoodIOKraken implements HoodIO {
         config.Slot0.kS = ShooterConstants.hoodkS.get();
         config.Slot0.kV = ShooterConstants.hoodkV.get();
         config.Slot0.kA = ShooterConstants.hoodkA.get();
-        // No kG for rack and pinion (no gravity compensation needed)
+        config.Slot0.kG = ShooterConstants.hoodkG.get();
         
         // Motion Magic Position settings
         config.MotionMagic.MotionMagicCruiseVelocity = ShooterConstants.hoodMMCruiseVelRotPerSec.get();

@@ -53,7 +53,9 @@ public class ShooterConstants {
         new LoggedTunableNumber("Shooter/Hood/kV");
     public static final LoggedTunableNumber hoodkA = 
         new LoggedTunableNumber("Shooter/Hood/kA");
-    
+    public static final LoggedTunableNumber hoodkG = 
+        new LoggedTunableNumber("Shooter/Hood/kA");  
+
     // Motion Magic Position constraints
     public static final LoggedTunableNumber hoodMMCruiseVelRotPerSec = 
         new LoggedTunableNumber("Shooter/Hood/MMCruiseVelRotPerSec");
@@ -67,7 +69,6 @@ public class ShooterConstants {
 
     // Hood position limits (in motor rotations after gear ratio)
     // These define the motor positions at min and max hood angles
-    // TODO: Measure actual values on robot
     public static final LoggedTunableNumber hoodMinPositionRot = 
         new LoggedTunableNumber("Shooter/Hood/MinPositionRot");
     public static final LoggedTunableNumber hoodMaxPositionRot = 
@@ -152,12 +153,12 @@ public class ShooterConstants {
                 hoodMMAccelRotPerSec2.initDefault(160);    // 160 rps/s
                 hoodMMJerkRotPerSec3.initDefault(1600);    // 1600 rps/s/s
             
-                hoodSensorToMechanismRatio.initDefault(5);  // 50:1 gear ratio
+                hoodSensorToMechanismRatio.initDefault(7.1500);
 
-                hoodMinPositionRot.initDefault(0.0);   // TODO: measure on real robot
-                hoodMaxPositionRot.initDefault(5.0);   // TODO: measure on real robot
+                hoodMinPositionRot.initDefault(0.0);  
+                hoodMaxPositionRot.initDefault(36.9896098);
                 
-                hoodPosToleranceRot.initDefault(0.005);  // ~2 degrees
+                hoodPosToleranceRot.initDefault(0.5);  // ~1 degrees
                 hoodVelToleranceRotPerSec.initDefault(0.1);
                 hoodStatorCurrentLimit.initDefault(40);
                 hoodSupplyCurrentLimit.initDefault(30);
@@ -179,17 +180,18 @@ public class ShooterConstants {
                 hoodkS.initDefault(0.0);  // TODO: tune
                 hoodkV.initDefault(0.0);  // TODO: tune
                 hoodkA.initDefault(0.0);  // TODO: tune
+                hoodkG.initDefault(0.0);
                 
                 hoodMMCruiseVelRotPerSec.initDefault(0);  // TODO: tune
                 hoodMMAccelRotPerSec2.initDefault(0);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
 
-                hoodMinPositionRot.initDefault(0.0);   // TODO: measure on real robot
-                hoodMaxPositionRot.initDefault(5.0);   // TODO: measure on real robot
+                hoodMinPositionRot.initDefault(0.0); 
+                hoodMaxPositionRot.initDefault(36.9896098);   // TODO: Tuned CAD
                 
-                hoodSensorToMechanismRatio.initDefault(5);  // TODO: verify
+                hoodSensorToMechanismRatio.initDefault(7.1500);  // TODO: Tuned CAD
                 
-                hoodPosToleranceRot.initDefault(0.005);
+                hoodPosToleranceRot.initDefault(0.5);
                 hoodVelToleranceRotPerSec.initDefault(0.1);
                 hoodStatorCurrentLimit.initDefault(40);
                 hoodSupplyCurrentLimit.initDefault(30);

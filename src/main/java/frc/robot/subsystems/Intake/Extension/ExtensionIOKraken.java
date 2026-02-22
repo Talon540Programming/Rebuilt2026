@@ -42,11 +42,11 @@ public class ExtensionIOKraken implements ExtensionIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - adjust based on your mechanism
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO need to tune for real bot
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Scale rotor -> mechanism rotations
-        config.Feedback.SensorToMechanismRatio = IntakeConstants.extensionSensorToMechanismRatio.get(); //TODO need to tune for real bot
+        config.Feedback.SensorToMechanismRatio = IntakeConstants.extensionSensorToMechanismRatio.get(); //TODO tuned for CAD
 
         // Slot0 PID
         config.Slot0.kP = IntakeConstants.extensionkP.get();
@@ -57,9 +57,9 @@ public class ExtensionIOKraken implements ExtensionIO {
 
         // Software limits to prevent over-travel
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() + 0.05;  // Small buffer
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() - 0.05;  // Small buffer
         config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() - 0.05;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() + 0.05;
 
         // Motion Magic constraints:
         config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.extensionMMCruiseVelRotPerSec.get();

@@ -10,12 +10,12 @@ public class ExtensionIOSim implements ExtensionIO {
 
     // Constants for simulation
     private static final double kGearRatio = IntakeConstants.extensionSensorToMechanismRatio.get();
-    private static final double kCarriageMassKg = Units.lbsToKilograms(5);  // ~5 lbs - TODO: update when known
-    private static final double kDrumRadiusMeters = 0.02;  // Pinion radius - TODO: update when known
+    private static final double kCarriageMassKg = Units.lbsToKilograms(5);  // ~5 lbs 
+    private static final double kDrumRadiusMeters = 0.02;  // Pinion radius
 
     // Sim hard stops (in meters)
     private static final double kMinHeightMeters = 0.0;   // Fully retracted
-    private static final double kMaxHeightMeters = 0.5;   // Fully extended - TODO: update when known
+    private static final double kMaxHeightMeters = 0.5;   // Fully extended
     
     private final ElevatorSim sim;
     private final DCMotor gearbox = DCMotor.getKrakenX44(1);
