@@ -10,7 +10,6 @@ import com.ctre.phoenix6.controls.ColorFlowAnimation;
 import com.ctre.phoenix6.controls.FireAnimation;
 import com.ctre.phoenix6.controls.LarsonAnimation;
 import com.ctre.phoenix6.controls.SolidColor;
-import com.ctre.phoenix6.controls.StrobeAnimation;
 import com.ctre.phoenix6.signals.AnimationDirectionValue;
 import com.ctre.phoenix6.signals.RGBWColor;
 import com.ctre.phoenix6.signals.StripTypeValue;
@@ -48,11 +47,10 @@ public class LEDBase extends SubsystemBase {
     private double flickerTime = 0;
     
     // Control requests (reusable)
-    private final ColorFlowAnimation colorFlowAnim = new ColorFlowAnimation(kLEDcount - (7 + kLEDcount), kLEDcount);
-    private final StrobeAnimation strobeAnim = new StrobeAnimation(kLEDcount - (7 + kLEDcount), kLEDcount);
-    private final FireAnimation fireAnim = new FireAnimation(kLEDcount - (7 + kLEDcount), kLEDcount);
-    private final LarsonAnimation larsonAnim = new LarsonAnimation(kLEDcount - (7 + kLEDcount), kLEDcount);
-    private final SolidColor solidColor = new SolidColor(kLEDcount - (7 + kLEDcount), kLEDcount);
+    private final ColorFlowAnimation colorFlowAnim = new ColorFlowAnimation(kLEDcount - (8 + kLEDcount), kLEDcount);
+    private final FireAnimation fireAnim = new FireAnimation(kLEDcount - (8 + kLEDcount), kLEDcount);
+    private final LarsonAnimation larsonAnim = new LarsonAnimation(kLEDcount - (8 + kLEDcount), kLEDcount);
+    private final SolidColor solidColor = new SolidColor(kLEDcount - (8 + kLEDcount), kLEDcount);
     
     // Suppliers for state determination
     private final BooleanSupplier isIntakingSupplier;
@@ -229,14 +227,6 @@ public class LEDBase extends SubsystemBase {
         if (candle != null){
             candle.setControl(solidColor
                 .withColor(color)
-            );
-        }
-    }
-    
-    private void setStrobeAnimation(RGBWColor color) {
-        if (candle != null) {
-            candle.setControl(strobeAnim
-            .withColor(color)
             );
         }
     }
