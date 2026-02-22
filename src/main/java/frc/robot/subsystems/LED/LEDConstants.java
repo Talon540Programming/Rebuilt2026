@@ -7,7 +7,7 @@ public class LEDConstants {
     public static final int kCANdleId = 21;
     
     // LED Configuration
-    public static final int kLEDCount = 64 + 7; // TODO: Update with actual LED count 7 included LEDs accout for this 
+    public static final int kLEDCount = 64 + 8; // TODO: Update with actual LED count 8 included LEDs accout for this 
     public static final int kCANdleBuiltInLEDs = 8; // CANdle has 8 built-in LEDs
     public static final int kTotalLEDs = kLEDCount + kCANdleBuiltInLEDs;
     
