@@ -54,7 +54,7 @@ public class ShooterConstants {
     public static final LoggedTunableNumber hoodkA = 
         new LoggedTunableNumber("Shooter/Hood/kA");
     public static final LoggedTunableNumber hoodkG = 
-        new LoggedTunableNumber("Shooter/Hood/kA");  
+        new LoggedTunableNumber("Shooter/Hood/kG");  
 
     // Motion Magic Position constraints
     public static final LoggedTunableNumber hoodMMCruiseVelRotPerSec = 
@@ -148,6 +148,7 @@ public class ShooterConstants {
                 hoodkS.initDefault(0.25);
                 hoodkV.initDefault(0.12);
                 hoodkA.initDefault(0.01);
+                hoodkG.initDefault(0.0);  // TODO: tune - find voltage to hold hood horizontal
                 
                 hoodMMCruiseVelRotPerSec.initDefault(80);  // 80 rps cruise
                 hoodMMAccelRotPerSec2.initDefault(160);    // 160 rps/s

@@ -5,6 +5,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -61,6 +62,7 @@ public class HoodIOKraken implements HoodIO {
         config.Slot0.kV = ShooterConstants.hoodkV.get();
         config.Slot0.kA = ShooterConstants.hoodkA.get();
         config.Slot0.kG = ShooterConstants.hoodkG.get();
+        config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
         
         // Motion Magic Position settings
         config.MotionMagic.MotionMagicCruiseVelocity = ShooterConstants.hoodMMCruiseVelRotPerSec.get();

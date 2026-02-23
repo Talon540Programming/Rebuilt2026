@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -54,6 +55,8 @@ public class ExtensionIOKraken implements ExtensionIO {
         config.Slot0.kD = IntakeConstants.extensionkD.get();
         config.Slot0.kS = IntakeConstants.extensionkS.get();
         config.Slot0.kV = IntakeConstants.extensionkV.get();
+        config.Slot0.kG = IntakeConstants.extensionkG.get();
+        config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
 
         // Software limits to prevent over-travel
         config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;

@@ -30,7 +30,7 @@ public class LEDBase extends SubsystemBase {
         EMERGENCY_MODE,     // Emergency mode active - cyan flowing
         DISABLED_FMS,       // Disabled + connected to FMS - alliance colors + white flowing
         DISABLED_NO_FMS,    // Disabled + no FMS - red/yellow flowing
-        SHOOTING,     // Flywheel at speed - fire animation
+        SHOOTING,           // Flywheel at speed - fire animation
         INTAKING_RED,
         INTAKING_BLUE,     
         IDLE                // Default state - alliance color larson
