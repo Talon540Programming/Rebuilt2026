@@ -2,7 +2,11 @@ package frc.robot.subsystems.Shooter;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIO.FlywheelIOInputs;
@@ -22,7 +26,8 @@ public class ShooterBase extends SubsystemBase {
         SPINNING_UP,   // Flywheel getting up to speed
         READY,         // Flywheel at speed, ready to shoot
         SHOOTING,      // Actively feeding and shooting
-        ADJUSTING_HOOD // Hood moving to position
+        ADJUSTING_HOOD, // Hood moving to position
+        HOMING
     }
     
     // IO layers
@@ -35,9 +40,13 @@ public class ShooterBase extends SubsystemBase {
     private final HoodIOInputs hoodInputs = new HoodIOInputs();
     private final KickupIOInputs kickupInputs = new KickupIOInputs();
     
-private ShooterState currentState = ShooterState.IDLE;
+    private ShooterState currentState = ShooterState.IDLE;
     // Hood homing state
     private boolean hoodHomed = false;
+    // Hood out-of-bounds detection
+    private Debouncer hoodOutOfBoundsDebouncer = 
+        new Debouncer(ShooterConstants.hoodOutOfBoundsDebounceSeconds.get(), DebounceType.kRising);
+
     
     public ShooterBase(FlywheelIO flywheelIO, HoodIO hoodIO, KickupIO kickupIO) {
         this.flywheelIO = flywheelIO;
@@ -85,6 +94,21 @@ private ShooterState currentState = ShooterState.IDLE;
         // Log state
         Logger.recordOutput("Shooter/State", currentState.toString());
         Logger.recordOutput("Shooter/ReadyToShoot", isReadyToShoot());
+
+        // Hood out-of-bounds check - trigger rehoming if hood exceeds max position
+        if (DriverStation.isEnabled() && hoodHomed && currentState != ShooterState.HOMING) {
+            boolean outOfBounds = hoodInputs.positionRotations > ShooterConstants.hoodMaxPositionRot.get();
+            boolean outOfBoundsConfirmed = hoodOutOfBoundsDebouncer.calculate(outOfBounds);
+            
+            if (outOfBoundsConfirmed) {
+                hoodHomed = false;
+                currentState = ShooterState.HOMING;
+                Logger.recordOutput("Shooter/Hood/OutOfBoundsTriggered", true);
+                CommandScheduler.getInstance().schedule(hoodHomingSequence());
+            }
+            
+            Logger.recordOutput("Shooter/Hood/OutOfBounds", outOfBounds);
+        }
     }
         
     // ==================== FLYWHEEL CONTROL ====================
@@ -298,6 +322,17 @@ private ShooterState currentState = ShooterState.IDLE;
      */
     public void simulateFlywheelShot() {
         flywheelIO.simulateShot();
+    }
+
+    /**
+     * Exit homing state - called when homing completes successfully
+     */
+    public void exitHomingState() {
+        if (currentState == ShooterState.HOMING) {
+            currentState = ShooterState.IDLE;
+        }
+        hoodOutOfBoundsDebouncer.calculate(false);  // Reset debouncer
+        Logger.recordOutput("Shooter/Hood/OutOfBoundsTriggered", false);
     }
     
    

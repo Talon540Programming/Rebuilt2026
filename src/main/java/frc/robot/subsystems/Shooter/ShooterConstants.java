@@ -55,6 +55,8 @@ public class ShooterConstants {
         new LoggedTunableNumber("Shooter/Hood/kA");
     public static final LoggedTunableNumber hoodkG = 
         new LoggedTunableNumber("Shooter/Hood/kG");  
+    public static final LoggedTunableNumber hoodOutOfBoundsDebounceSeconds = 
+        new LoggedTunableNumber("Shooter/Hood/OutOfBoundsDebounceSeconds");
 
     // Motion Magic Position constraints
     public static final LoggedTunableNumber hoodMMCruiseVelRotPerSec = 
@@ -111,6 +113,7 @@ public class ShooterConstants {
                     hoodHomingDutyCycle.initDefault(-0.1);  // Small negative voltage toward min position
                     hoodHomingVelThreshold.initDefault(0.05);  // Stall detection velocity threshold
                     hoodHomingCurrentThreshold.initDefault(10.0);  // Stall detection current threshold
+                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
                     
                 }
                 case COMPBOT -> {
@@ -123,6 +126,7 @@ public class ShooterConstants {
                     hoodHomingDutyCycle.initDefault(-0.1);  // TODO: tune
                     hoodHomingVelThreshold.initDefault(0.05);  // TODO: tune
                     hoodHomingCurrentThreshold.initDefault(10.0);  // TODO: tune
+                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
                 }
             }
         }

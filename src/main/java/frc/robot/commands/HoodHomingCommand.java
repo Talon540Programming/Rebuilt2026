@@ -65,6 +65,7 @@ public class HoodHomingCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         shooter.stopHood();
+        shooter.exitHomingState();
     }
     
     @Override
