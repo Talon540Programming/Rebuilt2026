@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.IntakeHomingCommand;
 import frc.robot.subsystems.Intake.Extension.ExtensionIO;
-import frc.robot.subsystems.Intake.Extension.ExtensionIO.PivotIOInputs;
+import frc.robot.subsystems.Intake.Extension.ExtensionIO.ExtensionIOInputs;
 import frc.robot.subsystems.Intake.Roller.RollerIO;
 import frc.robot.subsystems.Intake.Roller.RollerIO.RollerIOInputs;
 import edu.wpi.first.math.filter.Debouncer;
@@ -37,11 +37,11 @@ public class IntakeBase extends SubsystemBase {
     private double goalPosRot = IntakeConstants.extensionStowedPosRot.get();
 
     
-    private final ExtensionIO pivotIO;
+    private final ExtensionIO extensionIO;
     private final RollerIO rollerIO;
     
     // Use the base inputs class instead of AutoLogged
-    private final PivotIOInputs extensionInputs = new PivotIOInputs();
+    private final ExtensionIOInputs extensionInputs = new ExtensionIOInputs();
     private final RollerIOInputs rollerInputs = new RollerIOInputs();
     
     private IntakeState currentState = IntakeState.STOWED;
@@ -56,8 +56,8 @@ public class IntakeBase extends SubsystemBase {
     private boolean crashLatched = false;
 
     
-    public IntakeBase(ExtensionIO pivotIO, RollerIO rollerIO) {
-        this.pivotIO = pivotIO;
+    public IntakeBase(ExtensionIO extensionIO, RollerIO rollerIO) {
+        this.extensionIO = extensionIO;
         this.rollerIO = rollerIO;
         crashDebouncer = new Debouncer(IntakeConstants.extensionCrashDebounceSecs.get(), DebounceType.kRising);
     }
@@ -65,14 +65,14 @@ public class IntakeBase extends SubsystemBase {
     @Override
     public void periodic() {
         // Update inputs from IO layers
-        pivotIO.updateInputs(extensionInputs);
+        extensionIO.updateInputs(extensionInputs);
         rollerIO.updateInputs(rollerInputs);
 
         if (DriverStation.isEnabled() && homed) {
-            pivotIO.runMotionMagicPosition(goalPosRot, 0.0);
+            extensionIO.runMotionMagicPosition(goalPosRot, 0.0);
             } 
             else if (!DriverStation.isEnabled()) {
-                pivotIO.stop();
+                extensionIO.stop();
         }
 
         final double errorRot = goalPosRot - extensionInputs.positionRotations;
@@ -186,7 +186,7 @@ public class IntakeBase extends SubsystemBase {
     public void stop() {
         intakeEnabled = false;
         currentState = IntakeState.STOWED; 
-        pivotIO.stop();
+        extensionIO.stop();
         rollerIO.stop();
     }
     
@@ -260,14 +260,14 @@ public class IntakeBase extends SubsystemBase {
      * Set extension duty cycle directly - used for homing
      */
     public void setExtensionDutyCycle(double dutyCycle) {
-        pivotIO.setDutyCycle(dutyCycle);
+        extensionIO.setDutyCycle(dutyCycle);
     }
 
     /**
      * Stop the extension motor
      */
     public void stopExtension() {
-        pivotIO.stop();
+        extensionIO.stop();
     }
 
     /**
@@ -282,7 +282,7 @@ public class IntakeBase extends SubsystemBase {
      * Zero extension encoder at stowed position - call when at hard stop
      */
     public void zeroExtensionAtStowed() {
-        pivotIO.setPosition(IntakeConstants.extensionStowedPosRot.get());
+        extensionIO.setPosition(IntakeConstants.extensionStowedPosRot.get());
         homed = true;
         setGoal(Goal.STOWED);
         Logger.recordOutput("Intake/Extension/Homed", true);

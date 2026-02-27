@@ -47,7 +47,7 @@ public class ExtensionIOSim implements ExtensionIO {
 
     
     @Override
-    public void updateInputs(PivotIOInputs inputs) {
+    public void updateInputs(ExtensionIOInputs inputs) {
         // Run closed loop control if enabled
         if (closedLoop) {
             double currentPosRot = getPositionRotations();

@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface ExtensionIO {
     
     @AutoLog
-    public static class PivotIOInputs {
+    public static class ExtensionIOInputs {
         public double positionRotations = 0.0;
         public double velocityRotPerSec = 0.0;
         public double appliedVolts = 0.0;
@@ -14,7 +14,7 @@ public interface ExtensionIO {
     }
     
     /** Updates the set of loggable inputs */
-    default void updateInputs(PivotIOInputs inputs) {}
+    default void updateInputs(ExtensionIOInputs inputs) {}
     
     /** Run the pivot at the specified duty cycle (-1 to 1) */
     default void setDutyCycle(double dutyCycle) {}

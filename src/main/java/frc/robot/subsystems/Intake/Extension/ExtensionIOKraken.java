@@ -21,7 +21,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 public class ExtensionIOKraken implements ExtensionIO {
     
-    private final TalonFX pivot;
+    private final TalonFX extension;
     
     private final StatusSignal<Angle> position;
     private final StatusSignal<AngularVelocity> velocity;
@@ -32,7 +32,7 @@ public class ExtensionIOKraken implements ExtensionIO {
     private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0.0);
 
     public ExtensionIOKraken() {
-        pivot = new TalonFX(IntakeConstants.extensionMotorId, TunerConstants.kCANBus);
+        extension = new TalonFX(IntakeConstants.extensionMotorId, TunerConstants.kCANBus);
         
         TalonFXConfiguration config = new TalonFXConfiguration();
         
@@ -69,23 +69,23 @@ public class ExtensionIOKraken implements ExtensionIO {
         config.MotionMagic.MotionMagicAcceleration = IntakeConstants.extensionMMAccelRotPerSec2.get();
         config.MotionMagic.MotionMagicJerk = IntakeConstants.extensionMMJerkRotPerSec3.get();
 
-        pivot.getConfigurator().apply(config);
+        extension.getConfigurator().apply(config);
 
         
         // Get status signals
-        position = pivot.getPosition();
-        velocity = pivot.getVelocity();
-        appliedVolts = pivot.getMotorVoltage();
-        current = pivot.getStatorCurrent();
-        temp = pivot.getDeviceTemp();
+        position = extension.getPosition();
+        velocity = extension.getVelocity();
+        appliedVolts = extension.getMotorVoltage();
+        current = extension.getStatorCurrent();
+        temp = extension.getDeviceTemp();
         
         // Set update frequencies
         BaseStatusSignal.setUpdateFrequencyForAll(50, position, velocity, appliedVolts, current, temp);
-        pivot.optimizeBusUtilization();
+        extension.optimizeBusUtilization();
     }
     
     @Override
-    public void updateInputs(PivotIOInputs inputs) {
+    public void updateInputs(ExtensionIOInputs inputs) {
         BaseStatusSignal.refreshAll(position, velocity, appliedVolts, current, temp);
         
         inputs.positionRotations = position.getValueAsDouble();
@@ -97,17 +97,17 @@ public class ExtensionIOKraken implements ExtensionIO {
     
     @Override
     public void stop() {
-        pivot.stopMotor();
+        extension.stopMotor();
     }
     
     @Override
     public void setBrakeMode(boolean brake) {
-        pivot.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+        extension.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
     }
 
     @Override
     public void runMotionMagicPosition(double positionRotations, double feedForwardVolts) {
-        pivot.setControl(
+        extension.setControl(
             mmRequest.withPosition(positionRotations)
                     .withFeedForward(feedForwardVolts)
         );
@@ -116,12 +116,12 @@ public class ExtensionIOKraken implements ExtensionIO {
       @Override
         public void setPosition(double positionRotations) {
             // Sets the integrated sensor position. This value affects subsequent position reads.
-            pivot.setPosition(positionRotations);
+            extension.setPosition(positionRotations);
     }
 
     @Override
     public void setDutyCycle(double dutyCycle) {
-        pivot.set(dutyCycle);
+        extension.set(dutyCycle);
     }
 
 
