@@ -81,8 +81,16 @@ public final class Constants {
     // Wall thickness is 0.051
     // Hub positions
     public static final Pose2d blueHub = new Pose2d(4.5, 4.0, new Rotation2d());
-    public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d());  
-
+    public static final Pose2d redHub = new Pose2d(12, 4.0, new Rotation2d()); 
+    public static final Pose2d alignRedTowerLeft = new Pose2d(0.0, 0.0, new Rotation2d()); 
+    public static final Pose2d alignRedTowerRight = new Pose2d(0.0, 0.0, new Rotation2d()); 
+    public static final Pose2d alignBlueTowerLeft = new Pose2d(0.0, 0.0, new Rotation2d(0)); 
+    public static final Pose2d alignBlueTowerRight = new Pose2d(1.282, 2.832, new Rotation2d(-Math.PI/2)); 
+    public static final Pose2d climbRedTowerLeft = new Pose2d(0.0, 0.0, new Rotation2d()); 
+    public static final Pose2d climbRedTowerRight = new Pose2d(0.0, 0.0, new Rotation2d()); 
+    public static final Pose2d climbBlueTowerLeft = new Pose2d(0, 0, new Rotation2d()); 
+    public static final Pose2d climbBlueTowerRight = new Pose2d(1.000, 2.846, new Rotation2d(-Math.PI/2)); 
+    public static final Pose2d test = new Pose2d(0, 0, new Rotation2d()); 
   }
 
    public static final class ShootingConstants {

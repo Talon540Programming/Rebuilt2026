@@ -16,72 +16,61 @@ import com.pathplanner.lib.path.Waypoint;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
-import frc.robot.Constants.FieldPoses;
-import frc.robot.subsystems.Vision.VisionBase;
 
 
 
 public class DriveToPose{
 
         private final CommandSwerveDrivetrain drivetrain;
-        private VisionBase vision;
-        private Pose2d nearestReefSide = new Pose2d();
-        private Pose2d nearestStation = new Pose2d();
-        
+
+        // Left & Right from driver station perspective 
         public enum Side{
-            Left,
-            Middle,
-            Right
+            AlignLeft,
+            AlignRight,
+            ClimbLeft,
+            ClimbRight
         }
     
-        public DriveToPose(CommandSwerveDrivetrain drivetrain,VisionBase vision){
+        public DriveToPose(CommandSwerveDrivetrain drivetrain){
             this.drivetrain = drivetrain;
-            this.vision = vision;
         }
         
     
-        private Pose2d calculateReefPath(Side side, Pose2d nearestSide){
-            double x = nearestSide.getX();
-            double y = nearestSide.getY();
-            double rot = nearestSide.getRotation().getRadians();
+        private Pose2d calculateTowerPose(Side side, Pose2d selectedSide){
+            double x = selectedSide.getX();
+            double y = selectedSide.getY();
+            double rot = selectedSide.getRotation().getRadians();
             //tune value with more testing, rotational offset 
             rot += Math.toRadians(0);
     
             switch (side) {
-                case Left:
-                    x -= FieldPoses.reefLateralOffset.get() * Math.sin(rot);
-                    y += FieldPoses.reefLateralOffset.get() * Math.cos(rot);
-                break;
-                case Right:
-                    x += FieldPoses.reefLateralOffset.get() * Math.sin(rot);
-                    y -= FieldPoses.reefLateralOffset.get() * Math.cos(rot);
-                break;
-                case Middle:
-                   default:
-    
-                break;
+                case AlignLeft:
+                    x -= DriveConstants.alignTowerLateralOffset * Math.sin(rot);
+                    y += DriveConstants.alignTowerLateralOffset * Math.cos(rot);
+                    break;
+                case AlignRight:
+                    x += DriveConstants.alignTowerLateralOffset * Math.sin(rot);
+                    y -= DriveConstants.alignTowerLateralOffset * Math.cos(rot);
+                    break;
+                case ClimbLeft:
+                    x -= DriveConstants.climbTowerLateralOffset * Math.sin(rot);
+                    y += DriveConstants.climbTowerLateralOffset * Math.cos(rot);
+                    break;
+                case ClimbRight:
+                    x += DriveConstants.climbTowerLateralOffset * Math.sin(rot);
+                    y -= DriveConstants.climbTowerLateralOffset * Math.cos(rot);
+                    break;
             }
     
-            x += (FieldPoses.reefDistanceOffset.get() + FieldPoses.bumperWidth) * Math.cos(rot);
-            y += (FieldPoses.reefDistanceOffset.get() + FieldPoses.bumperWidth) * Math.sin(rot);
+            x += (DriveConstants.towerDistanceOffset) * Math.cos(rot);
+            y += (DriveConstants.towerDistanceOffset) * Math.sin(rot);
     
              return new Pose2d(x, y, new Rotation2d(rot));
-        }  
-
-    private Pose2d calculateStationPath(Pose2d station){
-        double x = station.getX();
-        double y = station.getY();
-        double rot = station.getRotation().getRadians();
-        //tune value with more testing, rotational offset 
-
-        x += (FieldPoses.stationDistanceOffset.get() + FieldPoses.bumperWidth) * Math.cos(rot);
-        y += (FieldPoses.stationDistanceOffset.get() + FieldPoses.bumperWidth) * Math.sin(rot);
-
-            return new Pose2d(x, y, new Rotation2d(rot));
-    }  
+        }
 
     
     private Command getPathFromWaypoint(Pose2d waypoint){
@@ -126,50 +115,62 @@ public class DriveToPose{
         return new Rotation2d(cs.vxMetersPerSecond, cs.vyMetersPerSecond);
     }
 
-    /* 
-    public boolean isAtSetpoint(double toleranceMeters) {
+     
+    public boolean isAtSetpoint(double toleranceMeters, Side side, Pose2d selectedSide) {
         Pose2d currentPose = drivetrain.getPose();
         
-        // Check distance to nearest reef
-        Pose2d nearestReef = calculateNearestReefSide();
-        double reefDistance = currentPose.getTranslation().getDistance(nearestReef.getTranslation());
+        // Check distance to nearest tower
+        Pose2d selectedTower = calculateTowerPose(side, selectedSide);
+        double towerDistance = currentPose.getTranslation().getDistance(selectedTower.getTranslation());
         
-        // Check distance to nearest station
-        Pose2d nearestStation = calculateNearestStation();
-        double stationDistance = currentPose.getTranslation().getDistance(nearestStation.getTranslation());
-        
-        return reefDistance < toleranceMeters || stationDistance < toleranceMeters;
+        return towerDistance < toleranceMeters;
     }
     
 
     public boolean isAtTargetPose(Pose2d target, double toleranceMeters) {
         return drivetrain.getPose().getTranslation().getDistance(target.getTranslation()) < toleranceMeters;
     }
+
+    private Pose2d getCorrectPose(Side side){
+        Pose2d correctPose = new Pose2d();
+        var alliance = DriverStation.getAlliance();
+        switch (side) {
+            case AlignLeft:
+                correctPose = (alliance.get() == DriverStation.Alliance.Red)? 
+                    Constants.FieldPoses.alignRedTowerLeft: 
+                    Constants.FieldPoses.alignBlueTowerLeft;
+                break;
+            case AlignRight:
+                correctPose = (alliance.get() == DriverStation.Alliance.Red)? 
+                    Constants.FieldPoses.alignRedTowerRight: 
+                    Constants.FieldPoses.alignBlueTowerRight;
+                break;
+            case ClimbLeft:
+                correctPose = (alliance.get() == DriverStation.Alliance.Red)? 
+                    Constants.FieldPoses.climbRedTowerLeft: 
+                    Constants.FieldPoses.climbBlueTowerLeft;
+                    break;
+            case ClimbRight:
+                correctPose = (alliance.get() == DriverStation.Alliance.Red)? 
+                    Constants.FieldPoses.climbRedTowerRight: 
+                    Constants.FieldPoses.climbBlueTowerRight;
+                    break;
+        }
+
+        return correctPose;
+    }
         
-    public Command createReefPathCommand(Side side){
+    public Command createtowerPathCommand(Side side){
         return Commands.defer(()-> {
-            nearestReefSide = calculateNearestReefSide();
-            Pose2d align = calculateReefPath(side, nearestReefSide);
+            Pose2d selectedSide = getCorrectPose(side);
+            Pose2d towerSideSelected = calculateTowerPose(side, selectedSide);
             
-            if(isAtTargetPose(align, 0.05)){
+            if(isAtTargetPose(towerSideSelected, 0.05)){
                 return Commands.none();
             }
 
-            return getPathFromWaypoint(align);
+            return getPathFromWaypoint(towerSideSelected);
         }, Set.of(drivetrain));
     }
 
-    public Command createStationPathCommand(){
-        return Commands.defer(()-> {
-            nearestStation = calculateNearestStation();
-            Pose2d align = calculateStationPath(nearestStation);
-
-            if(isAtTargetPose(align, 0.08)){
-                return Commands.none();
-            }
-
-            return getPathFromWaypoint(align);
-        }, Set.of(drivetrain));
-    }
-    */
 }

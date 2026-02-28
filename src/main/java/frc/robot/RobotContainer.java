@@ -16,6 +16,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.DriveToPose;
 import frc.robot.subsystems.Drive.SetHeading;
 import frc.robot.subsystems.Drive.SmoothFieldCentricFacingAngle;
 import frc.robot.subsystems.Index.IndexBase;
@@ -92,6 +93,7 @@ public class RobotContainer {
     private final IndexIOSim indexIOSim = new IndexIOSim();
     private final ClimberzIOKraken climberzIOKraken = new ClimberzIOKraken();
     private final ClimberzIOSim climberzIOSim = new ClimberzIOSim();
+    private final DriveToPose driveToPose = new DriveToPose(drivetrain);
     private final IntakeBase intake;
     private final ShooterBase shooter;
     private final IndexBase index;
@@ -264,6 +266,18 @@ public class RobotContainer {
                     autoHeading.disableAutoMode();
                 }
             }));
+
+        m_driverController.leftBumper().whileTrue(
+            driveToPose.createtowerPathCommand(DriveToPose.Side.AlignLeft)
+            .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
+            .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbLeft))
+            .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz)));
+
+        m_driverController.rightBumper().whileTrue(
+            driveToPose.createtowerPathCommand(DriveToPose.Side.AlignRight)
+            .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
+            .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbRight))
+            .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz)));
 
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
