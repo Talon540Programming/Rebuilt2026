@@ -52,12 +52,12 @@ public class ClimberzBase extends SubsystemBase {
     }
     
     /**
-     * Release climber (let springs extend) - coast mode + zero duty cycle
+     * Release climber (let springs extend) - coast mode
      */
     public void climbDown() {
         currentState = ClimberState.CLIMBING_DOWN;
         io.setBrakeMode(false);
-        io.setDutyCycle(0);
+        io.setDutyCycle(ClimberzConstants.climbDownDutyCycle);
     }
     
     /**

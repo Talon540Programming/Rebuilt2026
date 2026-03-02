@@ -519,9 +519,9 @@ public static Translation2d getShooterPosition(Pose2d robotPose) {
      */
     public static double calculatePassingHeading(boolean isRedAlliance) {
         if (isRedAlliance) {
-            return Math.PI;
+            return 0;
         } else {
-            return 0.0;
+            return Math.PI;
         }
     }
 

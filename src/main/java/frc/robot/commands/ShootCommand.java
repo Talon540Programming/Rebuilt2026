@@ -1,23 +1,18 @@
 package frc.robot.commands;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.utility.FuelSim;
 import frc.robot.utility.ShootingCalculator;
-import frc.robot.utility.ShootingCalculator.ShootingSolution;
 import frc.robot.subsystems.Index.IndexBase;
 import frc.robot.subsystems.Shooter.ShooterBase;
 import frc.robot.subsystems.Shooter.ShooterConstants;
-import frc.robot.utility.ShootingCalculator.PassingSolution;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
-import frc.robot.Constants.EmergencyModeConstants;
 import frc.robot.Constants.ShootingConstants;
 
 import org.littletonrobotics.junction.Logger;
@@ -34,58 +29,40 @@ public class ShootCommand extends Command {
     private final ShooterBase shooter;
     private final IndexBase index;
     private final Supplier<Pose2d> poseSupplier;
-    private final Supplier<ChassisSpeeds> velocitySupplier;
-    private final BooleanSupplier isRedAllianceSupplier;
-    private final BooleanSupplier isPassingEnabledSupplier;
-    private final BooleanSupplier isEmergencyShootingSupplier;
-    private final BooleanSupplier isEmergencyPassingSupplier;
-    private final Runnable onShootingEndCallback;
     private final Supplier<Double> currentHeadingSupplier;
     private final Supplier<Double> targetHeadingSupplier;
     private final Supplier<Boolean> headingAtTargetSupplier;
 
     private boolean readyToShoot = false;
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = .1; // 10 balls per second
+    private static final double fuelSpawnInterval = 0.1; // 10 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
-    
     /**
-     * Creates a ShootCommand with auto-aiming based on robot position and velocity.
+     * Creates a ShootCommand that runs indexer and kickup when ready.
+     * Flywheel and hood are controlled by the shooter's default command.
      * 
      * @param shooter The shooter subsystem
      * @param index The index subsystem
-     * @param poseSupplier Supplier for current robot pose
-     * @param velocitySupplier Supplier for field-relative velocity
-     * @param isRedAllianceSupplier Supplier for alliance color
-     * @param isPassingEnabledSupplier Supplier for whether passing mode is active
+     * @param poseSupplier Supplier for current robot pose (for simulation)
+     * @param currentHeadingSupplier Supplier for current robot heading
+     * @param targetHeadingSupplier Supplier for target heading
+     * @param headingAtTargetSupplier Supplier for whether heading is at target
      */
     public ShootCommand(ShooterBase shooter, IndexBase index, 
-                        Supplier<Pose2d> poseSupplier, 
-                        Supplier<ChassisSpeeds> velocitySupplier,
-                        BooleanSupplier isRedAllianceSupplier,
-                        BooleanSupplier isPassingEnabledSupplier,
-                        BooleanSupplier isEmergencyShootingSupplier,
-                        BooleanSupplier isEmergencyPassingSupplier,
-                        Runnable onShootingEndCallback,
+                        Supplier<Pose2d> poseSupplier,
                         Supplier<Double> currentHeadingSupplier,
                         Supplier<Double> targetHeadingSupplier,
                         Supplier<Boolean> headingAtTargetSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
-        this.velocitySupplier = velocitySupplier;
-        this.isRedAllianceSupplier = isRedAllianceSupplier;
-        this.isPassingEnabledSupplier = isPassingEnabledSupplier;
-        this.isEmergencyShootingSupplier = isEmergencyShootingSupplier;
-        this.isEmergencyPassingSupplier = isEmergencyPassingSupplier;
-        this.onShootingEndCallback = onShootingEndCallback;
         this.currentHeadingSupplier = currentHeadingSupplier;
         this.targetHeadingSupplier = targetHeadingSupplier;
         this.headingAtTargetSupplier = headingAtTargetSupplier;
         
-        // Require both subsystems
-        addRequirements(shooter, index);
+        // Only require index - shooter is controlled by default command
+        addRequirements(index);
     }
     
     @Override
@@ -96,52 +73,7 @@ public class ShootCommand extends Command {
     
     @Override
     public void execute() {
-        double flywheelRPM;
-        double hoodAngleRadians;
-        
-        // Check for emergency mode first
-        if (isEmergencyShootingSupplier.getAsBoolean()) {
-            // Emergency shooting mode - use preset values
-            flywheelRPM = EmergencyModeConstants.shootingRPM;
-            hoodAngleRadians = Math.toRadians(EmergencyModeConstants.shootingHoodAngleDegrees);
-            
-            Logger.recordOutput("ShootCommand/Mode", "EmergencyShooting");
-        } else if (isEmergencyPassingSupplier.getAsBoolean()) {
-            // Emergency passing mode - use preset values
-            flywheelRPM = EmergencyModeConstants.passingRPM;
-            hoodAngleRadians = Math.toRadians(EmergencyModeConstants.passingHoodAngleDegrees);
-            
-            Logger.recordOutput("ShootCommand/Mode", "EmergencyPassing");
-        } else if (isPassingEnabledSupplier.getAsBoolean()) {
-            // Passing mode - use passing calculator
-            PassingSolution passingSolution = ShootingCalculator.calculatePassingSolution(
-                poseSupplier.get(),
-                isRedAllianceSupplier.getAsBoolean()
-            );
-            flywheelRPM = passingSolution.flywheelRPM;
-            hoodAngleRadians = passingSolution.hoodAngleRadians;
-            
-            Logger.recordOutput("ShootCommand/Mode", "Passing");
-            Logger.recordOutput("ShootCommand/PassingValid", passingSolution.isValid);
-        } else {
-            // Hub shooting mode - use movement-compensated calculator
-            ShootingSolution solution = ShootingCalculator.calculateSolutionWithMovement(
-                poseSupplier.get(),
-                velocitySupplier.get(),
-                isRedAllianceSupplier.getAsBoolean()
-            );
-            flywheelRPM = solution.flywheelRPM;
-            hoodAngleRadians = solution.hoodAngleRadians;
-            
-            Logger.recordOutput("ShootCommand/Mode", "Hub");
-        }
-        
-        // Always update flywheel and hood targets (continuous auto-aim)
-        shooter.setFlywheelVelocity(flywheelRPM);
-        shooter.setHoodAngle(hoodAngleRadians);
-        
-        // Wait for flywheel to spin up the FIRST time only
-       // Wait for all conditions to be met the FIRST time only
+        // Wait for all conditions to be met the FIRST time only
         if (!readyToShoot) {
             boolean flywheelReady = shooter.isFlywheelAtSetpoint() && 
                 shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get();
@@ -164,16 +96,16 @@ public class ShootCommand extends Command {
         
         Logger.recordOutput("ShootCommand/ReadyToShoot", readyToShoot);
         
-        // Once spun up, continuously run index and kickup
+        // Once ready, continuously run index and kickup
         index.feed();
-        shooter.shoot();  // This calls runKickup() AND sets state to SHOOTING
+        shooter.shoot();  // Runs kickup AND sets state to SHOOTING
 
-        /// Spawn fuel in simulation
+        // Spawn fuel in simulation
         if (Robot.isSimulation()) {
             timeSinceLastSpawn += loopPeriod;
             if (timeSinceLastSpawn >= fuelSpawnInterval) {
                 timeSinceLastSpawn = 0.0;
-                spawnSimulatedFuel(shooter.getFlywheelVelocityRPM(), hoodAngleRadians);
+                spawnSimulatedFuel(shooter.getFlywheelVelocityRPM(), shooter.getHoodAngleRadians());
                 shooter.simulateFlywheelShot();
             }
         }
@@ -181,14 +113,9 @@ public class ShootCommand extends Command {
     
     @Override
     public void end(boolean interrupted) {
-        // Stop shooter and index
-        shooter.stopAll();
+        // Stop index and kickup only - flywheel/hood controlled by default command
         index.stop();
-        
-        // Revert from hood retract mode if needed
-        if (onShootingEndCallback != null) {
-            onShootingEndCallback.run();
-        }
+        shooter.stopKickup();
     }
     
     @Override

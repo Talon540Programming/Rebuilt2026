@@ -14,6 +14,7 @@ import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.HeadingPID;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.JiggleCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.DriveToPose;
@@ -203,14 +204,9 @@ public class RobotContainer {
             new IntakeCommand(intake)
         );
 
-        m_driverController.leftTrigger().onTrue(Commands.runOnce(() ->{
-            if(intake.getRollerVolts() <= 0){
-                intake.startRollers();
-            }
-            else{
-                intake.stopRollers();
-            }
-        }));
+        m_driverController.leftTrigger().whileTrue(
+            new JiggleCommand(intake)
+        );
 
    // Climber controls - dpad down to climb (retract), dpad up to release (extend)
         m_driverController.povDown()
@@ -230,16 +226,20 @@ public class RobotContainer {
             )
         );
 
-        // A button - auto retract climber for 1.5 seconds
+        // Y button - auto retract climber (normal mode) or toggle flywheel disable (emergency mode)
         m_driverController.y().onTrue(
-            Commands.sequence(
-                Commands.runOnce(() -> climberz.climbDown(), climberz),
-                Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
-                Commands.runOnce(() -> climberz.stop(), climberz)
+            Commands.either(
+                Commands.runOnce(() -> autoHeading.toggleEmergencyFlywheelDisable()),
+                Commands.sequence(
+                    Commands.runOnce(() -> climberz.climbDown(), climberz),
+                    Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
+                    Commands.runOnce(() -> climberz.stop(), climberz)
+                ),
+                () -> autoHeading.isEmergencyModeEnabled()
             )
         );
 
-        m_driverController.rightTrigger(0.2)
+       m_driverController.rightTrigger(0.2)
             .onTrue(Commands.runOnce(() -> {
                 if (!autoHeading.isEmergencyModeEnabled()) {
                     autoHeading.enableAutoMode(drivetrain.getPose());
@@ -250,12 +250,6 @@ public class RobotContainer {
                     shooter,
                     index,
                     () -> drivetrain.getPose(),
-                    () -> drivetrain.getFieldVelocity(),
-                    () -> vision.isRedAlliance(),
-                    () -> autoHeading.isPassingEnabled(),
-                    () -> autoHeading.isEmergencyShootingMode(),
-                    () -> autoHeading.isEmergencyPassingMode(),
-                    () -> autoHeading.revertFromHoodRetract(),
                     () -> drivetrain.getHeading().getRadians(),
                     () -> autoHeading.getTargetHeading().getRadians(),
                     () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians())
@@ -350,17 +344,15 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        // Shooter default command - auto-retract hood near trench OR emergency hood retract mode
+        // Shooter default command - continuous flywheel spin-up and hood positioning
         shooter.setDefaultCommand(
             shooter.run(() -> {
-                // Get robot position
                 Pose2d robotPose = drivetrain.getPose();
                 double robotX = robotPose.getX();
                 
                 // Check distance to both trenches (hub X positions)
                 double blueTrenchX = FieldPoses.blueHub.getX();
                 double redTrenchX = FieldPoses.redHub.getX();
-                
                 double distanceToBlue = Math.abs(robotX - blueTrenchX);
                 double distanceToRed = Math.abs(robotX - redTrenchX);
                 double minDistance = Math.min(distanceToBlue, distanceToRed);
@@ -372,14 +364,83 @@ public class RobotContainer {
                 boolean nearTrench = !autoHeading.isEmergencyModeEnabled() && 
                     minDistance < ShootingConstants.hoodRetractionDistanceMeters;
                 
-                // Auto-retract if emergency retract mode OR near trench
-                if (emergencyRetract || nearTrench) {
+                // Determine flywheel RPM and hood angle
+                double flywheelRPM = 0;
+                double hoodAngleRadians = 0;
+                
+                if (autoHeading.isEmergencyModeEnabled()) {
+                    // Emergency mode - check if flywheel is disabled
+                    if (autoHeading.isEmergencyFlywheelDisabled()) {
+                        shooter.stopFlywheel();
+                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyDisabled");
+                    } else if (autoHeading.isEmergencyPassingMode()) {
+                        flywheelRPM = Constants.EmergencyModeConstants.passingRPM;
+                        hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.passingHoodAngleDegrees);
+                        shooter.setFlywheelVelocity(flywheelRPM);
+                        if (!emergencyRetract) {
+                            shooter.setHoodAngle(hoodAngleRadians);
+                        }
+                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyPassing");
+                    } else {
+                        // Default to emergency shooting preset
+                        flywheelRPM = Constants.EmergencyModeConstants.shootingRPM;
+                        hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
+                        shooter.setFlywheelVelocity(flywheelRPM);
+                        if (!emergencyRetract) {
+                            shooter.setHoodAngle(hoodAngleRadians);
+                        }
+                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyShooting");
+                    }
+                } else {
+                    // Normal mode - calculate based on position
+                    boolean isRed = vision.isRedAlliance();
+                    boolean shouldShoot;
+                    if (isRed) {
+                        shouldShoot = robotX > FieldPoses.redHub.getX();
+                    } else {
+                        shouldShoot = robotX < FieldPoses.blueHub.getX();
+                    }
+                    
+                    if (shouldShoot) {
+                        // Hub shooting - use movement-compensated calculator
+                        var solution = ShootingCalculator.calculateSolutionWithMovement(
+                            robotPose,
+                            drivetrain.getFieldVelocity(),
+                            isRed
+                        );
+                        flywheelRPM = solution.flywheelRPM;
+                        hoodAngleRadians = solution.hoodAngleRadians;
+                        Logger.recordOutput("Shooter/FlywheelMode", "HubShooting");
+                    } else {
+                        // Passing mode
+                        var solution = ShootingCalculator.calculatePassingSolution(
+                            robotPose,
+                            isRed
+                        );
+                        flywheelRPM = solution.flywheelRPM;
+                        hoodAngleRadians = solution.hoodAngleRadians;
+                        Logger.recordOutput("Shooter/FlywheelMode", "Passing");
+                    }
+                    
+                    shooter.setFlywheelVelocity(flywheelRPM);
+                    
+                    // Handle hood - retract if near trench, otherwise set calculated angle
+                    if (nearTrench) {
+                        shooter.retractHood();
+                        Logger.recordOutput("Shooter/AutoRetract", true);
+                        Logger.recordOutput("Shooter/AutoRetractReason", "NearTrench");
+                    } else {
+                        shooter.setHoodAngle(hoodAngleRadians);
+                        Logger.recordOutput("Shooter/AutoRetract", false);
+                        Logger.recordOutput("Shooter/AutoRetractReason", "None");
+                    }
+                }
+                
+                // Handle emergency retract mode
+                if (emergencyRetract) {
                     shooter.retractHood();
                     Logger.recordOutput("Shooter/AutoRetract", true);
-                    Logger.recordOutput("Shooter/AutoRetractReason", emergencyRetract ? "EmergencyMode" : "NearTrench");
-                } else {
-                    Logger.recordOutput("Shooter/AutoRetract", false);
-                    Logger.recordOutput("Shooter/AutoRetractReason", "None");
+                    Logger.recordOutput("Shooter/AutoRetractReason", "EmergencyMode");
                 }
                 
                 Logger.recordOutput("Shooter/DistanceToNearestTrench", minDistance);
@@ -449,12 +510,6 @@ public class RobotContainer {
                 shooter,
                 index,
                 () -> drivetrain.getPose(),
-                () -> drivetrain.getFieldVelocity(),
-                () -> vision.isRedAlliance(),
-                () -> false, // Not passing mode
-                () -> false, // Not emergency shooting
-                () -> false, // Not emergency passing
-                () -> {},    // No callback needed for auto
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
                 () -> true   // Always ready for auto (heading not checked)
@@ -493,12 +548,6 @@ public class RobotContainer {
                 shooter,
                 index,
                 () -> drivetrain.getPose(),
-                () -> drivetrain.getFieldVelocity(),
-                () -> vision.isRedAlliance(),
-                () -> true,  // Passing mode enabled
-                () -> false, // Not emergency shooting
-                () -> false, // Not emergency passing
-                () -> {},    // No callback needed for auto
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
                 () -> true   // Always ready for auto (heading not checked)

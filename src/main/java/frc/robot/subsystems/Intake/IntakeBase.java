@@ -295,4 +295,36 @@ public class IntakeBase extends SubsystemBase {
         return new IntakeHomingCommand(this).withTimeout(2.0);
     }
 
+    // ==================== JIGGLE HELPERS ====================
+
+    /**
+     * Set goal position directly for jiggle (bypasses state machine)
+     */
+    public void setGoalPosition(double positionRot) {
+        goalPosRot = positionRot;
+    }
+
+    /**
+     * Check if extension is at stowed position
+     */
+    public boolean isAtStowed() {
+        return Math.abs(extensionInputs.positionRotations - IntakeConstants.extensionStowedPosRot.get()) 
+            < IntakeConstants.extensionAllowedErrorRot.get();
+    }
+
+    /**
+     * Check if extension is at deployed position
+     */
+    public boolean isAtDeployed() {
+        return Math.abs(extensionInputs.positionRotations - IntakeConstants.extensionDeployedPosRot.get()) 
+            < IntakeConstants.extensionAllowedErrorRot.get();
+    }
+
+    /**
+     * Get the current goal
+     */
+    public Goal getGoal() {
+        return goal;
+    }
+
 }

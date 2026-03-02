@@ -28,6 +28,7 @@ public class SetHeading {
     private boolean emergencyPassingMode = false;
     private boolean emergencyHoodRetractMode = false;
     private boolean previousWasShootingMode = true; // Default to shooting mode
+    private boolean emergencyFlywheelDisabled = false;
     private Rotation2d targetHeading = new Rotation2d();
     private Translation2d virtualGoal = null;
     private double distanceToHub = 0.0;
@@ -291,6 +292,7 @@ public class SetHeading {
             emergencyPassingMode = false;
             emergencyHoodRetractMode = false;
             previousWasShootingMode = true; // Reset to default (shooting)
+            emergencyFlywheelDisabled = false;
         }
         Logger.recordOutput("EmergencyMode/Enabled", emergencyModeEnabled);
         Logger.recordOutput("FaceHub/Enabled", faceHubEnabled);
@@ -298,6 +300,7 @@ public class SetHeading {
         Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
         Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
         Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
+        Logger.recordOutput("EmergencyMode/FlywheelDisabled", emergencyFlywheelDisabled);
     }
     
     public boolean isEmergencyModeEnabled() {
@@ -373,5 +376,15 @@ public class SetHeading {
         Logger.recordOutput("EmergencyMode/HoodRetractMode", emergencyHoodRetractMode);
         Logger.recordOutput("EmergencyMode/ShootingMode", emergencyShootingMode);
         Logger.recordOutput("EmergencyMode/PassingMode", emergencyPassingMode);
+    }
+
+    public void toggleEmergencyFlywheelDisable() {
+        if (!emergencyModeEnabled) return;
+        emergencyFlywheelDisabled = !emergencyFlywheelDisabled;
+        Logger.recordOutput("EmergencyMode/FlywheelDisabled", emergencyFlywheelDisabled);
+    }
+    
+    public boolean isEmergencyFlywheelDisabled() {
+        return emergencyModeEnabled && emergencyFlywheelDisabled;
     }
 }
