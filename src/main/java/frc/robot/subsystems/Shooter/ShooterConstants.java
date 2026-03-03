@@ -35,10 +35,8 @@ public class ShooterConstants {
         // ===================== Hood Homing Constants =====================
     public static final LoggedTunableNumber hoodHomingDutyCycle = 
         new LoggedTunableNumber("Shooter/Hood/HomingDutyCycle");
-    public static final LoggedTunableNumber hoodHomingVelThreshold = 
-        new LoggedTunableNumber("Shooter/Hood/HomingVelThreshold");
-    public static final LoggedTunableNumber hoodHomingCurrentThreshold = 
-        new LoggedTunableNumber("Shooter/Hood/HomingCurrentThreshold");
+    public static final LoggedTunableNumber hoodHomingTimeoutSeconds = 
+        new LoggedTunableNumber("Shooter/Hood/HomingTimeoutSeconds");
 
     // ===================== Hood Constants =====================
     public static final LoggedTunableNumber hoodkP = 
@@ -110,9 +108,9 @@ public class ShooterConstants {
                     supplyCurrentLimit.initDefault(40);
                     flywheelRPMThreshould.initDefault(250);
                     // Hood homing
+                    // Hood homing
                     hoodHomingDutyCycle.initDefault(-0.1);  // Small negative voltage toward min position
-                    hoodHomingVelThreshold.initDefault(0.05);  // Stall detection velocity threshold
-                    hoodHomingCurrentThreshold.initDefault(10.0);  // Stall detection current threshold
+                    hoodHomingTimeoutSeconds.initDefault(0.75);  // Time to run toward hard stop
                     hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
                     
                 }
@@ -123,10 +121,10 @@ public class ShooterConstants {
                     supplyCurrentLimit.initDefault(40);
                     flywheelRPMThreshould.initDefault(250);
                     // Hood homing
+                    // Hood homing
                     hoodHomingDutyCycle.initDefault(-0.1);  // TODO: tune
-                    hoodHomingVelThreshold.initDefault(0.05);  // TODO: tune
-                    hoodHomingCurrentThreshold.initDefault(10.0);  // TODO: tune
-                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
+                    hoodHomingTimeoutSeconds.initDefault(0.75);  // Time to run toward hard stop
+                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);;
                 }
             }
         }

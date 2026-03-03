@@ -217,14 +217,6 @@ public class ShooterBase extends SubsystemBase {
     }
 
     /**
-     * Check if hood is stalled (for homing detection)
-     */
-    public boolean isHoodStalled() {
-        return Math.abs(hoodInputs.velocityRotPerSec) < ShooterConstants.hoodHomingVelThreshold.get()
-            && Math.abs(hoodInputs.currentAmps) > ShooterConstants.hoodHomingCurrentThreshold.get();
-    }
-
-    /**
      * Zero hood encoder at minimum position - call when at hard stop
      */
     public void zeroHoodAtMin() {
