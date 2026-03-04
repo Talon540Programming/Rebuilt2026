@@ -110,11 +110,11 @@ public final class Constants {
     public static final double flywheelRadiusInches = 2.0;     // Radius of flywheel wheel (Colson)
     
     // Flywheel RPM limits
-    public static final double minFlywheelRPM = 1000.0;        // Minimum safe RPM
+    public static final double minFlywheelRPM = 100.0;        // Minimum safe RPM
     public static final double maxFlywheelRPM = 6000.0;        // Maximum safe RPM
     
     // Hood angle limits (same as ShooterConstants for reference)
-    public static final double hoodMinAngle = Math.toRadians(18);     // 15 degrees
+    public static final double hoodMinAngle = Math.toRadians(18);     // 18 degrees
     public static final double hoodMaxAngle = Math.toRadians(55);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
