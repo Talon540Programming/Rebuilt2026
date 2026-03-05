@@ -19,6 +19,8 @@ public class VisionBase extends SubsystemBase{
     private final VisionIO vision;
     private final VisionIOInputs limelightOne = new VisionIOInputs();
     private final VisionIOInputs limelightTwo = new VisionIOInputs();
+    private final VisionIOInputs limelightThree = new VisionIOInputs();
+
     private final CommandSwerveDrivetrain drivetrain;
     private boolean hasInitializedGyro = false;
     private double setYawTagCount = 0;
@@ -40,14 +42,16 @@ public class VisionBase extends SubsystemBase{
     
         
         //updating IO layer inputs from vision
-        vision.updateVisionIOInputs(limelightOne, limelightTwo);
+        vision.updateVisionIOInputs(limelightOne, limelightTwo, limelightThree);
 
         // Process both cameras and apply given the standard deviations calcualted
         processVisionMeasurement(limelightOne);
         processVisionMeasurement(limelightTwo);
+        processVisionMeasurement(limelightThree);
 
         Logger.recordOutput("Vision/EstimatedPoseOne", limelightOne.pose);
         Logger.recordOutput("Vision/EstimatedPoseTwo", limelightTwo.pose);
+        Logger.recordOutput("Vision/EstimatedPoseTwo", limelightThree.pose);
     }
 
     /*

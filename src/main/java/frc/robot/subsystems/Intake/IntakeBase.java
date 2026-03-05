@@ -292,7 +292,7 @@ public class IntakeBase extends SubsystemBase {
      * Get the intake homing command
      */
     public Command homingSequence() {
-        return new IntakeHomingCommand(this).withTimeout(2.0);
+        return new IntakeHomingCommand(this).withTimeout(1.0);
     }
 
     // ==================== JIGGLE HELPERS ====================

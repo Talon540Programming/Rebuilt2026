@@ -7,18 +7,22 @@ import frc.robot.LimelightHelpers;
 public class VisionIOLimelight implements VisionIO {
     private final String limelightOne = VisionConstants.limelightOne;
     private final String limelightTwo = VisionConstants.limelightTwo;
+    private final String limelightThree = VisionConstants.limelightThree;
 
     public VisionIOLimelight(){
         //sets mode for Metatag 2 and mode 0 uses robot gyro for orentation 
         LimelightHelpers.SetIMUMode(limelightOne, 0);
         LimelightHelpers.SetIMUMode(limelightTwo, 0);
-
+        LimelightHelpers.SetIMUMode(limelightThree,0);
 
     }
 
-    public void updateVisionIOInputs(VisionIOInputs inputOne, VisionIOInputs inputTwo) {
+    @Override
+    public void updateVisionIOInputs(VisionIOInputs inputOne, VisionIOInputs inputTwo, VisionIOInputs inputThree) {
         updateSingleCamera(limelightOne, inputOne);
         updateSingleCamera(limelightTwo, inputTwo);
+        updateSingleCamera(limelightThree, inputThree);
+
     }
     
     private void updateSingleCamera(String cameraName, VisionIOInputs input) {
@@ -46,6 +50,7 @@ public class VisionIOLimelight implements VisionIO {
             input.seenTagCount = 0;
         }
     }
+    
     @Override
     public void updateLimelightYaw(CommandSwerveDrivetrain drivetrain) {
         // The pose rotation should be in field coordinates after seedFieldCentric

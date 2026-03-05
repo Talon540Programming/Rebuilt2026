@@ -21,7 +21,7 @@ public interface VisionIO {
         public String cameraName = "";
     }
 
-    default void updateVisionIOInputs(VisionIOInputs ioOne, VisionIOInputs ioTwo){}
+    default void updateVisionIOInputs(VisionIOInputs ioOne, VisionIOInputs ioTwo, VisionIOInputs ioThree){}
 
 
     default void updateLimelightYaw(CommandSwerveDrivetrain drivetrain){}  
