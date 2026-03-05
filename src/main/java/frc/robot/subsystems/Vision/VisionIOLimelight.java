@@ -50,7 +50,7 @@ public class VisionIOLimelight implements VisionIO {
             input.seenTagCount = 0;
         }
     }
-    
+
     @Override
     public void updateLimelightYaw(CommandSwerveDrivetrain drivetrain) {
         // The pose rotation should be in field coordinates after seedFieldCentric
@@ -59,5 +59,6 @@ public class VisionIOLimelight implements VisionIO {
         
         LimelightHelpers.SetRobotOrientation(limelightOne, yaw, 0, 0, 0, 0, 0);
         LimelightHelpers.SetRobotOrientation(limelightTwo, yaw, 0, 0, 0, 0, 0);
+        LimelightHelpers.SetRobotOrientation(limelightThree, yaw, 0, 0, 0, 0, 0);
     }
 }
