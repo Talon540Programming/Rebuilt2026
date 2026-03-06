@@ -77,4 +77,21 @@ public class ClimberzIOSim implements ClimberzIO {
     public void setBrakeMode(boolean brake) {
         this.brakeMode = brake;
     }
+
+    @Override
+    public void runMotionMagicPosition(double positionRotations) {
+        // Simple P control for simulation
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        double currentPos = sim.getPositionMeters() / metersPerRotation;
+        double error = positionRotations - currentPos;
+        appliedVolts = error * 2.0;  // Simple proportional control
+        appliedVolts = Math.max(-12.0, Math.min(12.0, appliedVolts));
+    }
+
+    @Override
+    public void setPosition(double positionRotations) {
+        // Reset sim position
+        double metersPerRotation = (2 * Math.PI * kDrumRadiusMeters) / kGearRatio;
+        sim.setState(positionRotations * metersPerRotation, 0.0);
+    }
 }

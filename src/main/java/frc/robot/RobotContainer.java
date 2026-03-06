@@ -175,6 +175,15 @@ public class RobotContainer {
         }));
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
+        // Left stick button - climber homing
+        m_driverController.leftStick().onTrue(
+            climberz.homingSequence()
+        );
+
+        m_driverController.rightStick().onTrue(
+            shooter.hoodHomingSequence()
+        );
+
        // Dpad right + B toggles emergency mode
         Trigger emergencyModeTrigger = m_driverController.povRight().and(m_driverController.b());
         emergencyModeTrigger.onTrue(Commands.runOnce(() -> {
@@ -217,24 +226,16 @@ public class RobotContainer {
             .whileTrue(Commands.run(() -> climberz.climbDown(), climberz))
             .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
         
-        // Y button - auto extend climber for 1.5 seconds
+        // A button - retract climber using position control
         m_driverController.a().onTrue(
-            Commands.sequence(
-                Commands.runOnce(() -> climberz.climbUp(), climberz),
-                Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
-                Commands.runOnce(() -> climberz.stop(), climberz)
-            )
+            Commands.runOnce(() -> climberz.goToRetracted(), climberz)
         );
 
-        // Y button - auto retract climber (normal mode) or toggle flywheel disable (emergency mode)
+       // Y button - extend climber (normal mode) or toggle flywheel disable (emergency mode)
         m_driverController.y().onTrue(
             Commands.either(
                 Commands.runOnce(() -> autoHeading.toggleEmergencyFlywheelDisable()),
-                Commands.sequence(
-                    Commands.runOnce(() -> climberz.climbDown(), climberz),
-                    Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
-                    Commands.runOnce(() -> climberz.stop(), climberz)
-                ),
+                Commands.runOnce(() -> climberz.goToExtended(), climberz),
                 () -> autoHeading.isEmergencyModeEnabled()
             )
         );

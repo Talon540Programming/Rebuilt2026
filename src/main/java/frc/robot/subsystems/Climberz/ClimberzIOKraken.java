@@ -4,7 +4,9 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -28,6 +30,8 @@ public class ClimberzIOKraken implements ClimberzIO {
     
     // Control request
     private final DutyCycleOut dutyCycleControl = new DutyCycleOut(0);
+
+    private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0);
     
     public ClimberzIOKraken() {
         motor = new TalonFX(ClimberzConstants.motorId, TunerConstants.kCANBus);
@@ -40,6 +44,23 @@ public class ClimberzIOKraken implements ClimberzIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+        // Gear ratio
+        config.Feedback.SensorToMechanismRatio = ClimberzConstants.sensorToMechanismRatio;
+
+        // Slot0 PID
+        config.Slot0.kP = ClimberzConstants.kP.get();
+        config.Slot0.kI = ClimberzConstants.kI.get();
+        config.Slot0.kD = ClimberzConstants.kD.get();
+        config.Slot0.kS = ClimberzConstants.kS.get();
+        config.Slot0.kV = ClimberzConstants.kV.get();
+        config.Slot0.kG = ClimberzConstants.kG.get();
+        config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+
+        // Motion Magic constraints
+        config.MotionMagic.MotionMagicCruiseVelocity = ClimberzConstants.mmCruiseVelRotPerSec.get();
+        config.MotionMagic.MotionMagicAcceleration = ClimberzConstants.mmAccelRotPerSec2.get();
+        config.MotionMagic.MotionMagicJerk = ClimberzConstants.mmJerkRotPerSec3.get();
         
         motor.getConfigurator().apply(config);
 
@@ -88,5 +109,15 @@ public class ClimberzIOKraken implements ClimberzIO {
     public void setBrakeMode(boolean brake) {
         NeutralModeValue mode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
         motor.setNeutralMode(mode);
+    }
+
+    @Override
+    public void runMotionMagicPosition(double positionRotations) {
+        motor.setControl(mmRequest.withPosition(positionRotations));
+    }
+
+    @Override
+    public void setPosition(double positionRotations) {
+        motor.setPosition(positionRotations);
     }
 }

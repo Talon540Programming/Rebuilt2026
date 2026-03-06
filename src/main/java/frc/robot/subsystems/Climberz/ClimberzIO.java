@@ -21,4 +21,10 @@ public interface ClimberzIO {
     
     /** Enable or disable brake mode */
     public default void setBrakeMode(boolean brake) {}
+
+    /** Run Motion Magic to a position (mechanism rotations) */
+    public default void runMotionMagicPosition(double positionRotations) {}
+
+    /** Set the current position (for zeroing) */
+    public default void setPosition(double positionRotations) {}
 }
