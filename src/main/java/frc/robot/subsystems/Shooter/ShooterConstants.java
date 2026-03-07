@@ -172,20 +172,20 @@ public class ShooterConstants {
                 
                 
                 // ===== Hood Comp Defaults =====
-                hoodkP.initDefault(0.0);  // TODO: tune
+                hoodkP.initDefault(5);  // TODO: tune
                 hoodkI.initDefault(0.0);
                 hoodkD.initDefault(0.0);  // TODO: tune
                 hoodkS.initDefault(0.0);  // TODO: tune
                 hoodkV.initDefault(0.0);  // TODO: tune
                 hoodkA.initDefault(0.0);  // TODO: tune
-                hoodkG.initDefault(0.0);
+                hoodkG.initDefault(2);
                 
-                hoodMMCruiseVelRotPerSec.initDefault(0);  // TODO: tune
-                hoodMMAccelRotPerSec2.initDefault(0);     // TODO: tune
+                hoodMMCruiseVelRotPerSec.initDefault(100);  // TODO: tune
+                hoodMMAccelRotPerSec2.initDefault(200);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
 
                 hoodMinPositionRot.initDefault(0.0); 
-                hoodMaxPositionRot.initDefault(1);   // TODO: Tuned CAD
+                hoodMaxPositionRot.initDefault(1.9);   // TODO: Tuned CAD
                 
                 hoodSensorToMechanismRatio.initDefault(7.1500);  // TODO: Tuned CAD
                 
@@ -195,8 +195,8 @@ public class ShooterConstants {
                 hoodSupplyCurrentLimit.initDefault(30);
                 
                 // Hood homing
-                hoodHomingDutyCycle.initDefault(-0.1); //TODO
-                hoodHomingTimeoutSeconds.initDefault(0.3);
+                hoodHomingDutyCycle.initDefault(-0.3); //TODO
+                hoodHomingTimeoutSeconds.initDefault(0.5);
                 hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
             }
         }

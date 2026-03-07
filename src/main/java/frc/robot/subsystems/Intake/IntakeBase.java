@@ -281,6 +281,10 @@ public class IntakeBase extends SubsystemBase {
         Logger.recordOutput("Intake/Extension/Homed", true);
     }
 
+    public void setPosition(){
+        extensionIO.setPosition(IntakeConstants.extensionStowedPosRot.get()/2);
+    }
+
     /**
      * Get the intake homing command
      */

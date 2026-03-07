@@ -632,12 +632,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("ClimbUp",
             Commands.run(() -> climberz.climbUp(), climberz)
                 .finallyDo(() -> climberz.stop())
-        );
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
-        
+        );        
         // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
         // Runs until interrupted by PathPlanner
         NamedCommands.registerCommand("ClimbRelease",

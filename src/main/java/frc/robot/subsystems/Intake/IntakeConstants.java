@@ -12,7 +12,7 @@ public class IntakeConstants {
     public static final double extensionHomingTimeoutSeconds = 1;  // Time to run toward hard stop
 
     public static final double dployDutyCycle = 0.5;
-    public static final double rollerIntakeDutyCycle = 0.8;
+    public static final double rollerIntakeDutyCycle = 1;
     public static final double rollerEjectDutyCycle = -0.5;
     public static final double rollerStartDelaySeconds = 0.25;
 
@@ -115,8 +115,8 @@ public class IntakeConstants {
                 extensionVelToleranceRotPerSec.initDefault(0.05);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(500);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(1000);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(1000);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(1500);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID

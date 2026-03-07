@@ -48,7 +48,7 @@ public class JiggleCommand extends Command {
                 if (intake.isAtStowed()) {
                     // Reached stowed, now deploy
                     jiggleState = JiggleState.DEPLOYING;
-                    intake.setGoalPosition(IntakeConstants.extensionDeployedPosRot.get());
+                    intake.setGoalPosition(IntakeConstants.extensionDeployedPosRot.get()/2);
                 }
                 break;
                 
