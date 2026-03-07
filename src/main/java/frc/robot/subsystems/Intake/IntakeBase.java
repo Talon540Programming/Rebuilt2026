@@ -80,12 +80,17 @@ public class IntakeBase extends SubsystemBase {
             Math.abs(errorRot) < IntakeConstants.extensionAllowedErrorRot.get()
             && Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionAllowedVelRotPerSec.get();
    
-        // Update state machine based on goal + atGoal
+       // Update state machine based on goal + atGoal
         if (goal == Goal.DEPLOYED) {
             currentState = atPivotGoal ? IntakeState.DEPLOYED : IntakeState.DEPLOYING;
         } 
         else {
             currentState = atPivotGoal ? IntakeState.STOWED : IntakeState.RETRACTING;
+            
+            // Stop rollers automatically when fully stowed
+            if (atPivotGoal && currentState == IntakeState.STOWED) {
+                rollerIO.stop();
+            }
         }
 
         final double nowSec = Timer.getFPGATimestamp();
@@ -159,14 +164,14 @@ public class IntakeBase extends SubsystemBase {
 
     
     /**
-     * Retract the intake and stop rollers
+     * Retract the intake (rollers keep running until fully stowed)
      */
     public void retract() {
-    intakeEnabled = false;
-    setGoal(Goal.STOWED);
-    currentState = IntakeState.RETRACTING;
-    rollerIO.stop();
-  }
+        intakeEnabled = false;
+        setGoal(Goal.STOWED);
+        currentState = IntakeState.RETRACTING;
+        // Don't stop rollers - they'll stop automatically in periodic() when stowed
+    }
     
     /**
      * Toggle intake state
