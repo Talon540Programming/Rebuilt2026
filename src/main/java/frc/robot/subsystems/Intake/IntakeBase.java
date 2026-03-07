@@ -310,6 +310,21 @@ public class IntakeBase extends SubsystemBase {
     }
 
     /**
+     * Get current extension position in rotations
+     */
+    public double getExtensionPosition() {
+        return extensionInputs.positionRotations;
+    }
+
+    /**
+     * Check if extension is at a specific position within tolerance
+     */
+    public boolean isAtPosition(double targetPosRot) {
+        return Math.abs(extensionInputs.positionRotations - targetPosRot) 
+            < IntakeConstants.extensionAllowedErrorRot.get();
+    }
+
+    /**
      * Check if extension is at deployed position
      */
     public boolean isAtDeployed() {
