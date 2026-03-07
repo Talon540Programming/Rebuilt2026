@@ -38,7 +38,10 @@ public final class Constants {
     }
 
     public static RobotType getRobot() {
-        return robotType;
+        if (RobotBase.isReal()) {
+            return RobotType.COMPBOT;
+        }
+        return robotType;  // Use the configured type for simulation (SIMBOT or REPLAY)
     }
 
     public static Mode getMode() {

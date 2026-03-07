@@ -107,11 +107,6 @@ public class ShooterConstants {
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
                     flywheelRPMThreshould.initDefault(250);
-                    // Hood homing
-                    // Hood homing
-                    hoodHomingDutyCycle.initDefault(-0.1);  // Small negative voltage toward min position
-                    hoodHomingTimeoutSeconds.initDefault(0.75);  // Time to run toward hard stop
-                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
                     
                 }
                 case COMPBOT -> {
@@ -120,11 +115,6 @@ public class ShooterConstants {
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
                     flywheelRPMThreshould.initDefault(250);
-                    // Hood homing
-                    // Hood homing
-                    hoodHomingDutyCycle.initDefault(-0.1);  // TODO: tune
-                    hoodHomingTimeoutSeconds.initDefault(0.75);  // Time to run toward hard stop
-                    hoodOutOfBoundsDebounceSeconds.initDefault(0.25);;
                 }
             }
         }
@@ -165,6 +155,11 @@ public class ShooterConstants {
                 hoodVelToleranceRotPerSec.initDefault(0.1);
                 hoodStatorCurrentLimit.initDefault(40);
                 hoodSupplyCurrentLimit.initDefault(30);
+                
+                // Hood homing
+                hoodHomingDutyCycle.initDefault(-0.1);
+                hoodHomingTimeoutSeconds.initDefault(0.75);
+                hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
             }
             case COMPBOT -> {
                 // ===== Flywheel Comp Defaults =====
@@ -190,7 +185,7 @@ public class ShooterConstants {
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
 
                 hoodMinPositionRot.initDefault(0.0); 
-                hoodMaxPositionRot.initDefault(36.9896098);   // TODO: Tuned CAD
+                hoodMaxPositionRot.initDefault(1);   // TODO: Tuned CAD
                 
                 hoodSensorToMechanismRatio.initDefault(7.1500);  // TODO: Tuned CAD
                 
@@ -198,6 +193,11 @@ public class ShooterConstants {
                 hoodVelToleranceRotPerSec.initDefault(0.1);
                 hoodStatorCurrentLimit.initDefault(40);
                 hoodSupplyCurrentLimit.initDefault(30);
+                
+                // Hood homing
+                hoodHomingDutyCycle.initDefault(-0.1); //TODO
+                hoodHomingTimeoutSeconds.initDefault(0.3);
+                hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
             }
         }
     }

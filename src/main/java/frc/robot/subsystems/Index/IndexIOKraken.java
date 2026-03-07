@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 
 public class IndexIOKraken implements IndexIO {
     
@@ -28,7 +29,7 @@ public class IndexIOKraken implements IndexIO {
     
     
     public IndexIOKraken() {
-        motor = new TalonFX(IndexConstants.kIndexMotorId);
+        motor = new TalonFX(IndexConstants.kIndexMotorId, TunerConstants.kCANBus);
         
         // Configure motor
         TalonFXConfiguration config = new TalonFXConfiguration();

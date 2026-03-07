@@ -31,5 +31,4 @@ public interface ExtensionIO {
     /** Sets the current mechanism position (in mechanism rotations). Used for zeroing. */
     default void setPosition(double positionRotations) {}
 
-
 }

@@ -1,25 +1,28 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Intake.IntakeBase;
 import frc.robot.subsystems.Intake.IntakeConstants;
+import org.littletonrobotics.junction.Logger;
 
 /**
- * Command to home the intake extension by running toward the hard stop until stalled,
- * then zeroing the encoder at the stowed position.
+ * Command to home the intake extension by running toward the hard stop for a fixed duration,
+ * then stopping the motor and zeroing the encoder at the stowed position.
  */
 public class IntakeHomingCommand extends Command {
     
     private final IntakeBase intake;
     
     private enum HomingState {
-        RESETTING,
         MOVING_TO_STOP,
+        STOPPING,
         ZEROING,
         FINISHED
     }
     
-    private HomingState state = HomingState.RESETTING;
+    private HomingState state = HomingState.MOVING_TO_STOP;
+    private double startTime;
     
     public IntakeHomingCommand(IntakeBase intake) {
         this.intake = intake;
@@ -28,31 +31,46 @@ public class IntakeHomingCommand extends Command {
     
     @Override
     public void initialize() {
-        state = HomingState.RESETTING;
+        state = HomingState.MOVING_TO_STOP;
         intake.resetHomingState();
+        startTime = Timer.getFPGATimestamp();
+        
+        // Start moving toward hard stop
+        intake.setExtensionDutyCycle(IntakeConstants.extensionHomingDutyCycle);
+        
+        Logger.recordOutput("Intake/Extension/HomingState", state.toString());
     }
     
     @Override
     public void execute() {
+        double elapsedTime = Timer.getFPGATimestamp() - startTime;
+        
+        Logger.recordOutput("Intake/Extension/HomingElapsedTime", elapsedTime);
+        Logger.recordOutput("Intake/Extension/HomingState", state.toString());
+        
         switch (state) {
-            case RESETTING:
-                state = HomingState.MOVING_TO_STOP;
-                break;
-                
             case MOVING_TO_STOP:
-                intake.setExtensionDutyCycle(IntakeConstants.extensionHomingDutyCycle);
-                
-                if (intake.isExtensionStalled()) {
-                    state = HomingState.ZEROING;
+                // Check if timeout reached
+                if (elapsedTime >= IntakeConstants.extensionHomingTimeoutSeconds) {
+                    intake.stopExtension();
+                    state = HomingState.STOPPING;
                 }
                 break;
                 
+            case STOPPING:
+                // Wait one cycle for motor to fully stop before zeroing
+                state = HomingState.ZEROING;
+                break;
+                
             case ZEROING:
+                // Zero encoder at hard stop
                 intake.zeroExtensionAtStowed();
                 state = HomingState.FINISHED;
+                Logger.recordOutput("Intake/Extension/HomingComplete", true);
                 break;
                 
             case FINISHED:
+                // Do nothing, isFinished will return true
                 break;
         }
     }
@@ -60,6 +78,10 @@ public class IntakeHomingCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         intake.stopExtension();
+        
+        if (interrupted) {
+            Logger.recordOutput("Intake/Extension/HomingInterrupted", true);
+        }
     }
     
     @Override

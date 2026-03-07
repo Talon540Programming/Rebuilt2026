@@ -327,4 +327,10 @@ public class IntakeBase extends SubsystemBase {
         return goal;
     }
 
+    /** For testing - bypass homing requirement */
+    public void forceExtensionHomed() {
+        homed = true;
+        Logger.recordOutput("Intake/Extension/Homed", true);
+    }
+
 }

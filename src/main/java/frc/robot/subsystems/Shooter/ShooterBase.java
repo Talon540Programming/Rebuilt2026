@@ -306,7 +306,7 @@ public class ShooterBase extends SubsystemBase {
  * Get the hood homing command
  */
     public Command hoodHomingSequence() {
-        return new HoodHomingCommand(this).withTimeout(3.0);
+        return new HoodHomingCommand(this).withTimeout(ShooterConstants.hoodHomingTimeoutSeconds.get() + 0.5);
     }
     
      /**

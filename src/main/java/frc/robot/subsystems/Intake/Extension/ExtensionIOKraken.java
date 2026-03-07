@@ -59,10 +59,8 @@ public class ExtensionIOKraken implements ExtensionIO {
         config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
 
         // Software limits to prevent over-travel
-        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = IntakeConstants.extensionDeployedPosRot.get() - 0.05;  // Small buffer
-        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = IntakeConstants.extensionStowedPosRot.get() + 0.05;
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = false;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = false;
 
         // Motion Magic constraints:
         config.MotionMagic.MotionMagicCruiseVelocity = IntakeConstants.extensionMMCruiseVelRotPerSec.get();
