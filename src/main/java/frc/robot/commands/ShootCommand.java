@@ -32,6 +32,7 @@ public class ShootCommand extends Command {
     private final Supplier<Double> currentHeadingSupplier;
     private final Supplier<Double> targetHeadingSupplier;
     private final Supplier<Boolean> headingAtTargetSupplier;
+    private final Supplier<Boolean> emergencyModeSupplier;
 
     private boolean readyToShoot = false;
     // Fuel simulation timing
@@ -53,13 +54,15 @@ public class ShootCommand extends Command {
                         Supplier<Pose2d> poseSupplier,
                         Supplier<Double> currentHeadingSupplier,
                         Supplier<Double> targetHeadingSupplier,
-                        Supplier<Boolean> headingAtTargetSupplier) {
+                        Supplier<Boolean> headingAtTargetSupplier,
+                        Supplier<Boolean> emergencyModeSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
         this.currentHeadingSupplier = currentHeadingSupplier;
         this.targetHeadingSupplier = targetHeadingSupplier;
         this.headingAtTargetSupplier = headingAtTargetSupplier;
+        this.emergencyModeSupplier = emergencyModeSupplier;
         
         // Only require index - shooter is controlled by default command
         addRequirements(index);
@@ -75,11 +78,15 @@ public class ShootCommand extends Command {
     public void execute() {
         // Wait for all conditions to be met the FIRST time only
         if (!readyToShoot) {
+            boolean isEmergencyMode = emergencyModeSupplier.get();
+            
+            // In emergency mode, only check flywheel - bypass hood and heading checks
             boolean flywheelReady = shooter.isFlywheelAtSetpoint() && 
                 shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get();
-            boolean hoodReady = shooter.isHoodAtSetpoint();
-            boolean headingReady = headingAtTargetSupplier.get();
+            boolean hoodReady = isEmergencyMode || shooter.isHoodAtSetpoint();
+            boolean headingReady = isEmergencyMode || headingAtTargetSupplier.get();
             
+            Logger.recordOutput("ShootCommand/EmergencyMode", isEmergencyMode);
             Logger.recordOutput("ShootCommand/FlywheelReady", flywheelReady);
             Logger.recordOutput("ShootCommand/HoodReady", hoodReady);
             Logger.recordOutput("ShootCommand/HeadingReady", headingReady);

@@ -253,7 +253,8 @@ public class RobotContainer {
                     () -> drivetrain.getPose(),
                     () -> drivetrain.getHeading().getRadians(),
                     () -> autoHeading.getTargetHeading().getRadians(),
-                    () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians())
+                    () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians()),
+                    () -> autoHeading.isEmergencyModeEnabled()
                 )
             )
             .onFalse(Commands.runOnce(() -> {
@@ -513,7 +514,8 @@ public class RobotContainer {
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
-                () -> true   // Always ready for auto (heading not checked)
+                () -> true,  // Always ready for auto (heading not checked)
+                () -> false  // Not emergency mode in auto
             )
         );
         
@@ -551,7 +553,8 @@ public class RobotContainer {
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
-                () -> true   // Always ready for auto (heading not checked)
+                () -> true,  // Always ready for auto (heading not checked)
+                () -> false  // Not emergency mode in auto
             )
         );
         
