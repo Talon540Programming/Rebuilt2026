@@ -270,13 +270,6 @@ public class IntakeBase extends SubsystemBase {
         extensionIO.stop();
     }
 
-    /**
-     * Check if extension is stalled (for homing detection)
-     */
-    public boolean isExtensionStalled() {
-        return Math.abs(extensionInputs.velocityRotPerSec) < IntakeConstants.extensionHomingVelThreshold
-            && Math.abs(extensionInputs.currentAmps) > IntakeConstants.extensionHomingCurrentThreshold;
-    }
 
     /**
      * Zero extension encoder at stowed position - call when at hard stop
@@ -292,7 +285,7 @@ public class IntakeBase extends SubsystemBase {
      * Get the intake homing command
      */
     public Command homingSequence() {
-        return new IntakeHomingCommand(this).withTimeout(1.0);
+        return new IntakeHomingCommand(this);
     }
 
     // ==================== JIGGLE HELPERS ====================

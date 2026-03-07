@@ -15,7 +15,7 @@ public class IndexConstants {
     static {
         switch(Constants.getRobot()){
             case SIMBOT -> {
-                indexDutyCycle.initDefault(0.8);
+                indexDutyCycle.initDefault(1);
                 reverseDutyCycle.initDefault(-0.5);
                 gamePieceDetectionThreshold.initDefault(Units.inchesToMeters(0.5));
             }

@@ -8,10 +8,8 @@ public class IntakeConstants {
     public static final int extensionMotorId = 13;
     public static final int rollerMotorId = 14;
 
-    public static final double extensionHomingDutyCycle = 0.15;  // Positive = toward stowed
-    public static final double extensionHomingTimeoutSeconds = 0.75;  // Time to run toward hard stop
-    public static final double extensionHomingVelThreshold = 0.05;  // Kept for potential future use
-    public static final double extensionHomingCurrentThreshold = 5.0;  // Kept for potential future use
+    public static final double extensionHomingDutyCycle = -0.3;  // Positive = toward stowed
+    public static final double extensionHomingTimeoutSeconds = 1;  // Time to run toward hard stop
 
     public static final double dployDutyCycle = 0.5;
     public static final double rollerIntakeDutyCycle = 0.8;
@@ -112,22 +110,22 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(3);  // TODO: Tuned CAD Real: 81.5283603089
+                extensionDeployedPosRot.initDefault(4);  // TODO: Tuned CAD Real: 81.5283603089
                 extensionPosToleranceRot.initDefault(0.01);
                 extensionVelToleranceRotPerSec.initDefault(0.05);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(100);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(200);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(500);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(1000);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID
-                extensionkP.initDefault(0.5);  // TODO: tune - start low
+                extensionkP.initDefault(10);  // TODO: tune - start low
                 extensionkI.initDefault(0);
-                extensionkD.initDefault(0);
+                extensionkD.initDefault(.2);
                 extensionkS.initDefault(0);
                 extensionkV.initDefault(0);
-                extensionkG.initDefault(0);
+                extensionkG.initDefault(4);
 
                 // Game piece detection
                 gamePieceCurrentThreshold.initDefault(25);

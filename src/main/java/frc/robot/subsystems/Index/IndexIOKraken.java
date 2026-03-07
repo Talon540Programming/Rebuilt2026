@@ -35,9 +35,9 @@ public class IndexIOKraken implements IndexIO {
         TalonFXConfiguration config = new TalonFXConfiguration();
         
         // Current limits
-        config.CurrentLimits.StatorCurrentLimit = 40;
+        config.CurrentLimits.StatorCurrentLimit = 80;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 30;
+        config.CurrentLimits.SupplyCurrentLimit = 80;
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - may need to change based on testing

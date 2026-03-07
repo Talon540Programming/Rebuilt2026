@@ -102,7 +102,7 @@ public class ShooterConstants {
         static {
             switch (Constants.getRobot()) {
                 case SIMBOT -> {
-                    feedDutyCycle.initDefault(0.8);
+                    feedDutyCycle.initDefault(-0.8);
                     reverseDutyCycle.initDefault(-0.3);
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
@@ -110,7 +110,7 @@ public class ShooterConstants {
                     
                 }
                 case COMPBOT -> {
-                    feedDutyCycle.initDefault(0.8);  // TODO: tune
+                    feedDutyCycle.initDefault(-0.8);  // TODO: tune
                     reverseDutyCycle.initDefault(-0.3);  // TODO: tune
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
