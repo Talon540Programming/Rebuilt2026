@@ -191,20 +191,6 @@ public class RobotContainer {
             autoHeading.toggleEmergencyMode();
         }));
 
-        // Right bumper - emergency shooting mode only (normal mode handled by right trigger)
-        m_driverController.rightBumper().onTrue(Commands.runOnce(() -> {
-            if (autoHeading.isEmergencyModeEnabled()) {
-                autoHeading.toggleEmergencyShooting();
-            }
-        }));
-
-        // Left bumper - emergency passing mode only (normal mode handled by right trigger)
-        m_driverController.leftBumper().onTrue(Commands.runOnce(() -> {
-            if (autoHeading.isEmergencyModeEnabled()) {
-                autoHeading.toggleEmergencyPassing();
-            }
-        }));
-
         // Dpad left - toggle hood retraction in emergency mode
         m_driverController.povLeft().onTrue(Commands.runOnce(() -> {
             autoHeading.toggleEmergencyHoodRetract();
@@ -264,18 +250,39 @@ public class RobotContainer {
                 }
             }));
 
-        m_driverController.leftBumper().whileTrue(
-            driveToPose.createtowerPathCommand(DriveToPose.Side.AlignLeft)
-            .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
-            .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbLeft))
-            .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz)));
+        // Left bumper - emergency passing toggle OR drive-to-climb (when not in emergency mode)
+        m_driverController.leftBumper().onTrue(
+            Commands.either(
+                Commands.runOnce(() -> autoHeading.toggleEmergencyPassing()),
+                Commands.none(),
+                () -> autoHeading.isEmergencyModeEnabled()
+            )
+        );
+        m_driverController.leftBumper()
+            .and(() -> !autoHeading.isEmergencyModeEnabled())
+            .whileTrue(
+                driveToPose.createtowerPathCommand(DriveToPose.Side.AlignLeft)
+                .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
+                .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbLeft))
+                .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz))
+            );
 
-        m_driverController.rightBumper().whileTrue(
-            driveToPose.createtowerPathCommand(DriveToPose.Side.AlignRight)
-            .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
-            .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbRight))
-            .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz)));
-
+        // Right bumper - emergency shooting toggle OR drive-to-climb (when not in emergency mode)
+        m_driverController.rightBumper().onTrue(
+            Commands.either(
+                Commands.runOnce(() -> autoHeading.toggleEmergencyShooting()),
+                Commands.none(),
+                () -> autoHeading.isEmergencyModeEnabled()
+            )
+        );
+        m_driverController.rightBumper()
+            .and(() -> !autoHeading.isEmergencyModeEnabled())
+            .whileTrue(
+                driveToPose.createtowerPathCommand(DriveToPose.Side.AlignRight)
+                .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
+                .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbRight))
+                .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz))
+            );
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
 
@@ -626,6 +633,10 @@ public class RobotContainer {
             Commands.run(() -> climberz.climbUp(), climberz)
                 .finallyDo(() -> climberz.stop())
         );
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         
         // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
         // Runs until interrupted by PathPlanner
