@@ -150,6 +150,7 @@ public class RobotContainer {
         }
 
         LEDs = new LEDBase(
+
                 () -> intake.getRollerVolts() > 0,  // isIntaking
                 () -> shooter.getState() == ShooterState.SHOOTING 
                     || shooter.getState() == ShooterState.SPINNING_UP,  // isShooting
@@ -514,8 +515,8 @@ public class RobotContainer {
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
-                () -> true,  // Always ready for auto (heading not checked)
-                () -> false  // Not emergency mode in auto
+                () -> true, // Always ready for auto (heading not checked)
+                () -> false
             )
         );
         
@@ -553,11 +554,11 @@ public class RobotContainer {
                 () -> drivetrain.getPose(),
                 () -> drivetrain.getHeading().getRadians(),
                 () -> 0.0,   // No target heading for auto
-                () -> true,  // Always ready for auto (heading not checked)
-                () -> false  // Not emergency mode in auto
+                () -> true,   // Always ready for auto (heading not checked)
+                () -> false
             )
         );
-
+        
         // "PrepareToPass" - Spin up flywheel and set hood angle for passing without feeding
         NamedCommands.registerCommand("PrepareToPass",
             Commands.run(() -> {
@@ -625,7 +626,6 @@ public class RobotContainer {
             Commands.run(() -> climberz.climbUp(), climberz)
                 .finallyDo(() -> climberz.stop())
         );
-        
         
         // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
         // Runs until interrupted by PathPlanner
