@@ -557,7 +557,7 @@ public class RobotContainer {
                 () -> false  // Not emergency mode in auto
             )
         );
-        
+
         // "PrepareToPass" - Spin up flywheel and set hood angle for passing without feeding
         NamedCommands.registerCommand("PrepareToPass",
             Commands.run(() -> {
@@ -625,6 +625,7 @@ public class RobotContainer {
             Commands.run(() -> climberz.climbUp(), climberz)
                 .finallyDo(() -> climberz.stop())
         );
+        
         
         // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
         // Runs until interrupted by PathPlanner
