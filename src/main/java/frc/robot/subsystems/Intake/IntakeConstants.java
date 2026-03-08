@@ -102,7 +102,7 @@ public class IntakeConstants {
                 extensionCrashMinErrorRot.initDefault(0.05);
                 extensionCrashMaxVelRotPerSec.initDefault(0.1);
                 extensionCrashDebounceSecs.initDefault(0.15);
-                extensionAllowedErrorRot.initDefault(0.01);
+                extensionAllowedErrorRot.initDefault(0.5);
                 extensionAllowedVelRotPerSec.initDefault(0.5);
                 extensionCrashIgnoreAfterGoalChangeSecs.initDefault(0.5);
             }
@@ -110,9 +110,9 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(4);  // TODO: Tuned CAD Real: 81.5283603089
-                extensionPosToleranceRot.initDefault(0.01);
-                extensionVelToleranceRotPerSec.initDefault(0.05);
+                extensionDeployedPosRot.initDefault(3.8);  // TODO: Tuned CAD Real: 81.5283603089
+                extensionPosToleranceRot.initDefault(.05);
+                extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
                 extensionMMCruiseVelRotPerSec.initDefault(1000);  // TODO: tune
@@ -135,7 +135,7 @@ public class IntakeConstants {
                 extensionCrashMinErrorRot.initDefault(0.05);  // TODO
                 extensionCrashMaxVelRotPerSec.initDefault(0.1);  // TODO
                 extensionCrashDebounceSecs.initDefault(0.15);  // TODO
-                extensionAllowedErrorRot.initDefault(0.01);
+                extensionAllowedErrorRot.initDefault(0.5);
                 extensionAllowedVelRotPerSec.initDefault(0.5);
                 extensionCrashIgnoreAfterGoalChangeSecs.initDefault(0.5);
             }

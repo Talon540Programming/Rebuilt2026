@@ -88,7 +88,7 @@ public class IntakeBase extends SubsystemBase {
             currentState = atPivotGoal ? IntakeState.STOWED : IntakeState.RETRACTING;
             
             // Stop rollers automatically when fully stowed
-            if (atPivotGoal && currentState == IntakeState.STOWED) {
+            if (goal == Goal.STOWED && isAtStowed()) {
                 rollerIO.stop();
             }
         }

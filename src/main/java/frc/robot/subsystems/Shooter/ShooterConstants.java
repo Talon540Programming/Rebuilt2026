@@ -11,7 +11,7 @@ public class ShooterConstants {
 
     // ===================== Flywheel Constants =====================
 
-    public static double flywheelVelocityScalar = 1.5;
+    public static double flywheelVelocityScalar = 2.17;
 
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
@@ -159,7 +159,7 @@ public class ShooterConstants {
                 hoodSupplyCurrentLimit.initDefault(30);
                 
                 // Hood homing
-                hoodHomingDutyCycle.initDefault(-0.1);
+                hoodHomingDutyCycle.initDefault(0.1);
                 hoodHomingTimeoutSeconds.initDefault(0.75);
                 hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
             }
@@ -182,12 +182,12 @@ public class ShooterConstants {
                 hoodkA.initDefault(0.0);  // TODO: tune
                 hoodkG.initDefault(2);
                 
-                hoodMMCruiseVelRotPerSec.initDefault(100);  // TODO: tune
-                hoodMMAccelRotPerSec2.initDefault(200);     // TODO: tune
+                hoodMMCruiseVelRotPerSec.initDefault(200);  // TODO: tune
+                hoodMMAccelRotPerSec2.initDefault(400);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
 
                 hoodMinPositionRot.initDefault(0.0); 
-                hoodMaxPositionRot.initDefault(1.9);   // TODO: Tuned CAD
+                hoodMaxPositionRot.initDefault(1.5);   // TODO: Tuned CAD
                 
                 hoodSensorToMechanismRatio.initDefault(7.1500);  // TODO: Tuned CAD
                 

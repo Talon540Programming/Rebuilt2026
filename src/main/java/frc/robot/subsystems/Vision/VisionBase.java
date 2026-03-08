@@ -51,7 +51,7 @@ public class VisionBase extends SubsystemBase{
 
         Logger.recordOutput("Vision/EstimatedPoseOne", limelightOne.pose);
         Logger.recordOutput("Vision/EstimatedPoseTwo", limelightTwo.pose);
-        Logger.recordOutput("Vision/EstimatedPoseTwo", limelightThree.pose);
+        Logger.recordOutput("Vision/EstimatedPoseThree", limelightThree.pose);
     }
 
     /*
