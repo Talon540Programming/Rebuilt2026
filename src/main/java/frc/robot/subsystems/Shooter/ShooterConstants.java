@@ -11,7 +11,22 @@ public class ShooterConstants {
 
     // ===================== Flywheel Constants =====================
 
-    public static double flywheelVelocityScalar = 2.17;
+   // ===================== Flywheel Constants =====================
+
+    // Distance-based velocity scalars (for hub shooting only)
+    // Short range: 0.0 - 2.4 meters
+    public static final LoggedTunableNumber flywheelVelocityScalarShort = 
+        new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarShort");
+    // Middle range: 2.4 - 3.8 meters
+    public static final LoggedTunableNumber flywheelVelocityScalarMid = 
+        new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarMid");
+    // Long range: > 3.8 meters
+    public static final LoggedTunableNumber flywheelVelocityScalarLong = 
+        new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarLong");
+    
+    // Distance thresholds for scalar selection (meters)
+    public static final double shortToMidDistanceThreshold = 2.4;
+    public static final double midToLongDistanceThreshold = 3.8;
 
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
@@ -133,6 +148,9 @@ public class ShooterConstants {
                 flywheelBangBangTorqueCurrent.initDefault(40);  // Amps for torque current bang-bang
                 flywheelTorqueCurrentTolerance.initDefault(100);  // RPM tolerance to switch to torque current mode
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
+                flywheelVelocityScalarShort.initDefault(2.17);  // TODO: tune for short range
+                flywheelVelocityScalarMid.initDefault(2.17);    // Current tuned value
+                flywheelVelocityScalarLong.initDefault(2.17);   // TODO: tune for long range
                 
                 
                 // ===== Hood Sim Defaults =====
@@ -171,6 +189,9 @@ public class ShooterConstants {
                 flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
                 flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
+                flywheelVelocityScalarShort.initDefault(2.17);  // TODO: tune for short range
+                flywheelVelocityScalarMid.initDefault(2.17);    // Current tuned value
+                flywheelVelocityScalarLong.initDefault(2.17);   // TODO: tune for long range
                 
                 
                 // ===== Hood Comp Defaults =====

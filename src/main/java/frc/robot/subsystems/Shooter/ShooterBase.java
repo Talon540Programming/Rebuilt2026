@@ -113,28 +113,66 @@ public class ShooterBase extends SubsystemBase {
         
     // ==================== FLYWHEEL CONTROL ====================
     
-    /**
+/**
      * Set flywheel to target velocity using MA-style bang-bang control.
      * Mode switching (duty cycle vs torque current) is handled in the IO layer.
      * @param velocityRPM target velocity in RPM
+     * @param distanceMeters distance to hub in meters (used to select scalar)
      * @param applyScalar whether to apply the velocity scalar (false for emergency mode)
      */
-    public void setFlywheelVelocity(double velocityRPM, boolean applyScalar) {
+    public void setFlywheelVelocity(double velocityRPM, double distanceMeters, boolean applyScalar) {
         currentState = ShooterState.SPINNING_UP;
-        double finalVelocity = applyScalar 
-            ? velocityRPM * ShooterConstants.flywheelVelocityScalar 
-            : velocityRPM;
+        
+        double scalar = 1.0;
+        String scalarZone = "None";
+        
+        if (applyScalar) {
+            // Select scalar based on distance
+            if (distanceMeters <= ShooterConstants.shortToMidDistanceThreshold) {
+                scalar = ShooterConstants.flywheelVelocityScalarShort.get();
+                scalarZone = "Short";
+            } else if (distanceMeters <= ShooterConstants.midToLongDistanceThreshold) {
+                scalar = ShooterConstants.flywheelVelocityScalarMid.get();
+                scalarZone = "Mid";
+            } else {
+                scalar = ShooterConstants.flywheelVelocityScalarLong.get();
+                scalarZone = "Long";
+            }
+        }
+        
+        double finalVelocity = velocityRPM * scalar;
+        
         Logger.recordOutput("Shooter/Flywheel/RequestedRPM", velocityRPM);
+        Logger.recordOutput("Shooter/Flywheel/DistanceMeters", distanceMeters);
+        Logger.recordOutput("Shooter/Flywheel/ScalarZone", scalarZone);
+        Logger.recordOutput("Shooter/Flywheel/ScalarValue", scalar);
         Logger.recordOutput("Shooter/Flywheel/ScaledRPM", finalVelocity);
+        
         flywheelIO.runBangBang(finalVelocity);
     }
     
     /**
-     * Set flywheel to target velocity with scalar applied (normal mode).
+     * Set flywheel to target velocity with distance-based scalar applied (normal hub shooting mode).
      * @param velocityRPM target velocity in RPM
+     * @param distanceMeters distance to hub in meters
      */
-    public void setFlywheelVelocity(double velocityRPM) {
-        setFlywheelVelocity(velocityRPM, true);
+    public void setFlywheelVelocity(double velocityRPM, double distanceMeters) {
+        setFlywheelVelocity(velocityRPM, distanceMeters, true);
+    }
+    
+    /**
+     * Set flywheel to target velocity without distance-based scaling.
+     * Used for emergency mode and passing where scalar is not applied.
+     * @param velocityRPM target velocity in RPM
+     * @param applyScalar whether to apply scaling (always false when using this overload)
+     */
+    public void setFlywheelVelocityNoDistance(double velocityRPM, boolean applyScalar) {
+        currentState = ShooterState.SPINNING_UP;
+        Logger.recordOutput("Shooter/Flywheel/RequestedRPM", velocityRPM);
+        Logger.recordOutput("Shooter/Flywheel/ScalarZone", "None");
+        Logger.recordOutput("Shooter/Flywheel/ScalarValue", 1.0);
+        Logger.recordOutput("Shooter/Flywheel/ScaledRPM", velocityRPM);
+        flywheelIO.runBangBang(velocityRPM);
     }
     
     /**
@@ -270,13 +308,14 @@ public class ShooterBase extends SubsystemBase {
     
     // ==================== COMBINED OPERATIONS ====================
     
-    /**
+   /**
      * Prepare to shoot - spin up flywheel and set hood angle
      * @param velocityRPM target flywheel velocity
      * @param hoodAngleRadians target hood angle
+     * @param distanceMeters distance to hub for scalar selection
      */
-    public void prepareToShoot(double velocityRPM, double hoodAngleRadians) {
-        setFlywheelVelocity(velocityRPM);
+    public void prepareToShoot(double velocityRPM, double hoodAngleRadians, double distanceMeters) {
+        setFlywheelVelocity(velocityRPM, distanceMeters);
         setHoodAngle(hoodAngleRadians);
     }
     

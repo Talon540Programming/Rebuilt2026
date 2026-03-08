@@ -386,7 +386,7 @@ public class RobotContainer {
                     } else if (autoHeading.isEmergencyPassingMode()) {
                         flywheelRPM = Constants.EmergencyModeConstants.passingRPM;
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.passingHoodAngleDegrees);
-                        shooter.setFlywheelVelocity(flywheelRPM, false);
+                        shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
                         if (!emergencyRetract) {
                             shooter.setHoodAngle(hoodAngleRadians);
                         }
@@ -395,7 +395,7 @@ public class RobotContainer {
                         // Default to emergency shooting preset
                         flywheelRPM = Constants.EmergencyModeConstants.shootingRPM;
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
-                        shooter.setFlywheelVelocity(flywheelRPM, false);
+                        shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
                         if (!emergencyRetract) {
                             shooter.setHoodAngle(hoodAngleRadians);
                         }
@@ -421,8 +421,11 @@ public class RobotContainer {
                         flywheelRPM = solution.flywheelRPM;
                         hoodAngleRadians = solution.hoodAngleRadians;
                         Logger.recordOutput("Shooter/FlywheelMode", "HubShooting");
+                        
+                        // Pass distance to shooter for scalar selection
+                        shooter.setFlywheelVelocity(flywheelRPM, solution.distanceMeters);
                     } else {
-                        // Passing mode
+                        // Passing mode - no distance-based scalar
                         var solution = ShootingCalculator.calculatePassingSolution(
                             robotPose,
                             isRed
@@ -430,9 +433,10 @@ public class RobotContainer {
                         flywheelRPM = solution.flywheelRPM;
                         hoodAngleRadians = solution.hoodAngleRadians;
                         Logger.recordOutput("Shooter/FlywheelMode", "Passing");
+                        
+                        // Passing mode doesn't use distance-based scalar
+                        shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
                     }
-                    
-                    shooter.setFlywheelVelocity(flywheelRPM);
                     
                     // Handle hood - retract if near trench, otherwise set calculated angle
                     if (nearTrench) {
@@ -536,7 +540,7 @@ public class RobotContainer {
                     drivetrain.getFieldVelocity(),
                     vision.isRedAlliance()
                 );
-                shooter.setFlywheelVelocity(solution.flywheelRPM);
+                shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
                 shooter.setHoodAngle(solution.hoodAngleRadians);
             }, shooter)
         );
@@ -573,7 +577,7 @@ public class RobotContainer {
                     drivetrain.getPose(),
                     vision.isRedAlliance()
                 );
-                shooter.setFlywheelVelocity(solution.flywheelRPM);
+                shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
                 shooter.setHoodAngle(solution.hoodAngleRadians);
             }, shooter)
         );
