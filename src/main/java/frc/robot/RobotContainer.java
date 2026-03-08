@@ -411,6 +411,8 @@ public class RobotContainer {
                         shouldShoot = robotX < FieldPoses.blueHub.getX();
                     }
                     
+                    double distanceMeters = 0.0;
+                    
                     if (shouldShoot) {
                         // Hub shooting - use movement-compensated calculator
                         var solution = ShootingCalculator.calculateSolutionWithMovement(
@@ -420,10 +422,11 @@ public class RobotContainer {
                         );
                         flywheelRPM = solution.flywheelRPM;
                         hoodAngleRadians = solution.hoodAngleRadians;
+                        distanceMeters = solution.distanceMeters;
                         Logger.recordOutput("Shooter/FlywheelMode", "HubShooting");
                         
                         // Pass distance to shooter for scalar selection
-                        shooter.setFlywheelVelocity(flywheelRPM, solution.distanceMeters);
+                        shooter.setFlywheelVelocity(flywheelRPM, distanceMeters);
                     } else {
                         // Passing mode - no distance-based scalar
                         var solution = ShootingCalculator.calculatePassingSolution(
@@ -432,6 +435,7 @@ public class RobotContainer {
                         );
                         flywheelRPM = solution.flywheelRPM;
                         hoodAngleRadians = solution.hoodAngleRadians;
+                        distanceMeters = solution.distanceMeters;
                         Logger.recordOutput("Shooter/FlywheelMode", "Passing");
                         
                         // Passing mode doesn't use distance-based scalar
@@ -444,7 +448,9 @@ public class RobotContainer {
                         Logger.recordOutput("Shooter/AutoRetract", true);
                         Logger.recordOutput("Shooter/AutoRetractReason", "NearTrench");
                     } else {
-                        shooter.setHoodAngle(hoodAngleRadians);
+                        // Use distance-aware setHoodAngle for hub shooting (applies long shot offset)
+                        // For passing, distance will be used but offset only applies if > 3.8m
+                        shooter.setHoodAngle(hoodAngleRadians, distanceMeters);
                         Logger.recordOutput("Shooter/AutoRetract", false);
                         Logger.recordOutput("Shooter/AutoRetractReason", "None");
                     }
@@ -541,7 +547,7 @@ public class RobotContainer {
                     vision.isRedAlliance()
                 );
                 shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-                shooter.setHoodAngle(solution.hoodAngleRadians);
+                shooter.setHoodAngle(solution.hoodAngleRadians, solution.distanceMeters);
             }, shooter)
         );
         

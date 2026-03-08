@@ -24,9 +24,13 @@ public class ShooterConstants {
     public static final LoggedTunableNumber flywheelVelocityScalarLong = 
         new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarLong");
     
-    // Distance thresholds for scalar selection (meters)
+   // Distance thresholds for scalar selection (meters)
     public static final double shortToMidDistanceThreshold = 2.4;
     public static final double midToLongDistanceThreshold = 3.8;
+    
+    // Additive hood angle offset for long shots (radians)
+    // Added to calculated hood angle when distance > midToLongDistanceThreshold
+    public static final double hoodLongShotOffsetRadians = Math.toRadians(2.0);  // TODO: tune
 
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");

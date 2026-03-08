@@ -215,6 +215,32 @@ public class ShooterBase extends SubsystemBase {
     }
     
     /**
+     * Set hood to target angle with distance-based offset for long shots
+     * @param angleRadians target angle in radians
+     * @param distanceMeters distance to hub in meters
+     */
+    public void setHoodAngle(double angleRadians, double distanceMeters) {
+        if (!hoodHomed) {
+            Logger.recordOutput("Shooter/Hood/Warning", "Hood not homed - ignoring setHoodAngle");
+            return;
+        }
+        currentState = ShooterState.ADJUSTING_HOOD;
+        
+        double finalAngle = angleRadians;
+        boolean applyingOffset = false;
+        
+        // Apply additive offset for long shots
+        if (distanceMeters > ShooterConstants.midToLongDistanceThreshold) {
+            finalAngle += ShooterConstants.hoodLongShotOffsetRadians;
+            applyingOffset = true;
+        }
+        
+        Logger.recordOutput("Shooter/Hood/LongShotOffset", applyingOffset);
+        Logger.recordOutput("Shooter/Hood/OffsetValueDeg", Math.toDegrees(ShooterConstants.hoodLongShotOffsetRadians));
+        
+        hoodIO.setPosition(finalAngle);
+    }
+    /**
      * Stop the hood motor
      */
     public void stopHood() {
@@ -312,11 +338,11 @@ public class ShooterBase extends SubsystemBase {
      * Prepare to shoot - spin up flywheel and set hood angle
      * @param velocityRPM target flywheel velocity
      * @param hoodAngleRadians target hood angle
-     * @param distanceMeters distance to hub for scalar selection
+     * @param distanceMeters distance to hub for scalar and hood offset selection
      */
     public void prepareToShoot(double velocityRPM, double hoodAngleRadians, double distanceMeters) {
         setFlywheelVelocity(velocityRPM, distanceMeters);
-        setHoodAngle(hoodAngleRadians);
+        setHoodAngle(hoodAngleRadians, distanceMeters);
     }
     
     /**
