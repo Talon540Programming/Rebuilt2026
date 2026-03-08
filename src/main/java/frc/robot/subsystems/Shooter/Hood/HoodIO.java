@@ -10,6 +10,7 @@ public interface HoodIO {
         public double currentAmps = 0.0;
         public double tempCelsius = 0.0;
         public double targetPositionRadians = 0.0;
+        public double targetMotorRotations = 0.0;
         public boolean atSetpoint = false;
     }
     
@@ -30,7 +31,6 @@ public interface HoodIO {
     
     /** Enable or disable brake mode */
     public default void setBrakeMode(boolean brake) {}
-
 
     /** Sets the current position (in mechanism rotations). Used for zeroing after homing. */
     default void setEncoderPosition(double positionRotations) {}

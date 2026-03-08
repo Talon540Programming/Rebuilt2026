@@ -11,6 +11,8 @@ public class ShooterConstants {
 
     // ===================== Flywheel Constants =====================
 
+    public static double flywheelVelocityScalar = 1.5;
+
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
     

@@ -386,7 +386,7 @@ public class RobotContainer {
                     } else if (autoHeading.isEmergencyPassingMode()) {
                         flywheelRPM = Constants.EmergencyModeConstants.passingRPM;
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.passingHoodAngleDegrees);
-                        shooter.setFlywheelVelocity(flywheelRPM);
+                        shooter.setFlywheelVelocity(flywheelRPM, false);
                         if (!emergencyRetract) {
                             shooter.setHoodAngle(hoodAngleRadians);
                         }
@@ -395,7 +395,7 @@ public class RobotContainer {
                         // Default to emergency shooting preset
                         flywheelRPM = Constants.EmergencyModeConstants.shootingRPM;
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
-                        shooter.setFlywheelVelocity(flywheelRPM);
+                        shooter.setFlywheelVelocity(flywheelRPM, false);
                         if (!emergencyRetract) {
                             shooter.setHoodAngle(hoodAngleRadians);
                         }

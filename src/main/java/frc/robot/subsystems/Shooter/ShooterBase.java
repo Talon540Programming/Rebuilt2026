@@ -117,10 +117,24 @@ public class ShooterBase extends SubsystemBase {
      * Set flywheel to target velocity using MA-style bang-bang control.
      * Mode switching (duty cycle vs torque current) is handled in the IO layer.
      * @param velocityRPM target velocity in RPM
+     * @param applyScalar whether to apply the velocity scalar (false for emergency mode)
+     */
+    public void setFlywheelVelocity(double velocityRPM, boolean applyScalar) {
+        currentState = ShooterState.SPINNING_UP;
+        double finalVelocity = applyScalar 
+            ? velocityRPM * ShooterConstants.flywheelVelocityScalar 
+            : velocityRPM;
+        Logger.recordOutput("Shooter/Flywheel/RequestedRPM", velocityRPM);
+        Logger.recordOutput("Shooter/Flywheel/ScaledRPM", finalVelocity);
+        flywheelIO.runBangBang(finalVelocity);
+    }
+    
+    /**
+     * Set flywheel to target velocity with scalar applied (normal mode).
+     * @param velocityRPM target velocity in RPM
      */
     public void setFlywheelVelocity(double velocityRPM) {
-        currentState = ShooterState.SPINNING_UP;
-        flywheelIO.runBangBang(velocityRPM);
+        setFlywheelVelocity(velocityRPM, true);
     }
     
     /**
