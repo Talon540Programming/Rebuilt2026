@@ -6,8 +6,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.Set;
-
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants.FieldPoses;
@@ -42,7 +40,6 @@ import frc.robot.subsystems.Vision.VisionIOLimelight;
 import frc.robot.subsystems.Climberz.ClimberzBase;
 import frc.robot.subsystems.Climberz.ClimberzIOKraken;
 import frc.robot.subsystems.Climberz.ClimberzIOSim;
-import frc.robot.subsystems.Climberz.ClimberzConstants;
 import frc.robot.Constants.RobotDimensions;
 import frc.robot.Constants.ShootingConstants;
 import frc.robot.utility.FuelSim;
@@ -515,154 +512,60 @@ public class RobotContainer {
         instance.start();
     }
 
-    /**
-     * Register all named commands for PathPlanner auto routines.
-     */
     private void configureNamedCommands() {
-        // ==================== SHOOTING COMMANDS ====================
-        
-        // "Shoot" - Full auto shooting (calculates velocity/angle, waits for spinup, feeds)
-        // Runs until interrupted by PathPlanner
-        // "Shoot" - Full auto shooting (calculates velocity/angle, waits for spinup, feeds)
-        // Runs until interrupted by PathPlanner
-        NamedCommands.registerCommand("Shoot", 
-            new ShootCommand(
-                shooter,
-                index,
-                () -> drivetrain.getPose(),
-                () -> drivetrain.getHeading().getRadians(),
-                () -> 0.0,   // No target heading for auto
-                () -> true, // Always ready for auto (heading not checked)
-                () -> false
-            )
-        );
-        
-        // "PrepareToShoot" - Spin up flywheel and set hood angle without feeding
-        // Use this while driving to shooting position
-        NamedCommands.registerCommand("PrepareToShoot",
-            Commands.run(() -> {
-                var solution = ShootingCalculator.calculateSolutionWithMovement(
-                    drivetrain.getPose(),
-                    drivetrain.getFieldVelocity(),
-                    vision.isRedAlliance()
-                );
-                shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-                shooter.setHoodAngle(solution.hoodAngleRadians, solution.distanceMeters);
-            }, shooter)
-        );
-        
-        // "StopShooting" - Stop flywheel, hood, and kickup
-        NamedCommands.registerCommand("StopShooting",
-            Commands.runOnce(() -> {
-                shooter.stopAll();
-            }, shooter)
-        );
-        
-        // ==================== PASSING COMMANDS ====================
-        
-        // "Pass" - Full auto passing (calculates lob trajectory, waits for spinup, feeds)
-        // Runs until interrupted by PathPlanner
-        // "Pass" - Full auto passing (calculates lob trajectory, waits for spinup, feeds)
-        // Runs until interrupted by PathPlanner
-        NamedCommands.registerCommand("Pass",
-            new ShootCommand(
-                shooter,
-                index,
-                () -> drivetrain.getPose(),
-                () -> drivetrain.getHeading().getRadians(),
-                () -> 0.0,   // No target heading for auto
-                () -> true,   // Always ready for auto (heading not checked)
-                () -> false
-            )
-        );
-        
-        // "PrepareToPass" - Spin up flywheel and set hood angle for passing without feeding
-        NamedCommands.registerCommand("PrepareToPass",
-            Commands.run(() -> {
-                var solution = ShootingCalculator.calculatePassingSolution(
-                    drivetrain.getPose(),
-                    vision.isRedAlliance()
-                );
-                shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-                shooter.setHoodAngle(solution.hoodAngleRadians);
-            }, shooter)
-        );
-        
-        // ==================== INTAKE COMMANDS ====================
-        
-        // "StartIntake" - Deploy intake and run rollers (doesn't end on its own)
-        NamedCommands.registerCommand("StartIntake",
-            Commands.runOnce(() -> {
-                intake.deploy();
-            }, intake)
-        );
-        
-        // "StopIntake" - Retract intake
-        NamedCommands.registerCommand("StopIntake",
-            Commands.runOnce(() -> {
-                intake.retract();
-            }, intake)
-        );
-        
-        // "Intake" - Full intake command (deploys, runs until interrupted)
-        NamedCommands.registerCommand("Intake",
-            new IntakeCommand(intake)
-        );
-        
-        // ==================== HOOD COMMANDS ====================
-        
-        // "RetractHood" - Set hood to minimum angle (for going under trench)
-        NamedCommands.registerCommand("RetractHood",
-            Commands.runOnce(() -> {
-                shooter.retractHood();
-            }, shooter)
-        );
-
-        // "Homing" - Run intake, hood, and climber homing in parallel
-        // Add this as the FIRST command in your PathPlanner autos
-        NamedCommands.registerCommand("Homing",
-            Commands.parallel(
-                Commands.either(
-                    Commands.defer(() -> intake.homingSequence(), Set.of(intake)),
-                    Commands.none(),
-                    () -> !intake.isHomed()
-                ),
-                Commands.either(
-                    Commands.defer(() -> shooter.hoodHomingSequence(), Set.of(shooter)),
-                    Commands.none(),
-                    () -> !shooter.isHoodHomed()
-                )
-            ).withTimeout(1.0)
-        );
-        
-        // ==================== CLIMBER COMMANDS ====================
-        
-        // "ClimbUp" - Retract climber (lift robot) - brake mode + duty cycle
-        // Runs until interrupted by PathPlanner
-        NamedCommands.registerCommand("ClimbUp",
-            Commands.run(() -> climberz.climbUp(), climberz)
-                .finallyDo(() -> climberz.stop())
-        );        
-        // "ClimbRelease" - Release climber (let springs extend) - coast mode + zero duty cycle
-        // Runs until interrupted by PathPlanner
-        NamedCommands.registerCommand("ClimbRelease",
-            Commands.run(() -> climberz.climbDown(), climberz)
-                .finallyDo(() -> climberz.stop())
-        );
-        
-        // "ClimbStop" - Stop climber and hold position (brake mode)
-        NamedCommands.registerCommand("ClimbStop",
-            Commands.runOnce(() -> climberz.stop(), climberz)
-        );
-
-        NamedCommands.registerCommand("RetractClimb",
-            Commands.sequence(
-                    Commands.runOnce(() -> climberz.retract(), climberz),
-                    Commands.waitSeconds(ClimberzConstants.homingDurationSeconds),
-                    Commands.runOnce(() -> climberz.stop(), climberz)
-                )
-        );
-    }
+    // ==================== SHOOTING COMMANDS ====================
+    
+    // "Shoot" - Waits for flywheel ready, then feeds game piece via index/kickup
+    // Flywheel/hood are controlled by shooter default command
+    NamedCommands.registerCommand("Shoot", 
+        new ShootCommand(
+            shooter,
+            index,
+            () -> drivetrain.getPose(),
+            () -> drivetrain.getHeading().getRadians(),
+            () -> 0.0,   // No target heading for auto
+            () -> true,  // Always ready for auto (heading not checked)
+            () -> false  // Not emergency mode
+        )
+    );
+    
+    // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
+    NamedCommands.registerCommand("StopShooting",
+        Commands.runOnce(() -> {
+            shooter.stopKickup();
+            index.stop();
+        }, shooter, index)
+    );
+    
+    // ==================== INTAKE COMMANDS ====================
+    
+    // "DeployIntake" - Deploy intake and start rollers
+    NamedCommands.registerCommand("DeployIntake",
+        Commands.runOnce(() -> {
+            intake.deploy();
+            intake.startRollers();
+        }, intake)
+    );
+    
+    // "RetractIntake" - Retract intake (rollers stop automatically when stowed)
+    NamedCommands.registerCommand("RetractIntake",
+        Commands.runOnce(() -> {
+            intake.retract();
+        }, intake)
+    );
+    
+    // ==================== CLIMBER COMMANDS ====================
+    
+    // "ClimbExtend" - Extend climber using position control
+    NamedCommands.registerCommand("ClimbExtend",
+        Commands.runOnce(() -> climberz.goToExtended(), climberz)
+    );
+    
+    // "ClimbRetract" - Retract climber using position control
+    NamedCommands.registerCommand("ClimbRetract",
+        Commands.runOnce(() -> climberz.goToRetracted(), climberz)
+    );
+}
 
     
     /**
