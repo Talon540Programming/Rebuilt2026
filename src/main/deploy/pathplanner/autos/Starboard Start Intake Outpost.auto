@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Port start"
+            "pathName": "Starboard start"
           }
         },
         {
@@ -23,7 +23,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 3.0
+                  "waitTime": 2.0
                 }
               }
             ]
@@ -36,21 +36,34 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Port to Nuetral Intake"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Start to Intake Outpost"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "DeployIntake"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "DeployIntake"
+            "waitTime": 3.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Intake neutral port"
+            "pathName": "Outpost to Shoot"
           }
         },
         {
@@ -82,7 +95,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 999999.0
+                        "waitTime": 99999999.0
                       }
                     }
                   ]
@@ -94,7 +107,7 @@
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": null,
   "choreoAuto": false
 }
