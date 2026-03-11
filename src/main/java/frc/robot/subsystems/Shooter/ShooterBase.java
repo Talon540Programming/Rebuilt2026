@@ -15,6 +15,7 @@ import frc.robot.subsystems.Shooter.Hood.HoodIO.HoodIOInputs;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO;
 import frc.robot.subsystems.Shooter.Kickup.KickupIO.KickupIOInputs;
 import frc.robot.Constants.ShootingConstants;
+import frc.robot.Robot;
 import frc.robot.commands.HoodHomingCommand;
 import frc.robot.subsystems.Shooter.ShooterConstants.KickupConstants;
 
@@ -126,7 +127,8 @@ public class ShooterBase extends SubsystemBase {
         double scalar = 1.0;
         String scalarZone = "None";
         
-        if (applyScalar) {
+        // Only apply scalar on real robot, not in simulation
+        if (applyScalar && !Robot.isSimulation()) {
             // Select scalar based on distance
             if (distanceMeters <= ShooterConstants.shortToMidDistanceThreshold) {
                 scalar = ShooterConstants.flywheelVelocityScalarShort.get();

@@ -230,17 +230,19 @@ public class RobotContainer {
                     autoHeading.enableAutoMode(drivetrain.getPose());
                 }
             }))
-            .whileTrue(
+               .whileTrue(
                 new ShootCommand(
                     shooter,
                     index,
                     () -> drivetrain.getPose(),
+                    () -> drivetrain.getFieldVelocity(),
                     () -> drivetrain.getHeading().getRadians(),
                     () -> autoHeading.getTargetHeading().getRadians(),
                     () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians()),
-                    () -> autoHeading.isEmergencyModeEnabled()
+                    () -> autoHeading.isEmergencyModeEnabled(),
+                    () -> vision.isRedAlliance()
+                    )
                 )
-            )
             .onFalse(Commands.runOnce(() -> {
                 if (!autoHeading.isEmergencyModeEnabled()) {
                     autoHeading.disableAutoMode();
@@ -522,10 +524,12 @@ public class RobotContainer {
             shooter,
             index,
             () -> drivetrain.getPose(),
+            () -> drivetrain.getFieldVelocity(),
             () -> drivetrain.getHeading().getRadians(),
             () -> 0.0,   // No target heading for auto
             () -> true,  // Always ready for auto (heading not checked)
-            () -> false  // Not emergency mode
+            () -> false, // Not emergency mode
+            () -> vision.isRedAlliance()
         )
     );
     
