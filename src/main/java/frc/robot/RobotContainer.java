@@ -15,7 +15,6 @@ import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.JiggleCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Drive.DriveToPose;
 import frc.robot.subsystems.Drive.SetHeading;
 import frc.robot.subsystems.Drive.SmoothFieldCentricFacingAngle;
 import frc.robot.subsystems.Index.IndexBase;
@@ -91,7 +90,6 @@ public class RobotContainer {
     private final IndexIOSim indexIOSim = new IndexIOSim();
     private final ClimberzIOKraken climberzIOKraken = new ClimberzIOKraken();
     private final ClimberzIOSim climberzIOSim = new ClimberzIOSim();
-    private final DriveToPose driveToPose = new DriveToPose(drivetrain);
     private final IntakeBase intake;
     private final ShooterBase shooter;
     private final IndexBase index;
@@ -173,13 +171,14 @@ public class RobotContainer {
         }));
         m_driverController.b().whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Left stick button - climber homing
+       // Left stick button - hood homing
         m_driverController.leftStick().onTrue(
-            climberz.homingSequence()
+            shooter.hoodHomingSequence()
         );
 
+        // Right stick button - intake homing
         m_driverController.rightStick().onTrue(
-            shooter.hoodHomingSequence()
+            intake.homingSequence()
         );
 
        // Dpad right + B toggles emergency mode
@@ -215,13 +214,9 @@ public class RobotContainer {
             Commands.runOnce(() -> climberz.goToRetracted(), climberz)
         );
 
-       // Y button - extend climber (normal mode) or toggle flywheel disable (emergency mode)
-        m_driverController.y().onTrue(
-            Commands.either(
-                Commands.runOnce(() -> autoHeading.toggleEmergencyFlywheelDisable()),
-                Commands.runOnce(() -> climberz.goToExtended(), climberz),
-                () -> autoHeading.isEmergencyModeEnabled()
-            )
+       // Y button - toggle flywheel disable (emergency mode only)
+        m_driverController.y().and(() -> autoHeading.isEmergencyModeEnabled()).onTrue(
+            Commands.runOnce(() -> autoHeading.toggleEmergencyFlywheelDisable())
         );
 
        m_driverController.rightTrigger(0.2)
@@ -257,15 +252,6 @@ public class RobotContainer {
                 () -> autoHeading.isEmergencyModeEnabled()
             )
         );
-        m_driverController.leftBumper()
-            .and(() -> !autoHeading.isEmergencyModeEnabled())
-            .whileTrue(
-                driveToPose.createtowerPathCommand(DriveToPose.Side.AlignLeft)
-                .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
-                .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbLeft))
-                .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz))
-            );
-
         // Right bumper - emergency shooting toggle OR drive-to-climb (when not in emergency mode)
         m_driverController.rightBumper().onTrue(
             Commands.either(
@@ -274,14 +260,6 @@ public class RobotContainer {
                 () -> autoHeading.isEmergencyModeEnabled()
             )
         );
-        m_driverController.rightBumper()
-            .and(() -> !autoHeading.isEmergencyModeEnabled())
-            .whileTrue(
-                driveToPose.createtowerPathCommand(DriveToPose.Side.AlignRight)
-                .raceWith(Commands.run(() -> climberz.climbDown(), climberz))
-                .andThen(driveToPose.createtowerPathCommand(DriveToPose.Side.ClimbRight))
-                .andThen(Commands.runOnce(() -> climberz.climbUp(), climberz))
-            );
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
 
@@ -515,52 +493,54 @@ public class RobotContainer {
     }
 
     private void configureNamedCommands() {
-    // ==================== SHOOTING COMMANDS ====================
-    
-    // "Shoot" - Waits for flywheel ready, then feeds game piece via index/kickup
-    // Flywheel/hood are controlled by shooter default command
-    NamedCommands.registerCommand("Shoot", 
-        new ShootCommand(
-            shooter,
-            index,
-            () -> drivetrain.getPose(),
-            () -> drivetrain.getFieldVelocity(),
-            () -> drivetrain.getHeading().getRadians(),
-            () -> 0.0,   // No target heading for auto
-            () -> true,  // Always ready for auto (heading not checked)
-            () -> false, // Not emergency mode
-            () -> vision.isRedAlliance()
-        )
-    );
-    
-    // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
-    NamedCommands.registerCommand("StopShooting",
-        Commands.runOnce(() -> {
-            shooter.stopKickup();
-            index.stop();
-        }, shooter, index)
-    );
-    
-    // ==================== INTAKE COMMANDS ====================
-    
-    // "DeployIntake" - Deploy intake and start rollers
-    NamedCommands.registerCommand("DeployIntake",
-        Commands.runOnce(() -> {
-            intake.deploy();
-            intake.startRollers();
-        }, intake)
-    );
-    
-    // "RetractIntake" - Retract intake (rollers stop automatically when stowed)
-    NamedCommands.registerCommand("RetractIntake",
-        Commands.runOnce(() -> {
-            intake.retract();
-        }, intake)
-    );
+        // ==================== SHOOTING COMMANDS ====================
+        
+        // "Shoot" - Waits for flywheel ready, then feeds game piece via index/kickup
+        // Flywheel/hood are controlled by shooter default command
+        NamedCommands.registerCommand("Shoot", 
+            new ShootCommand(
+                shooter,
+                index,
+                () -> drivetrain.getPose(),
+                () -> drivetrain.getFieldVelocity(),
+                () -> drivetrain.getHeading().getRadians(),
+                () -> 0.0,   // No target heading for auto
+                () -> true,  // Always ready for auto (heading not checked)
+                () -> false, // Not emergency mode
+                () -> vision.isRedAlliance()
+            )
+        );
+        
+        // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
+        NamedCommands.registerCommand("StopShooting",
+            Commands.runOnce(() -> {
+                shooter.stopKickup();
+                index.stop();
+            }, shooter, index)
+        );
+        
+        // ==================== INTAKE COMMANDS ====================
+        
+        // "DeployIntake" - Deploy intake and start rollers
+        NamedCommands.registerCommand("DeployIntake",
+            Commands.runOnce(() -> {
+                intake.deploy();
+                intake.startRollers();
+            }, intake)
+        );
+        
+        // "RetractIntake" - Retract intake (rollers stop automatically when stowed)
+        NamedCommands.registerCommand("RetractIntake",
+            Commands.runOnce(() -> {
+                intake.retract();
+            }, intake)
+        );
+    }
     
     // ==================== CLIMBER COMMANDS ====================
     
-    // "ClimbExtend" - Extend climber using position control
+    /* 
+     *   // "ClimbExtend" - Extend climber using position control
     NamedCommands.registerCommand("ClimbExtend",
         Commands.runOnce(() -> climberz.goToExtended(), climberz)
     );
@@ -570,6 +550,10 @@ public class RobotContainer {
         Commands.runOnce(() -> climberz.goToRetracted(), climberz)
     );
 }
+    */
+     
+  
+
 
     
     /**
