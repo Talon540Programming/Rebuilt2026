@@ -6,6 +6,7 @@ public class VisionConstants {
     public static final String limelightTwo = "limelight-two";
     public static final String limelightThree = "limelight-three";
 
-    public static final int teleopYawTagCount = 2;
+    public static final int teleopYawTagCount = 2; // increase if getting bad rotation values
     public static final double teleopYawTagDistance = 2;
+    public static final double exponentialScalarMultiplier = 0.05;
 }

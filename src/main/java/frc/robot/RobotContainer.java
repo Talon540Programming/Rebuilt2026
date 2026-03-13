@@ -391,10 +391,10 @@ public class RobotContainer {
                     double distanceMeters = 0.0;
                     
                     if (shouldShoot) {
-                        // Hub shooting - use movement-compensated calculator
-                        var solution = ShootingCalculator.calculateSolutionWithMovement(
+                        // Hub shooting - use static calculator (no movement compensation)
+                        // Movement compensation is applied in ShootCommand when actually shooting
+                        var solution = ShootingCalculator.calculateSolution(
                             robotPose,
-                            drivetrain.getFieldVelocity(),
                             isRed
                         );
                         flywheelRPM = solution.flywheelRPM;

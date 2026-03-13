@@ -78,7 +78,7 @@ public class VisionBase extends SubsystemBase{
             .getDistance(input.pose.getTranslation());
 
         // Allow big corrections when vision is confident
-        boolean visionIsConfident = input.seenTagCount >= 1 && input.avgTagDistance < 3.0;
+        boolean visionIsConfident = input.seenTagCount > 1 && input.avgTagDistance < 3.0;
 
         if (poseDelta > 1.5 && !visionIsConfident) {
             Logger.recordOutput("Vision/Rejected/" + input.cameraName, "Large jump with low confidence");
@@ -107,7 +107,7 @@ public class VisionBase extends SubsystemBase{
         }
         
         // Scale trust by distance (exponential falloff)
-        double distanceMultiplier = 1.0 + (input.avgTagDistance * input.avgTagDistance * 0.05);
+        double distanceMultiplier = 1.0 + (input.avgTagDistance * input.avgTagDistance * VisionConstants.exponentialScalarMultiplier); // increase if bad values 
         xyStdDev *= distanceMultiplier;
         rotStdDev *= distanceMultiplier;
         
@@ -129,10 +129,14 @@ public class VisionBase extends SubsystemBase{
         LimelightHelpers.PoseEstimate mt1EstimateCameraTwo = 
             LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightTwo);
 
+        LimelightHelpers.PoseEstimate mt1EstimateCameraThree = 
+            LimelightHelpers.getBotPoseEstimate_wpiBlue(VisionConstants.limelightThree);
+
         ArrayList<LimelightHelpers.PoseEstimate> poseList = new ArrayList<>();
 
         poseList.add(mt1EstimateCameraOne);
         poseList.add(mt1EstimateCameraTwo);
+        poseList.add(mt1EstimateCameraThree);
         
         for(LimelightHelpers.PoseEstimate mt1Estimate : poseList){
             if (mt1Estimate == null || mt1Estimate.tagCount == 0) {
