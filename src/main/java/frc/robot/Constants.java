@@ -101,7 +101,7 @@ public final class Constants {
     public static final double backDistanceInches = 10.0;      
     public static final double shooterHeightInches = 19;     // Height of shooter exit from ground
     public static final double heightOfHubInches = 72.0;       // Height of hub opening
-    public static final double clearanceInches = 20.0;         // Desired clearance over hub rim
+    public static final double clearanceInches = 33.0;         // Desired clearance over hub rim
     
     // Derived value
     public static final double maxHeightInches = (heightOfHubInches + clearanceInches) - shooterHeightInches;
@@ -121,9 +121,9 @@ public final class Constants {
     public static final double hoodMaxAngle = Math.toRadians(55);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
-        new LoggedTunableNumber("Shooting/CompensationFactorX", 0.1);
+        new LoggedTunableNumber("Shooting/CompensationFactorX", 2.5);
     public static final LoggedTunableNumber compensationFactorY = 
-        new LoggedTunableNumber("Shooting/CompensationFactorY", 0.1);
+        new LoggedTunableNumber("Shooting/CompensationFactorY", 2.5);
 
     // Shooter position offset from robot center (in inches)
     // Positive X = forward, Positive Y = left
@@ -132,7 +132,7 @@ public final class Constants {
     public static final LoggedTunableNumber shooterOffsetYInches = 
         new LoggedTunableNumber("Shooting/ShooterOffsetYInches", 4.598);
         // Hood auto-retraction near trench
-    public static final double hoodRetractionDistanceMeters = 0.7;
+    public static final double hoodRetractionDistanceMeters = 1.5;
   }
 
   public static final class PassingConstants {
@@ -192,8 +192,8 @@ public final class Constants {
     public static final double shootingHoodAngleDegrees = 23.625;
     
     // Emergency passing preset (lob shot) - TODO: Update with real values
-    public static final double passingRPM = 1500.0;
-    public static final double passingHoodAngleDegrees = 35.0;
+    public static final double passingRPM = 3500;
+    public static final double passingHoodAngleDegrees = 45;
   }
 
 }

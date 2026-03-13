@@ -25,12 +25,12 @@ public class ShooterConstants {
         new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarLong");
     
    // Distance thresholds for scalar selection (meters)
-    public static final double shortToMidDistanceThreshold = 2.4;
-    public static final double midToLongDistanceThreshold = 3.8;
+    public static final double shortToMidDistanceThreshold = 2;
+    public static final double midToLongDistanceThreshold = 3.2;
     
     // Additive hood angle offset for long shots (radians)
     // Added to calculated hood angle when distance > midToLongDistanceThreshold
-    public static final double hoodLongShotOffsetRadians = Math.toRadians(2.0);  // TODO: tune
+    public static final double hoodLongShotOffsetRadians = Math.toRadians(0.0);  // TODO: tune
 
     public static final LoggedTunableNumber flywheelRPMThreshould = 
         new LoggedTunableNumber("Shooter/FlywheelRPMThreshould");
@@ -131,7 +131,7 @@ public class ShooterConstants {
                     
                 }
                 case COMPBOT -> {
-                    feedDutyCycle.initDefault(-0.8);  // TODO: tune
+                    feedDutyCycle.initDefault(-1);  // TODO: tune
                     reverseDutyCycle.initDefault(-0.3);  // TODO: tune
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
@@ -193,22 +193,22 @@ public class ShooterConstants {
                 flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
                 flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
-                flywheelVelocityScalarShort.initDefault(2.17);  // TODO: tune for short range
-                flywheelVelocityScalarMid.initDefault(2.17);    // Current tuned value
-                flywheelVelocityScalarLong.initDefault(2.17);   // TODO: tune for long range
+                flywheelVelocityScalarShort.initDefault(1.7);  // TODO: tune for short range
+                flywheelVelocityScalarMid.initDefault(1.92);    // Current tuned value
+                flywheelVelocityScalarLong.initDefault(2.1);   // TODO: tune for long range
                 
                 
                 // ===== Hood Comp Defaults =====
                 hoodkP.initDefault(5);  // TODO: tune
                 hoodkI.initDefault(0.0);
-                hoodkD.initDefault(0.0);  // TODO: tune
+                hoodkD.initDefault(1);  // TODO: tune
                 hoodkS.initDefault(0.0);  // TODO: tune
                 hoodkV.initDefault(0.0);  // TODO: tune
                 hoodkA.initDefault(0.0);  // TODO: tune
-                hoodkG.initDefault(2);
+                hoodkG.initDefault(1);
                 
-                hoodMMCruiseVelRotPerSec.initDefault(200);  // TODO: tune
-                hoodMMAccelRotPerSec2.initDefault(400);     // TODO: tune
+                hoodMMCruiseVelRotPerSec.initDefault(25);  // TODO: tune
+                hoodMMAccelRotPerSec2.initDefault(50);     // TODO: tune
                 hoodMMJerkRotPerSec3.initDefault(0);      // TODO: tune
 
                 hoodMinPositionRot.initDefault(0.0); 

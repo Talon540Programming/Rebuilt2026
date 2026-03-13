@@ -5,9 +5,22 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Starboard start"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Starboard start"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "HomeIntake"
+                }
+              }
+            ]
           }
         },
         {
