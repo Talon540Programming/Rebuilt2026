@@ -194,7 +194,7 @@ public class ShooterConstants {
                 flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
                 flywheelVelocityScalarShort.initDefault(1.7);  // TODO: tune for short range
-                flywheelVelocityScalarMid.initDefault(1.92);    // Current tuned value
+                flywheelVelocityScalarMid.initDefault(1.94);    // Current tuned value
                 flywheelVelocityScalarLong.initDefault(2.1);   // TODO: tune for long range
                 
                 
