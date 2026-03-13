@@ -493,48 +493,56 @@ public class RobotContainer {
     }
 
     private void configureNamedCommands() {
-    // ==================== SHOOTING COMMANDS ====================
-    
-    // "Shoot" - Waits for flywheel ready, then feeds game piece via index/kickup
-    // Flywheel/hood are controlled by shooter default command
-    NamedCommands.registerCommand("Shoot", 
-        new ShootCommand(
-            shooter,
-            index,
-            () -> drivetrain.getPose(),
-            () -> drivetrain.getFieldVelocity(),
-            () -> drivetrain.getHeading().getRadians(),
-            () -> 0.0,   // No target heading for auto
-            () -> true,  // Always ready for auto (heading not checked)
-            () -> false, // Not emergency mode
-            () -> vision.isRedAlliance()
-        )
-    );
-    
-    // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
-    NamedCommands.registerCommand("StopShooting",
-        Commands.runOnce(() -> {
-            shooter.stopKickup();
-            index.stop();
-        }, shooter, index)
-    );
-    
-    // ==================== INTAKE COMMANDS ====================
-    
-    // "DeployIntake" - Deploy intake and start rollers
-    NamedCommands.registerCommand("DeployIntake",
-        Commands.runOnce(() -> {
-            intake.deploy();
-            intake.startRollers();
-        }, intake)
-    );
-    
-    // "RetractIntake" - Retract intake (rollers stop automatically when stowed)
-    NamedCommands.registerCommand("RetractIntake",
-        Commands.runOnce(() -> {
-            intake.retract();
-        }, intake)
-    );
+        // ==================== SHOOTING COMMANDS ====================
+        
+        // "Shoot" - Waits for flywheel ready, then feeds game piece via index/kickup
+        // Flywheel/hood are controlled by shooter default command
+        NamedCommands.registerCommand("Shoot", 
+            new ShootCommand(
+                shooter,
+                index,
+                () -> drivetrain.getPose(),
+                () -> drivetrain.getFieldVelocity(),
+                () -> drivetrain.getHeading().getRadians(),
+                () -> 0.0,   // No target heading for auto
+                () -> true,  // Always ready for auto (heading not checked)
+                () -> false, // Not emergency mode
+                () -> vision.isRedAlliance()
+            )
+        );
+        
+        // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
+        NamedCommands.registerCommand("StopShooting",
+            Commands.runOnce(() -> {
+                shooter.stopKickup();
+                index.stop();
+            }, shooter, index)
+        );
+        
+        // ==================== INTAKE COMMANDS ====================
+        
+        // "DeployIntake" - Deploy intake and start rollers
+        NamedCommands.registerCommand("DeployIntake",
+            Commands.runOnce(() -> {
+                intake.deploy();
+                intake.startRollers();
+            }, intake)
+        );
+        
+        // "RetractIntake" - Retract intake (rollers stop automatically when stowed)
+        NamedCommands.registerCommand("RetractIntake",
+            Commands.runOnce(() -> {
+                intake.retract();
+            }, intake)
+        );
+
+        NamedCommands.registerCommand("HomeIntake", 
+            intake.homingSequence()
+        );
+
+        NamedCommands.registerCommand("HomeHood", 
+            shooter.hoodHomingSequence()
+        );
     }
     
     // ==================== CLIMBER COMMANDS ====================

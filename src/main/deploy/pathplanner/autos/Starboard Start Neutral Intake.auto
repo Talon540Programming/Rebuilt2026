@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Port start"
+                  "pathName": "Starboard start"
                 }
               },
               {
@@ -23,7 +23,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "HomeHood"
+                  "name": "Homehood"
                 }
               }
             ]
@@ -51,7 +51,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Port to Nuetral Intake"
+            "pathName": "Starboard to Neutral Intake"
           }
         },
         {
@@ -63,7 +63,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Intake neutral port"
+            "pathName": "Intake Neutral Starboard"
           }
         },
         {
@@ -71,13 +71,7 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "Shoot"
-                }
-              },
-              {
-                "type": "sequential",
+                "type": "race",
                 "data": {
                   "commands": [
                     {
@@ -95,10 +89,16 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 999999.0
+                        "waitTime": 99999999.0
                       }
                     }
                   ]
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
                 }
               }
             ]
