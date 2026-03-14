@@ -331,7 +331,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        // Shooter default command - continuous flywheel spin-up and hood positioning
+        // Shooter default command - hood positioning only, flywheel coasts
+        // Flywheel only spins when ShootCommand is active (right trigger)
         shooter.setDefaultCommand(
             shooter.run(() -> {
                 Pose2d robotPose = drivetrain.getPose();
@@ -351,35 +352,27 @@ public class RobotContainer {
                 boolean nearTrench = !autoHeading.isEmergencyModeEnabled() && 
                     minDistance < ShootingConstants.hoodRetractionDistanceMeters;
                 
-                // Determine flywheel RPM and hood angle
-                double flywheelRPM = 0;
+                // Flywheel always coasts in default command
+                shooter.stopFlywheel();
+                Logger.recordOutput("Shooter/FlywheelMode", "Coast");
+                
+                // Hood positioning
                 double hoodAngleRadians = 0;
+                double distanceMeters = 0.0;
                 
                 if (autoHeading.isEmergencyModeEnabled()) {
-                    // Emergency mode - check if flywheel is disabled
-                    if (autoHeading.isEmergencyFlywheelDisabled()) {
-                        shooter.stopFlywheel();
-                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyDisabled");
-                    } else if (autoHeading.isEmergencyPassingMode()) {
-                        flywheelRPM = Constants.EmergencyModeConstants.passingRPM;
+                    // Emergency mode - use preset hood angle
+                    if (autoHeading.isEmergencyPassingMode()) {
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.passingHoodAngleDegrees);
-                        shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
-                        if (!emergencyRetract) {
-                            shooter.setHoodAngle(hoodAngleRadians);
-                        }
-                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyPassing");
                     } else {
-                        // Default to emergency shooting preset
-                        flywheelRPM = Constants.EmergencyModeConstants.shootingRPM;
                         hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
-                        shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
-                        if (!emergencyRetract) {
-                            shooter.setHoodAngle(hoodAngleRadians);
-                        }
-                        Logger.recordOutput("Shooter/FlywheelMode", "EmergencyShooting");
+                    }
+                    
+                    if (!emergencyRetract) {
+                        shooter.setHoodAngle(hoodAngleRadians);
                     }
                 } else {
-                    // Normal mode - calculate based on position
+                    // Normal mode - calculate hood angle based on position
                     boolean isRed = vision.isRedAlliance();
                     boolean shouldShoot;
                     if (isRed) {
@@ -388,35 +381,16 @@ public class RobotContainer {
                         shouldShoot = robotX < FieldPoses.blueHub.getX();
                     }
                     
-                    double distanceMeters = 0.0;
-                    
                     if (shouldShoot) {
                         // Hub shooting - use static calculator (no movement compensation)
-                        // Movement compensation is applied in ShootCommand when actually shooting
-                        var solution = ShootingCalculator.calculateSolution(
-                            robotPose,
-                            isRed
-                        );
-                        flywheelRPM = solution.flywheelRPM;
+                        var solution = ShootingCalculator.calculateSolution(robotPose, isRed);
                         hoodAngleRadians = solution.hoodAngleRadians;
                         distanceMeters = solution.distanceMeters;
-                        Logger.recordOutput("Shooter/FlywheelMode", "HubShooting");
-                        
-                        // Pass distance to shooter for scalar selection
-                        shooter.setFlywheelVelocity(flywheelRPM, distanceMeters);
                     } else {
-                        // Passing mode - no distance-based scalar
-                        var solution = ShootingCalculator.calculatePassingSolution(
-                            robotPose,
-                            isRed
-                        );
-                        flywheelRPM = solution.flywheelRPM;
+                        // Passing mode
+                        var solution = ShootingCalculator.calculatePassingSolution(robotPose, isRed);
                         hoodAngleRadians = solution.hoodAngleRadians;
                         distanceMeters = solution.distanceMeters;
-                        Logger.recordOutput("Shooter/FlywheelMode", "Passing");
-                        
-                        // Passing mode doesn't use distance-based scalar
-                        shooter.setFlywheelVelocity(flywheelRPM, distanceMeters);
                     }
                     
                     // Handle hood - retract if near trench, otherwise set calculated angle
@@ -425,8 +399,6 @@ public class RobotContainer {
                         Logger.recordOutput("Shooter/AutoRetract", true);
                         Logger.recordOutput("Shooter/AutoRetractReason", "NearTrench");
                     } else {
-                        // Use distance-aware setHoodAngle for hub shooting (applies long shot offset)
-                        // For passing, distance will be used but offset only applies if > 3.8m
                         shooter.setHoodAngle(hoodAngleRadians, distanceMeters);
                         Logger.recordOutput("Shooter/AutoRetract", false);
                         Logger.recordOutput("Shooter/AutoRetractReason", "None");
