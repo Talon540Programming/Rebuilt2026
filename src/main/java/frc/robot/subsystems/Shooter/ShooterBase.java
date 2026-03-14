@@ -48,6 +48,9 @@ public class ShooterBase extends SubsystemBase {
     private Debouncer hoodOutOfBoundsDebouncer = 
         new Debouncer(ShooterConstants.hoodOutOfBoundsDebounceSeconds.get(), DebounceType.kRising);
 
+    // Boosted scalar mode for end-of-match
+    private boolean boostedScalarMode = false;
+
     
     public ShooterBase(FlywheelIO flywheelIO, HoodIO hoodIO, KickupIO kickupIO) {
         this.flywheelIO = flywheelIO;
@@ -127,18 +130,24 @@ public class ShooterBase extends SubsystemBase {
         double scalar = 1.0;
         String scalarZone = "None";
         
-        // Only apply scalar on real robot, not in simulation
+       // Only apply scalar on real robot, not in simulation
         if (applyScalar && !Robot.isSimulation()) {
-            // Select scalar based on distance
+            // Select scalar based on distance (use boosted values if enabled)
             if (distanceMeters <= ShooterConstants.shortToMidDistanceThreshold) {
-                scalar = ShooterConstants.flywheelVelocityScalarShort.get();
-                scalarZone = "Short";
+                scalar = boostedScalarMode 
+                    ? ShooterConstants.flywheelVelocityScalarShortBoosted 
+                    : ShooterConstants.flywheelVelocityScalarShort.get();
+                scalarZone = boostedScalarMode ? "ShortBoosted" : "Short";
             } else if (distanceMeters <= ShooterConstants.midToLongDistanceThreshold) {
-                scalar = ShooterConstants.flywheelVelocityScalarMid.get();
-                scalarZone = "Mid";
+                scalar = boostedScalarMode 
+                    ? ShooterConstants.flywheelVelocityScalarMidBoosted 
+                    : ShooterConstants.flywheelVelocityScalarMid.get();
+                scalarZone = boostedScalarMode ? "MidBoosted" : "Mid";
             } else {
-                scalar = ShooterConstants.flywheelVelocityScalarLong.get();
-                scalarZone = "Long";
+                scalar = boostedScalarMode 
+                    ? ShooterConstants.flywheelVelocityScalarLongBoosted 
+                    : ShooterConstants.flywheelVelocityScalarLong.get();
+                scalarZone = boostedScalarMode ? "LongBoosted" : "Long";
             }
         }
         
@@ -408,5 +417,18 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Hood/OutOfBoundsTriggered", false);
     }
     
-   
+    /**
+     * Toggle boosted scalar mode for end-of-match
+     */
+    public void toggleBoostedScalarMode() {
+        boostedScalarMode = !boostedScalarMode;
+        Logger.recordOutput("Shooter/BoostedScalarMode", boostedScalarMode);
+    }
+    
+    /**
+     * Check if boosted scalar mode is enabled
+     */
+    public boolean isBoostedScalarMode() {
+        return boostedScalarMode;
+    }
 }

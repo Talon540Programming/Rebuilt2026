@@ -252,14 +252,16 @@ public class RobotContainer {
                 () -> autoHeading.isEmergencyModeEnabled()
             )
         );
-        // Right bumper - emergency shooting toggle OR drive-to-climb (when not in emergency mode)
+
+        // Right bumper - emergency shooting toggle (emergency mode) OR boosted scalar toggle (normal mode)
         m_driverController.rightBumper().onTrue(
             Commands.either(
                 Commands.runOnce(() -> autoHeading.toggleEmergencyShooting()),
-                Commands.none(),
+                Commands.runOnce(() -> shooter.toggleBoostedScalarMode()),
                 () -> autoHeading.isEmergencyModeEnabled()
             )
         );
+        
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         headingDrive.HeadingController.setPID(HeadingPID.headingP.get(), HeadingPID.headingI.get(), HeadingPID.headingD.get());
 
