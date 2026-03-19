@@ -8,8 +8,8 @@ public class IntakeConstants {
     public static final int extensionMotorId = 13;
     public static final int rollerMotorId = 14;
 
-    public static final double extensionHomingDutyCycle = -0.3;  // Positive = toward stowed
-    public static final double extensionHomingTimeoutSeconds = 1;  // Time to run toward hard stop
+    public static final double extensionHomingDutyCycle = -0.6;  // Positive = toward stowed
+    public static final double extensionHomingTimeoutSeconds = 0.5;  // Time to run toward hard stop
 
     public static final double dployDutyCycle = 0.5;
     public static final double rollerIntakeDutyCycle = 1;
@@ -110,7 +110,7 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(3.8);  // TODO: Tuned CAD Real: 81.5283603089
+                extensionDeployedPosRot.initDefault(3.36);  // TODO: Tuned CAD Real: 3.8
                 extensionPosToleranceRot.initDefault(.05);
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 

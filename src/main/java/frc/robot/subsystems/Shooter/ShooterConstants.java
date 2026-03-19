@@ -23,6 +23,10 @@ public class ShooterConstants {
     // Long range: > 3.8 meters
     public static final LoggedTunableNumber flywheelVelocityScalarLong = 
         new LoggedTunableNumber("Shooter/Flywheel/VelocityScalarLong");
+
+    public static final double flywheelVelocityScalarShortBoosted = 1.8;
+    public static final double flywheelVelocityScalarMidBoosted = 2.2;
+    public static final double flywheelVelocityScalarLongBoosted = 2.2;
     
    // Distance thresholds for scalar selection (meters)
     public static final double shortToMidDistanceThreshold = 2;
@@ -193,9 +197,9 @@ public class ShooterConstants {
                 flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
                 flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
-                flywheelVelocityScalarShort.initDefault(1.92);  // TODO: tune for short range
-                flywheelVelocityScalarMid.initDefault(2);    // Current tuned value
-                flywheelVelocityScalarLong.initDefault(2.1);   // TODO: tune for long range
+                flywheelVelocityScalarShort.initDefault(1.94);  // TODO: tune for short range
+                flywheelVelocityScalarMid.initDefault(1.92);    // Current tuned value
+                flywheelVelocityScalarLong.initDefault(2.14);   // TODO: tune for long range
                 
                 
                 // ===== Hood Comp Defaults =====

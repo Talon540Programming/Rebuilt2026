@@ -172,7 +172,7 @@ public final class Constants {
 
       }
       case COMPBOT ->{
-        HeadingPID.headingP.initDefault(6); //TODO Tuned for proto
+        HeadingPID.headingP.initDefault(5.5); //TODO Tuned for proto
         HeadingPID.headingI.initDefault(0.0); //TODO Tuned for proto
         HeadingPID.headingD.initDefault(1); //TODO Tuned for proto
       }
@@ -188,11 +188,11 @@ public final class Constants {
 
   public static final class EmergencyModeConstants {
     // Emergency shooting preset (hub shot)
-    public static final double shootingRPM = 2500;
-    public static final double shootingHoodAngleDegrees = 23.625;
+    public static final double shootingRPM = 2400;
+    public static final double shootingHoodAngleDegrees = 18;
     
     // Emergency passing preset (lob shot) - TODO: Update with real values
-    public static final double passingRPM = 3500;
+    public static final double passingRPM = 2500;
     public static final double passingHoodAngleDegrees = 45;
   }
 
