@@ -136,7 +136,7 @@ public class ShooterConstants {
                 }
                 case COMPBOT -> {
                     feedDutyCycle.initDefault(-1);  // TODO: tune
-                    reverseDutyCycle.initDefault(-0.3);  // TODO: tune
+                    reverseDutyCycle.initDefault(0.8);  // TODO: tune
                     statorCurrentLimit.initDefault(60);
                     supplyCurrentLimit.initDefault(40);
                     flywheelRPMThreshould.initDefault(250);
@@ -191,14 +191,14 @@ public class ShooterConstants {
             }
             case COMPBOT -> {
                 // ===== Flywheel Comp Defaults =====
-                flywheelVelToleranceRPM.initDefault(50);
+                flywheelVelToleranceRPM.initDefault(20);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
                 flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
-                flywheelTorqueCurrentTolerance.initDefault(100);  // TODO: tune
+                flywheelTorqueCurrentTolerance.initDefault(35);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
-                flywheelVelocityScalarShort.initDefault(1.94);  // TODO: tune for short range
-                flywheelVelocityScalarMid.initDefault(1.98);    // Current tuned value
+                flywheelVelocityScalarShort.initDefault(1.87);  // TODO: tune for short range
+                flywheelVelocityScalarMid.initDefault(1.92);    // Current tuned value
                 flywheelVelocityScalarLong.initDefault(2.14);   // TODO: tune for long range
                 
                 

@@ -214,10 +214,9 @@ public class RobotContainer {
             Commands.runOnce(() -> climberz.goToRetracted(), climberz)
         );
 
-       // Y button - toggle flywheel disable (emergency mode only)
-        m_driverController.y().and(() -> autoHeading.isEmergencyModeEnabled()).onTrue(
-            Commands.runOnce(() -> autoHeading.toggleEmergencyFlywheelDisable())
-        );
+        m_driverController.y().onTrue(
+            Commands.runOnce(() -> shooter.reverseKickup(), shooter))
+            .onFalse(Commands.runOnce(() -> shooter.stopAll(), shooter));
 
        m_driverController.rightTrigger(0.2)
             .onTrue(Commands.runOnce(() -> {

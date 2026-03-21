@@ -12,7 +12,7 @@ public class IntakeConstants {
     public static final double extensionHomingTimeoutSeconds = 0.5;  // Time to run toward hard stop
 
     public static final double dployDutyCycle = 0.5;
-    public static final double rollerIntakeDutyCycle = 1;
+    public static final double rollerIntakeDutyCycle = -1;
     public static final double rollerEjectDutyCycle = -0.5;
     public static final double rollerStartDelaySeconds = 0.25;
 
@@ -110,13 +110,13 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(3.36);  // TODO: Tuned CAD Real: 3.8
+                extensionDeployedPosRot.initDefault(3.8);  // TODO: Tuned CAD Real: 3.8
                 extensionPosToleranceRot.initDefault(.05);
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(1000);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(1500);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(10);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(20);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID

@@ -110,6 +110,13 @@ public class VisionBase extends SubsystemBase{
         double distanceMultiplier = 1.0 + (input.avgTagDistance * input.avgTagDistance * VisionConstants.exponentialScalarMultiplier); // increase if bad values 
         xyStdDev *= distanceMultiplier;
         rotStdDev *= distanceMultiplier;
+
+        double poseDelta = drivetrain.getPose().getTranslation()
+            .getDistance(input.pose.getTranslation());
+
+        if(poseDelta > 1){
+            xyStdDev += poseDelta;
+        }
         
         // Hard limits - don't trust too much or reject entirely
         xyStdDev = Math.max(0.3, Math.min(xyStdDev, 5.0));

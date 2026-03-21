@@ -150,6 +150,10 @@ public class ShooterBase extends SubsystemBase {
                 scalarZone = boostedScalarMode ? "LongBoosted" : "Long";
             }
         }
+
+        scalar = 0;
+
+        scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
         
         double finalVelocity = velocityRPM * scalar;
         

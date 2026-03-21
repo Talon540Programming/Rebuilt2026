@@ -42,7 +42,7 @@ public class IndexIOKraken implements IndexIO {
         
         // Motor direction - may need to change based on testing
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; 
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         
         motor.getConfigurator().apply(config);
         
