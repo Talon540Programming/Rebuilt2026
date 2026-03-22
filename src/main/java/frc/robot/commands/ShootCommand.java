@@ -43,7 +43,7 @@ public class ShootCommand extends Command {
     private boolean readyToShoot = false;
     
     // Fuel simulation timing
-    private static final double fuelSpawnInterval = 0.1; // 10 balls per second
+    private static final double fuelSpawnInterval = 0.25; // 10 balls per second
     private double timeSinceLastSpawn = 0.0;
     private static final double loopPeriod = 0.02; // 20ms loop
     
@@ -103,7 +103,7 @@ public class ShootCommand extends Command {
         
         // Command flywheel and hood
         shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-        shooter.setHoodAngle(solution.hoodAngleRadians, solution.distanceMeters);
+        shooter.setHoodAngle(solution.hoodAngleRadians);
         
         // Log shooting parameters
         Logger.recordOutput("ShootCommand/DistanceMeters", solution.distanceMeters);

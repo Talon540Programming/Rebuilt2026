@@ -48,8 +48,6 @@ public class ShooterBase extends SubsystemBase {
     private Debouncer hoodOutOfBoundsDebouncer = 
         new Debouncer(ShooterConstants.hoodOutOfBoundsDebounceSeconds.get(), DebounceType.kRising);
 
-    // Boosted scalar mode for end-of-match
-    private boolean boostedScalarMode = false;
 
     
     public ShooterBase(FlywheelIO flywheelIO, HoodIO hoodIO, KickupIO kickupIO) {
@@ -128,38 +126,24 @@ public class ShooterBase extends SubsystemBase {
         currentState = ShooterState.SPINNING_UP;
         
         double scalar = 1.0;
-        String scalarZone = "None";
         
-       // Only apply scalar on real robot, not in simulation
+        // Only apply scalar on real robot, not in simulation
         if (applyScalar && !Robot.isSimulation()) {
-            // Select scalar based on distance (use boosted values if enabled)
-            if (distanceMeters <= ShooterConstants.shortToMidDistanceThreshold) {
-                scalar = boostedScalarMode 
-                    ? ShooterConstants.flywheelVelocityScalarShortBoosted 
-                    : ShooterConstants.flywheelVelocityScalarShort.get();
-                scalarZone = boostedScalarMode ? "ShortBoosted" : "Short";
-            } else if (distanceMeters <= ShooterConstants.midToLongDistanceThreshold) {
-                scalar = boostedScalarMode 
-                    ? ShooterConstants.flywheelVelocityScalarMidBoosted 
-                    : ShooterConstants.flywheelVelocityScalarMid.get();
-                scalarZone = boostedScalarMode ? "MidBoosted" : "Mid";
+            // Check if testing scalar is set (non-zero)
+            double testScalar = ShooterConstants.flywheelVelocityScalarTest.get();
+            if (testScalar > 0.0) {
+                // Use testing scalar for tuning
+                scalar = testScalar;
             } else {
-                scalar = boostedScalarMode 
-                    ? ShooterConstants.flywheelVelocityScalarLongBoosted 
-                    : ShooterConstants.flywheelVelocityScalarLong.get();
-                scalarZone = boostedScalarMode ? "LongBoosted" : "Long";
+                // Use exponential function: scalar = 1.72221 * 1.07112^distance
+                scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
             }
         }
-
-        scalar = 0;
-
-        scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
         
         double finalVelocity = velocityRPM * scalar;
         
         Logger.recordOutput("Shooter/Flywheel/RequestedRPM", velocityRPM);
         Logger.recordOutput("Shooter/Flywheel/DistanceMeters", distanceMeters);
-        Logger.recordOutput("Shooter/Flywheel/ScalarZone", scalarZone);
         Logger.recordOutput("Shooter/Flywheel/ScalarValue", scalar);
         Logger.recordOutput("Shooter/Flywheel/ScaledRPM", finalVelocity);
         
@@ -229,32 +213,7 @@ public class ShooterBase extends SubsystemBase {
         hoodIO.setPosition(angleRadians);
     }
     
-    /**
-     * Set hood to target angle with distance-based offset for long shots
-     * @param angleRadians target angle in radians
-     * @param distanceMeters distance to hub in meters
-     */
-    public void setHoodAngle(double angleRadians, double distanceMeters) {
-        if (!hoodHomed) {
-            Logger.recordOutput("Shooter/Hood/Warning", "Hood not homed - ignoring setHoodAngle");
-            return;
-        }
-        currentState = ShooterState.ADJUSTING_HOOD;
-        
-        double finalAngle = angleRadians;
-        boolean applyingOffset = false;
-        
-        // Apply additive offset for long shots
-        if (distanceMeters > ShooterConstants.midToLongDistanceThreshold) {
-            finalAngle += ShooterConstants.hoodLongShotOffsetRadians;
-            applyingOffset = true;
-        }
-        
-        Logger.recordOutput("Shooter/Hood/LongShotOffset", applyingOffset);
-        Logger.recordOutput("Shooter/Hood/OffsetValueDeg", Math.toDegrees(ShooterConstants.hoodLongShotOffsetRadians));
-        
-        hoodIO.setPosition(finalAngle);
-    }
+
     /**
      * Stop the hood motor
      */
@@ -353,11 +312,11 @@ public class ShooterBase extends SubsystemBase {
      * Prepare to shoot - spin up flywheel and set hood angle
      * @param velocityRPM target flywheel velocity
      * @param hoodAngleRadians target hood angle
-     * @param distanceMeters distance to hub for scalar and hood offset selection
+     * @param distanceMeters distance to hub for scalar selection
      */
     public void prepareToShoot(double velocityRPM, double hoodAngleRadians, double distanceMeters) {
         setFlywheelVelocity(velocityRPM, distanceMeters);
-        setHoodAngle(hoodAngleRadians, distanceMeters);
+        setHoodAngle(hoodAngleRadians);
     }
     
     /**
@@ -421,18 +380,4 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Hood/OutOfBoundsTriggered", false);
     }
     
-    /**
-     * Toggle boosted scalar mode for end-of-match
-     */
-    public void toggleBoostedScalarMode() {
-        boostedScalarMode = !boostedScalarMode;
-        Logger.recordOutput("Shooter/BoostedScalarMode", boostedScalarMode);
-    }
-    
-    /**
-     * Check if boosted scalar mode is enabled
-     */
-    public boolean isBoostedScalarMode() {
-        return boostedScalarMode;
-    }
 }

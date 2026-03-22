@@ -252,13 +252,9 @@ public class RobotContainer {
             )
         );
 
-        // Right bumper - emergency shooting toggle (emergency mode) OR boosted scalar toggle (normal mode)
-        m_driverController.rightBumper().onTrue(
-            Commands.either(
-                Commands.runOnce(() -> autoHeading.toggleEmergencyShooting()),
-                Commands.runOnce(() -> shooter.toggleBoostedScalarMode()),
-                () -> autoHeading.isEmergencyModeEnabled()
-            )
+        // Right bumper - emergency shooting toggle (emergency mode only)
+        m_driverController.rightBumper().and(() -> autoHeading.isEmergencyModeEnabled()).onTrue(
+            Commands.runOnce(() -> autoHeading.toggleEmergencyShooting())
         );
         
         headingDrive.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
@@ -359,7 +355,6 @@ public class RobotContainer {
                 
                 // Hood positioning
                 double hoodAngleRadians = 0;
-                double distanceMeters = 0.0;
                 
                 if (autoHeading.isEmergencyModeEnabled()) {
                     // Emergency mode - use preset hood angle
@@ -386,12 +381,10 @@ public class RobotContainer {
                         // Hub shooting - use static calculator (no movement compensation)
                         var solution = ShootingCalculator.calculateSolution(robotPose, isRed);
                         hoodAngleRadians = solution.hoodAngleRadians;
-                        distanceMeters = solution.distanceMeters;
                     } else {
                         // Passing mode
                         var solution = ShootingCalculator.calculatePassingSolution(robotPose, isRed);
                         hoodAngleRadians = solution.hoodAngleRadians;
-                        distanceMeters = solution.distanceMeters;
                     }
                     
                     // Handle hood - retract if near trench, otherwise set calculated angle
@@ -400,7 +393,7 @@ public class RobotContainer {
                         Logger.recordOutput("Shooter/AutoRetract", true);
                         Logger.recordOutput("Shooter/AutoRetractReason", "NearTrench");
                     } else {
-                        shooter.setHoodAngle(hoodAngleRadians, distanceMeters);
+                        shooter.setHoodAngle(hoodAngleRadians);
                         Logger.recordOutput("Shooter/AutoRetract", false);
                         Logger.recordOutput("Shooter/AutoRetractReason", "None");
                     }
@@ -484,12 +477,34 @@ public class RobotContainer {
             )
         );
         
-        // "StopShooting" - Stop kickup/index (flywheel keeps spinning via default command)
+        // "StopShooting" - Stop kickup/index and flywheel
         NamedCommands.registerCommand("StopShooting",
             Commands.runOnce(() -> {
                 shooter.stopKickup();
+                shooter.stopFlywheel();
                 index.stop();
             }, shooter, index)
+        );
+        
+        // "SpinUpFlywheel" - Spin up flywheel and position hood based on current position
+        // Uses static calculation (no movement compensation)
+        // Will be overridden by ShootCommand, stopped by StopShooting
+        NamedCommands.registerCommand("SpinUpFlywheel",
+            shooter.run(() -> {
+                Pose2d robotPose = drivetrain.getPose();
+                boolean isRed = vision.isRedAlliance();
+                
+                // Use static calculation (no movement compensation)
+                var solution = ShootingCalculator.calculateSolution(robotPose, isRed);
+                
+                // Command flywheel and hood
+                shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
+                shooter.setHoodAngle(solution.hoodAngleRadians);
+                
+                Logger.recordOutput("SpinUpFlywheel/DistanceMeters", solution.distanceMeters);
+                Logger.recordOutput("SpinUpFlywheel/FlywheelRPM", solution.flywheelRPM);
+                Logger.recordOutput("SpinUpFlywheel/HoodAngleDeg", Math.toDegrees(solution.hoodAngleRadians));
+            })
         );
         
         // ==================== INTAKE COMMANDS ====================
