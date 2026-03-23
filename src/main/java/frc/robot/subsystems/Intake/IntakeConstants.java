@@ -82,8 +82,8 @@ public class IntakeConstants {
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(15);
-                extensionMMAccelRotPerSec2.initDefault(30);
+                extensionMMCruiseVelRotPerSec.initDefault(1000);
+                extensionMMAccelRotPerSec2.initDefault(200);
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID
@@ -110,13 +110,13 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(3.8);  // TODO: Tuned CAD Real: 3.8
+                extensionDeployedPosRot.initDefault(3.75);  // TODO: Tuned CAD Real: 3.8
                 extensionPosToleranceRot.initDefault(.05);
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(10);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(20);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(1000);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(1500);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID

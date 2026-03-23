@@ -136,8 +136,13 @@ public class ShooterBase extends SubsystemBase {
                 scalar = testScalar;
             } else {
                 // Use exponential function: scalar = 1.72221 * 1.07112^distance
-                scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
+                // scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
+                scalar = (0.247235 * distanceMeters) + 1.42105;
             }
+        }
+
+        if(scalar > 2.3){
+            scalar = 2.3;
         }
         
         double finalVelocity = velocityRPM * scalar;
