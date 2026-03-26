@@ -115,8 +115,8 @@ public class IntakeConstants {
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(1000);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(1500);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(500);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(1000);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID

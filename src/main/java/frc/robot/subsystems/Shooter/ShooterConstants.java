@@ -166,7 +166,7 @@ public class ShooterConstants {
                 hoodSupplyCurrentLimit.initDefault(30);
                 
                 // Hood homing
-                hoodHomingDutyCycle.initDefault(0.1);
+                hoodHomingDutyCycle.initDefault(0.4);
                 hoodHomingTimeoutSeconds.initDefault(0.75);
                 hoodOutOfBoundsDebounceSeconds.initDefault(0.25);
             }
