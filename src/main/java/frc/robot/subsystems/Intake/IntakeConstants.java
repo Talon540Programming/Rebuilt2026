@@ -110,7 +110,7 @@ public class IntakeConstants {
                 // Pivot Motion Magic
                 extensionSensorToMechanismRatio.initDefault(6.4286);  // TODO:Tuned Cad
                 extensionStowedPosRot.initDefault(0);
-                extensionDeployedPosRot.initDefault(3.75);  // TODO: Tuned CAD Real: 3.8
+                extensionDeployedPosRot.initDefault(3.6);  // TODO: Tuned CAD Real: 3.8
                 extensionPosToleranceRot.initDefault(.05);
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
