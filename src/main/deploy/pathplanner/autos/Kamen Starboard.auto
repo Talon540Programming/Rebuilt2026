@@ -5,13 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Port start"
+                  "pathName": "Kamen Starboard 1"
                 }
               },
               {
@@ -30,38 +30,13 @@
           }
         },
         {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Shoot"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 3.5
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Port to Nuetral Intake"
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Intake Nuetral Port V_2"
+                  "pathName": "Kamen Starboard 2"
                 }
               },
               {
@@ -74,7 +49,26 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Kamen Starboard 3"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "SpinUpFlywheel"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
           "data": {
             "commands": [
               {
@@ -90,7 +84,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 3.5
+                        "waitTime": 1.75
                       }
                     },
                     {
@@ -102,7 +96,83 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 999999999.0
+                        "waitTime": 2.0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Kamen Starboard 4"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Kamen Starboard 5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "DeployIntake"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "SpinUpFlywheel"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.75
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "RetractIntake"
+                      }
+                    },
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 99999999.0
                       }
                     }
                   ]

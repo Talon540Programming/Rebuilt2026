@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Goated Starboard Path 1"
+                  "pathName": "Plam Beach Port 1"
                 }
               },
               {
@@ -30,13 +30,13 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Goated Starboard Path 2"
+                  "pathName": "Palm Beach Port 2"
                 }
               },
               {
@@ -55,7 +55,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Goated Starboard Path 3"
+                  "pathName": "Plam Beach Port 3"
                 }
               },
               {
@@ -84,7 +84,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 1.75
+                        "waitTime": 2.125
                       }
                     },
                     {
@@ -106,16 +106,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Goated Starboard Path 4"
-                }
-              }
-            ]
+            "pathName": "Plam Beach Port 4"
           }
         },
         {
@@ -125,7 +118,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Goated Starboard Path 5"
+                  "pathName": "Palm Beach Port 5"
                 }
               },
               {
@@ -172,7 +165,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 99999999.0
+                        "waitTime": 9999999.0
                       }
                     }
                   ]
