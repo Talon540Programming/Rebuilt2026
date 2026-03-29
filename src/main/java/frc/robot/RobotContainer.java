@@ -40,7 +40,6 @@ import frc.robot.subsystems.Climberz.ClimberzBase;
 import frc.robot.subsystems.Climberz.ClimberzIOKraken;
 import frc.robot.subsystems.Climberz.ClimberzIOSim;
 import frc.robot.Constants.RobotDimensions;
-import frc.robot.Constants.ShootingConstants;
 import frc.robot.utility.FuelSim;
 import frc.robot.utility.ShootingCalculator;
 import frc.robot.utility.Telemetry;
@@ -328,85 +327,15 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        // Shooter default command - hood positioning only, flywheel coasts
-        // Flywheel only spins when ShootCommand is active (right trigger)
+        // Shooter default command - hood always retracted, flywheel coasts
+        // Hood only goes to shooting angle when ShootCommand is active (right trigger)
         shooter.setDefaultCommand(
             shooter.run(() -> {
-                Pose2d robotPose = drivetrain.getPose();
-                double robotX = robotPose.getX();
-                
-                // Check distance to both trenches (hub X positions)
-                double blueTrenchX = FieldPoses.blueHub.getX();
-                double redTrenchX = FieldPoses.redHub.getX();
-                double distanceToBlue = Math.abs(robotX - blueTrenchX);
-                double distanceToRed = Math.abs(robotX - redTrenchX);
-                double minDistance = Math.min(distanceToBlue, distanceToRed);
-                
-                // Check if emergency hood retract mode is active
-                boolean emergencyRetract = autoHeading.isEmergencyHoodRetractMode();
-                
-                // Check if near trench (only when NOT in emergency mode)
-                boolean nearTrench = !autoHeading.isEmergencyModeEnabled() && 
-                    minDistance < ShootingConstants.hoodRetractionDistanceMeters;
-                
                 // Flywheel always coasts in default command
                 shooter.stopFlywheel();
-                Logger.recordOutput("Shooter/FlywheelMode", "Coast");
                 
-                // Hood positioning
-                double hoodAngleRadians = 0;
-                
-                if (autoHeading.isEmergencyModeEnabled()) {
-                    // Emergency mode - use preset hood angle
-                    if (autoHeading.isEmergencyPassingMode()) {
-                        hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.passingHoodAngleDegrees);
-                    } else {
-                        hoodAngleRadians = Math.toRadians(Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
-                    }
-                    
-                    if (!emergencyRetract) {
-                        shooter.setHoodAngle(hoodAngleRadians);
-                    }
-                } else {
-                    // Normal mode - calculate hood angle based on position
-                    boolean isRed = vision.isRedAlliance();
-                    boolean shouldShoot;
-                    if (isRed) {
-                        shouldShoot = robotX > FieldPoses.redHub.getX();
-                    } else {
-                        shouldShoot = robotX < FieldPoses.blueHub.getX();
-                    }
-                    
-                    if (shouldShoot) {
-                        // Hub shooting - use static calculator (no movement compensation)
-                        var solution = ShootingCalculator.calculateSolution(robotPose, isRed);
-                        hoodAngleRadians = solution.hoodAngleRadians;
-                    } else {
-                        // Passing mode
-                        var solution = ShootingCalculator.calculatePassingSolution(robotPose, isRed);
-                        hoodAngleRadians = solution.hoodAngleRadians;
-                    }
-                    
-                    // Handle hood - retract if near trench, otherwise set calculated angle
-                    if (nearTrench) {
-                        shooter.retractHood();
-                        Logger.recordOutput("Shooter/AutoRetract", true);
-                        Logger.recordOutput("Shooter/AutoRetractReason", "NearTrench");
-                    } else {
-                        shooter.setHoodAngle(hoodAngleRadians);
-                        Logger.recordOutput("Shooter/AutoRetract", false);
-                        Logger.recordOutput("Shooter/AutoRetractReason", "None");
-                    }
-                }
-                
-                // Handle emergency retract mode
-                if (emergencyRetract) {
-                    shooter.retractHood();
-                    Logger.recordOutput("Shooter/AutoRetract", true);
-                    Logger.recordOutput("Shooter/AutoRetractReason", "EmergencyMode");
-                }
-                
-                Logger.recordOutput("Shooter/DistanceToNearestTrench", minDistance);
+                // Hood always retracted to avoid hitting trench
+                shooter.retractHood();
             })
         );
 
@@ -486,8 +415,8 @@ public class RobotContainer {
             }, shooter, index)
         );
         
-        // "SpinUpFlywheel" - Spin up flywheel and position hood based on current position
-        // Uses static calculation (no movement compensation)
+        // "SpinUpFlywheel" - Spin up flywheel only, hood stays retracted
+        // Hood will be set to correct angle when ShootCommand takes over
         // Will be overridden by ShootCommand, stopped by StopShooting
         NamedCommands.registerCommand("SpinUpFlywheel",
             shooter.run(() -> {
@@ -497,13 +426,12 @@ public class RobotContainer {
                 // Use static calculation (no movement compensation)
                 var solution = ShootingCalculator.calculateSolution(robotPose, isRed);
                 
-                // Command flywheel and hood
+                // Spin up flywheel only, keep hood retracted
                 shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-                shooter.setHoodAngle(solution.hoodAngleRadians);
+                shooter.retractHood();
                 
                 Logger.recordOutput("SpinUpFlywheel/DistanceMeters", solution.distanceMeters);
                 Logger.recordOutput("SpinUpFlywheel/FlywheelRPM", solution.flywheelRPM);
-                Logger.recordOutput("SpinUpFlywheel/HoodAngleDeg", Math.toDegrees(solution.hoodAngleRadians));
             })
         );
         
