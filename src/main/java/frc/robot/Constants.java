@@ -188,12 +188,12 @@ public final class Constants {
 
   public static final class EmergencyModeConstants {
     // Emergency shooting preset (hub shot)
-    public static final double shootingRPM = 2400;
+    public static final double shootingRPM = 500;
     public static final double shootingHoodAngleDegrees = 18;
     
     // Emergency passing preset (lob shot) - TODO: Update with real values
-    public static final double passingRPM = 2500;
-    public static final double passingHoodAngleDegrees = 45;
+    public static final double passingRPM = 1700;
+    public static final double passingHoodAngleDegrees = 18;
   }
 
 }
