@@ -78,9 +78,11 @@ public class VisionBase extends SubsystemBase{
             .getDistance(input.pose.getTranslation());
 
         // Allow big corrections when vision is confident
-        boolean visionIsConfident = input.seenTagCount > 1 && input.avgTagDistance < 3.0;
+        boolean visionIsConfident = 
+            input.seenTagCount > VisionConstants.confidenceTagAmount &&
+            input.avgTagDistance < VisionConstants.confidenceTagDistance;
 
-        if (poseDelta > 1.5 && !visionIsConfident) {
+        if (poseDelta > VisionConstants.poseDeltaTrust && !visionIsConfident) {
             Logger.recordOutput("Vision/Rejected/" + input.cameraName, "Large jump with low confidence");
             return;
         }
