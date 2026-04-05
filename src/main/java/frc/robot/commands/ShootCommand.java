@@ -39,6 +39,7 @@ public class ShootCommand extends Command {
     private final Supplier<Boolean> headingAtTargetSupplier;
     private final Supplier<Boolean> emergencyModeSupplier;
     private final Supplier<Boolean> isRedAllianceSupplier;
+    private final Supplier<Boolean> isDriverMovingSupplier;
 
     private boolean readyToShoot = false;
     
@@ -59,6 +60,7 @@ public class ShootCommand extends Command {
      * @param headingAtTargetSupplier Supplier for whether heading is at target
      * @param emergencyModeSupplier Supplier for whether emergency mode is active
      * @param isRedAllianceSupplier Supplier for whether robot is on red alliance
+     * @param isDriverMovingSupplier Supplier for whether driver is moving joystick (for shoot-while-moving tolerance)
      */
     public ShootCommand(ShooterBase shooter, IndexBase index, 
                         Supplier<Pose2d> poseSupplier,
@@ -67,7 +69,8 @@ public class ShootCommand extends Command {
                         Supplier<Double> targetHeadingSupplier,
                         Supplier<Boolean> headingAtTargetSupplier,
                         Supplier<Boolean> emergencyModeSupplier,
-                        Supplier<Boolean> isRedAllianceSupplier) {
+                        Supplier<Boolean> isRedAllianceSupplier,
+                        Supplier<Boolean> isDriverMovingSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
@@ -77,6 +80,7 @@ public class ShootCommand extends Command {
         this.headingAtTargetSupplier = headingAtTargetSupplier;
         this.emergencyModeSupplier = emergencyModeSupplier;
         this.isRedAllianceSupplier = isRedAllianceSupplier;
+        this.isDriverMovingSupplier = isDriverMovingSupplier;
         
         // Require both shooter and index since we control flywheel/hood directly
         addRequirements(shooter, index);
@@ -118,12 +122,34 @@ public class ShootCommand extends Command {
             boolean flywheelReady = shooter.isFlywheelAtSetpoint() && 
                 shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get();
             boolean hoodReady = isEmergencyMode || shooter.isHoodAtSetpoint();
-            boolean headingReady = isEmergencyMode || headingAtTargetSupplier.get();
+            
+            // Check heading with larger tolerance when driver is moving
+            boolean isDriverMoving = isDriverMovingSupplier.get();
+            boolean headingAtTarget = headingAtTargetSupplier.get();
+            
+            // Use 15 degree tolerance when moving, otherwise use normal tolerance check
+            boolean headingReady;
+            if (isEmergencyMode) {
+                headingReady = true;
+            } else if (isDriverMoving) {
+                // Calculate heading error manually with larger tolerance
+                double currentHeading = currentHeadingSupplier.get();
+                double targetHeading = targetHeadingSupplier.get();
+                double headingError = Math.abs(targetHeading - currentHeading);
+                if (headingError > Math.PI) {
+                    headingError = 2 * Math.PI - headingError;
+                }
+                headingReady = headingError < Math.toRadians(15);
+            } else {
+                headingReady = headingAtTarget;
+            }
             
             Logger.recordOutput("ShootCommand/EmergencyMode", isEmergencyMode);
             Logger.recordOutput("ShootCommand/FlywheelReady", flywheelReady);
             Logger.recordOutput("ShootCommand/HoodReady", hoodReady);
+            Logger.recordOutput("ShootCommand/IsDriverMoving", isDriverMoving);
             Logger.recordOutput("ShootCommand/HeadingReady", headingReady);
+            Logger.recordOutput("ShootCommand/HeadingToleranceUsed", isDriverMoving ? 15.0 : 5.0);
             Logger.recordOutput("ShootCommand/CurrentHeading", Math.toDegrees(currentHeadingSupplier.get()));
             Logger.recordOutput("ShootCommand/TargetHeading", Math.toDegrees(targetHeadingSupplier.get()));
             

@@ -36,9 +36,7 @@ import frc.robot.subsystems.Shooter.Kickup.KickupIOKraken;
 import frc.robot.subsystems.Shooter.Kickup.KickupIOSim;
 import frc.robot.subsystems.Vision.VisionBase;
 import frc.robot.subsystems.Vision.VisionIOLimelight;
-import frc.robot.subsystems.Climberz.ClimberzBase;
-import frc.robot.subsystems.Climberz.ClimberzIOKraken;
-import frc.robot.subsystems.Climberz.ClimberzIOSim;
+
 import frc.robot.Constants.RobotDimensions;
 import frc.robot.utility.FuelSim;
 import frc.robot.utility.ShootingCalculator;
@@ -87,12 +85,9 @@ public class RobotContainer {
     private final KickupIOSim kickupIOSim = new KickupIOSim(); 
     private final IndexIOKraken indexIOKraken = new IndexIOKraken();
     private final IndexIOSim indexIOSim = new IndexIOSim();
-    private final ClimberzIOKraken climberzIOKraken = new ClimberzIOKraken();
-    private final ClimberzIOSim climberzIOSim = new ClimberzIOSim();
     private final IntakeBase intake;
     private final ShooterBase shooter;
     private final IndexBase index;
-    private final ClimberzBase climberz;
     @SuppressWarnings("unused")
     private final LEDBase LEDs;
 
@@ -105,8 +100,6 @@ public class RobotContainer {
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(4);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(4);
     private final SlewRateLimiter rotLimiter = new SlewRateLimiter(4);
-
-    // Double tap detection for climber
 
     private static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(edu.wpi.first.units.Units.MetersPerSecond);
     private double MaxAngularRate = RotationsPerSecond.of(1.5).in(RadiansPerSecond);
@@ -133,14 +126,12 @@ public class RobotContainer {
         intake = new IntakeBase(extensionIOSim, rollerIOSim);
         shooter = new ShooterBase(flywheelIOSim, hoodIOSim, kickupIOSim);
         index = new IndexBase(indexIOSim);
-        climberz = new ClimberzBase(climberzIOSim);
         shooter.forceHoodHomed();
         } 
         else {
         intake = new IntakeBase(extensionIO, rollerIOKraken);
         shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
         index = new IndexBase(indexIOKraken);
-        climberz = new ClimberzBase(climberzIOKraken);
         }
 
         LEDs = new LEDBase(
@@ -199,18 +190,12 @@ public class RobotContainer {
             new JiggleCommand(intake)
         );
 
-   // Climber controls - dpad down to climb (retract), dpad up to release (extend)
-        m_driverController.povDown()
-            .whileTrue(Commands.run(() -> climberz.climbUp(), climberz))
-            .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
-        
-        m_driverController.povUp()
-            .whileTrue(Commands.run(() -> climberz.climbDown(), climberz))
-            .onFalse(Commands.runOnce(() -> climberz.stop(), climberz));
-        
-        // A button - retract climber using position control
-        m_driverController.a().onTrue(
-            Commands.runOnce(() -> climberz.goToRetracted(), climberz)
+        // Dpad up/down - manual flywheel scalar adjustment
+        m_driverController.povUp().onTrue(
+            Commands.runOnce(() -> shooter.increaseScalarOffset())
+        );
+        m_driverController.povDown().onTrue(
+            Commands.runOnce(() -> shooter.decreaseScalarOffset())
         );
 
         m_driverController.y().onTrue(
@@ -233,7 +218,12 @@ public class RobotContainer {
                     () -> autoHeading.getTargetHeading().getRadians(),
                     () -> autoHeading.isHeadingAtTarget(drivetrain.getHeading().getRadians()),
                     () -> autoHeading.isEmergencyModeEnabled(),
-                    () -> vision.isRedAlliance()
+                    () -> vision.isRedAlliance(),
+                    () -> {  // isDriverMoving - check if joystick is being moved
+                        double rawX = Math.abs(m_driverController.getLeftY());
+                        double rawY = Math.abs(m_driverController.getLeftX());
+                        return rawX > OperatorConstants.deadband || rawY > OperatorConstants.deadband;
+                    }
                     )
                 )
             .onFalse(Commands.runOnce(() -> {
@@ -402,7 +392,8 @@ public class RobotContainer {
                 () -> 0.0,   // No target heading for auto
                 () -> true,  // Always ready for auto (heading not checked)
                 () -> false, // Not emergency mode
-                () -> vision.isRedAlliance()
+                () -> vision.isRedAlliance(),
+                () -> false  // Not moving joystick in auto (use normal tolerance)
             )
         );
         
@@ -460,21 +451,7 @@ public class RobotContainer {
             shooter.hoodHomingSequence()
         );
     }
-    
-    // ==================== CLIMBER COMMANDS ====================
-    
-    /* 
-     *   // "ClimbExtend" - Extend climber using position control
-    NamedCommands.registerCommand("ClimbExtend",
-        Commands.runOnce(() -> climberz.goToExtended(), climberz)
-    );
-    
-    // "ClimbRetract" - Retract climber using position control
-    NamedCommands.registerCommand("ClimbRetract",
-        Commands.runOnce(() -> climberz.goToRetracted(), climberz)
-    );
-}
-    */
+
      
 
     /**

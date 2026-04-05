@@ -47,6 +47,9 @@ public class ShooterBase extends SubsystemBase {
     // Hood out-of-bounds detection
     private Debouncer hoodOutOfBoundsDebouncer = 
         new Debouncer(ShooterConstants.hoodOutOfBoundsDebounceSeconds.get(), DebounceType.kRising);
+    
+    // Manual flywheel scalar offset - adjustable via dpad during match
+    private double flywheelScalarOffset = 0.0;
 
 
     
@@ -138,7 +141,12 @@ public class ShooterBase extends SubsystemBase {
                 // Use exponential function: scalar = 1.72221 * 1.07112^distance
                 // scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
                 //scalar = (0.247235 * distanceMeters) + 1.3; //1.42105 this is old scalar method linear 
-                scalar = 1.36 + 0.346582 * Math.log(distanceMeters); // last working verison at comp
+                double baseConstant = 1.36;
+                double adjustedConstant = baseConstant + flywheelScalarOffset;
+                scalar = adjustedConstant + 0.346582 * Math.log(distanceMeters);
+                Logger.recordOutput("Shooter/Flywheel/ScalarBaseConstant", baseConstant);
+                Logger.recordOutput("Shooter/Flywheel/ScalarOffset", flywheelScalarOffset);
+                Logger.recordOutput("Shooter/Flywheel/ScalarAdjustedConstant", adjustedConstant);
                 //scalar = 1.64471 + 0.346582 * Math.log(distanceMeters); og tested value
             }
         }
@@ -370,6 +378,24 @@ public class ShooterBase extends SubsystemBase {
      */
     public void simulateFlywheelShot() {
         flywheelIO.simulateShot();
+    }
+
+    /**
+     * Increase the flywheel scalar offset by 0.025
+     * Used for manual adjustment during match via dpad up
+     */
+    public void increaseScalarOffset() {
+        flywheelScalarOffset += 0.025;
+        Logger.recordOutput("Shooter/Flywheel/ScalarOffset", flywheelScalarOffset);
+    }
+    
+    /**
+     * Decrease the flywheel scalar offset by 0.025
+     * Used for manual adjustment during match via dpad down
+     */
+    public void decreaseScalarOffset() {
+        flywheelScalarOffset -= 0.025;
+        Logger.recordOutput("Shooter/Flywheel/ScalarOffset", flywheelScalarOffset);
     }
 
     /**
