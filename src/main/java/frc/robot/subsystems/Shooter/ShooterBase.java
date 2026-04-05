@@ -138,7 +138,8 @@ public class ShooterBase extends SubsystemBase {
                 // Use exponential function: scalar = 1.72221 * 1.07112^distance
                 // scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
                 //scalar = (0.247235 * distanceMeters) + 1.3; //1.42105 this is old scalar method linear 
-                scalar = 1.64471 + 0.346582 * Math.log(distanceMeters);
+                scalar = 1.36 + 0.346582 * Math.log(distanceMeters); // last working verison at comp
+                //scalar = 1.64471 + 0.346582 * Math.log(distanceMeters); og tested value
             }
         }
         
