@@ -39,7 +39,7 @@ public class RollerIOKraken implements RollerIO {
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
         // Motor direction - adjust based on your mechanism
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         roller.getConfigurator().apply(config);

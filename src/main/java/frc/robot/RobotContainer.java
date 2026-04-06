@@ -223,7 +223,8 @@ public class RobotContainer {
                         double rawX = Math.abs(m_driverController.getLeftY());
                         double rawY = Math.abs(m_driverController.getLeftX());
                         return rawX > OperatorConstants.deadband || rawY > OperatorConstants.deadband;
-                    }
+                    },
+                    () -> autoHeading.isEmergencyPassingMode()
                     )
                 )
             .onFalse(Commands.runOnce(() -> {
@@ -393,7 +394,8 @@ public class RobotContainer {
                 () -> true,  // Always ready for auto (heading not checked)
                 () -> false, // Not emergency mode
                 () -> vision.isRedAlliance(),
-                () -> false  // Not moving joystick in auto (use normal tolerance)
+                () -> false, // Not moving joystick in auto (use normal tolerance)
+                () -> false  // Not emergency passing mode in auto
             )
         );
         

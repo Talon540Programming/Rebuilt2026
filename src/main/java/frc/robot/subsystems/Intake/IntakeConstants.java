@@ -12,7 +12,7 @@ public class IntakeConstants {
     public static final double extensionHomingTimeoutSeconds = 0.5;  // Time to run toward hard stop
 
     public static final double dployDutyCycle = 0.5;
-    public static final double rollerIntakeDutyCycle = -1;
+    public static final double rollerIntakeDutyCycle = 1;
     public static final double rollerEjectDutyCycle = -0.5;
     public static final double rollerStartDelaySeconds = 0.25;
 

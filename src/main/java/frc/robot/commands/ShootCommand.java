@@ -40,6 +40,7 @@ public class ShootCommand extends Command {
     private final Supplier<Boolean> emergencyModeSupplier;
     private final Supplier<Boolean> isRedAllianceSupplier;
     private final Supplier<Boolean> isDriverMovingSupplier;
+    private final Supplier<Boolean> isEmergencyPassingModeSupplier;
 
     private boolean readyToShoot = false;
     
@@ -61,6 +62,7 @@ public class ShootCommand extends Command {
      * @param emergencyModeSupplier Supplier for whether emergency mode is active
      * @param isRedAllianceSupplier Supplier for whether robot is on red alliance
      * @param isDriverMovingSupplier Supplier for whether driver is moving joystick (for shoot-while-moving tolerance)
+     * @param isEmergencyPassingModeSupplier Supplier for whether emergency passing mode is active
      */
     public ShootCommand(ShooterBase shooter, IndexBase index, 
                         Supplier<Pose2d> poseSupplier,
@@ -70,7 +72,8 @@ public class ShootCommand extends Command {
                         Supplier<Boolean> headingAtTargetSupplier,
                         Supplier<Boolean> emergencyModeSupplier,
                         Supplier<Boolean> isRedAllianceSupplier,
-                        Supplier<Boolean> isDriverMovingSupplier) {
+                        Supplier<Boolean> isDriverMovingSupplier,
+                        Supplier<Boolean> isEmergencyPassingModeSupplier) {
         this.shooter = shooter;
         this.index = index;
         this.poseSupplier = poseSupplier;
@@ -81,6 +84,7 @@ public class ShootCommand extends Command {
         this.emergencyModeSupplier = emergencyModeSupplier;
         this.isRedAllianceSupplier = isRedAllianceSupplier;
         this.isDriverMovingSupplier = isDriverMovingSupplier;
+        this.isEmergencyPassingModeSupplier = isEmergencyPassingModeSupplier;
         
         // Require both shooter and index since we control flywheel/hood directly
         addRequirements(shooter, index);
@@ -97,27 +101,55 @@ public class ShootCommand extends Command {
         Pose2d robotPose = poseSupplier.get();
         ChassisSpeeds velocity = velocitySupplier.get();
         boolean isRed = isRedAllianceSupplier.get();
+        boolean isEmergencyMode = emergencyModeSupplier.get();
         
-        // Calculate shooting solution with movement compensation
-        var solution = ShootingCalculator.calculateSolutionWithMovement(
-            robotPose,
-            velocity,
-            isRed
-        );
+        double flywheelRPM;
+        double hoodAngleRadians;
+        double distanceMeters;
         
-        // Command flywheel and hood
-        shooter.setFlywheelVelocity(solution.flywheelRPM, solution.distanceMeters);
-        shooter.setHoodAngle(solution.hoodAngleRadians);
+        if (isEmergencyMode) {
+            // Emergency mode - use preset constants
+            boolean isEmergencyPassing = isEmergencyPassingModeSupplier.get();
+            
+            if (isEmergencyPassing) {
+                flywheelRPM = frc.robot.Constants.EmergencyModeConstants.passingRPM;
+                hoodAngleRadians = Math.toRadians(frc.robot.Constants.EmergencyModeConstants.passingHoodAngleDegrees);
+            } else {
+                flywheelRPM = frc.robot.Constants.EmergencyModeConstants.shootingRPM;
+                hoodAngleRadians = Math.toRadians(frc.robot.Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
+            }
+            distanceMeters = 0.0; // Not used in emergency mode
+            
+            // Command flywheel without scalar and set hood
+            shooter.setFlywheelVelocityNoDistance(flywheelRPM, false);
+            shooter.setHoodAngle(hoodAngleRadians);
+            
+            Logger.recordOutput("ShootCommand/EmergencyPassingMode", isEmergencyPassing);
+        } else {
+            // Normal mode - calculate shooting solution with movement compensation
+            var solution = ShootingCalculator.calculateSolutionWithMovement(
+                robotPose,
+                velocity,
+                isRed
+            );
+            
+            flywheelRPM = solution.flywheelRPM;
+            hoodAngleRadians = solution.hoodAngleRadians;
+            distanceMeters = solution.distanceMeters;
+            
+            // Command flywheel and hood
+            shooter.setFlywheelVelocity(flywheelRPM, distanceMeters);
+            shooter.setHoodAngle(hoodAngleRadians);
+        }
         
         // Log shooting parameters
-        Logger.recordOutput("ShootCommand/DistanceMeters", solution.distanceMeters);
-        Logger.recordOutput("ShootCommand/FlywheelRPM", solution.flywheelRPM);
-        Logger.recordOutput("ShootCommand/HoodAngleDeg", Math.toDegrees(solution.hoodAngleRadians));
+        Logger.recordOutput("ShootCommand/DistanceMeters", distanceMeters);
+        Logger.recordOutput("ShootCommand/FlywheelRPM", flywheelRPM);
+        Logger.recordOutput("ShootCommand/HoodAngleDeg", Math.toDegrees(hoodAngleRadians));
+        Logger.recordOutput("ShootCommand/EmergencyMode", isEmergencyMode);
         
         // Wait for all conditions to be met the FIRST time only
         if (!readyToShoot) {
-            boolean isEmergencyMode = emergencyModeSupplier.get();
-            
             // Check readiness conditions
             boolean flywheelReady = shooter.isFlywheelAtSetpoint() && 
                 shooter.getFlywheelVelocityRPM() > ShooterConstants.flywheelVelToleranceRPM.get();
