@@ -10,7 +10,10 @@ public interface RollerIO {
         public double appliedVolts = 0.0;
         public double currentAmps = 0.0;
         public double tempCelsius = 0.0;
-        public boolean hasGamePiece = false;
+        
+        // Follower motor inputs
+        public double followerCurrentAmps = 0.0;
+        public double followerTempCelsius = 0.0;
     }
     
     /** Updates the set of loggable inputs */

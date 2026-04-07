@@ -132,14 +132,14 @@ public class IntakeBase extends SubsystemBase {
         
         Logger.recordOutput("Intake/Roller/VelocityRotPerSec", rollerInputs.velocityRotPerSec);
         Logger.recordOutput("Intake/Roller/AppliedVolts", rollerInputs.appliedVolts);
-        Logger.recordOutput("Intake/Roller/CurrentAmps", rollerInputs.currentAmps);
-        Logger.recordOutput("Intake/Roller/TempCelsius", rollerInputs.tempCelsius);
-        Logger.recordOutput("Intake/Roller/HasGamePiece", rollerInputs.hasGamePiece);
+        Logger.recordOutput("Intake/Roller/LeaderCurrentAmps", rollerInputs.currentAmps);
+        Logger.recordOutput("Intake/Roller/LeaderTempCelsius", rollerInputs.tempCelsius);
+        Logger.recordOutput("Intake/Roller/FollowerCurrentAmps", rollerInputs.followerCurrentAmps);
+        Logger.recordOutput("Intake/Roller/FollowerTempCelsius", rollerInputs.followerTempCelsius);
         
         // Log state
         Logger.recordOutput("Intake/State", currentState.toString());
         Logger.recordOutput("Intake/Enabled", intakeEnabled);
-        Logger.recordOutput("Intake/HasGamePiece", hasGamePiece());
     }
     
     /**
@@ -203,10 +203,17 @@ public class IntakeBase extends SubsystemBase {
     }
     
     /**
-     * Check if a game piece is detected via current spike
+     * Get roller current for external monitoring (leader motor)
      */
-    public boolean hasGamePiece() {
-        return rollerInputs.hasGamePiece;
+    public double getRollerCurrent() {
+        return rollerInputs.currentAmps;
+    }
+    
+    /**
+     * Get follower roller current for external monitoring
+     */
+    public double getFollowerRollerCurrent() {
+        return rollerInputs.followerCurrentAmps;
     }
     
     /**
@@ -221,13 +228,6 @@ public class IntakeBase extends SubsystemBase {
      */
     public IntakeState getState() {
         return currentState;
-    }
-    
-    /**
-     * Get roller current for external monitoring
-     */
-    public double getRollerCurrent() {
-        return rollerInputs.currentAmps;
     }
 
     public boolean isHomed(){

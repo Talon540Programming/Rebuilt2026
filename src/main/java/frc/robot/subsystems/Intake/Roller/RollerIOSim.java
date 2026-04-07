@@ -12,26 +12,21 @@ public class RollerIOSim implements RollerIO {
     private static final double kGearing = 3.0; // Gear ratio
     private static final double kMOI = 0.01; // kg*m^2
     
-    // Create the plant (linear system model) first
+    // Create the plant (linear system model) first - using 2 Kraken X60s
     private final LinearSystem<N1, N1, N1> plant = LinearSystemId.createFlywheelSystem(
-        DCMotor.getKrakenX44(1),
+        DCMotor.getKrakenX60(2),
         kMOI,
         kGearing
     );
     
     // FlywheelSim constructor in 2026: (LinearSystem plant, DCMotor gearbox, double... measurementStdDevs)
+    // Using 2 Kraken X60s now
     private final FlywheelSim sim = new FlywheelSim(
         plant,
-        DCMotor.getKrakenX44(1)
+        DCMotor.getKrakenX60(2)
     );
     
     private double appliedVolts = 0.0;
-    private boolean isRunning = false;
-    private boolean simulatedGamePiece = false;
-    
-    public void simulateGamePieceContact(boolean contact) {
-        this.simulatedGamePiece = contact;
-    }
 
     @Override
     public void updateInputs(RollerIOInputs inputs) {
@@ -40,27 +35,23 @@ public class RollerIOSim implements RollerIO {
         inputs.velocityRotPerSec = sim.getAngularVelocityRPM() / 60.0;
         inputs.appliedVolts = appliedVolts;
         
-        // Simulate current spike when game piece contacts
-        if (isRunning && simulatedGamePiece) {
-            inputs.currentAmps = sim.getCurrentDrawAmps() + 20.0;  // Extra load
-        } else {
-            inputs.currentAmps = sim.getCurrentDrawAmps();
-        }
+        // Split current between two simulated motors
+        double totalCurrent = sim.getCurrentDrawAmps();
+        inputs.currentAmps = totalCurrent / 2.0;
+        inputs.followerCurrentAmps = totalCurrent / 2.0;
         
         inputs.tempCelsius = 25.0;
-        inputs.hasGamePiece = isRunning && simulatedGamePiece;
+        inputs.followerTempCelsius = 25.0;
     }
     
     @Override
     public void setDutyCycle(double dutyCycle) {
-        isRunning = Math.abs(dutyCycle) > 0.01;
         appliedVolts = dutyCycle * 12.0;
         sim.setInputVoltage(appliedVolts);
     }
     
     @Override
     public void stop() {
-        isRunning = false;
         appliedVolts = 0.0;
         sim.setInputVoltage(0.0);
     }
@@ -68,10 +59,5 @@ public class RollerIOSim implements RollerIO {
     @Override
     public void setBrakeMode(boolean brake) {
         // Simulation doesn't need brake mode
-    }
-    
-    /** For testing - simulate a game piece being present */
-    public void setSimulatedGamePiece(boolean hasGamePiece) {
-        this.simulatedGamePiece = hasGamePiece;
     }
 }

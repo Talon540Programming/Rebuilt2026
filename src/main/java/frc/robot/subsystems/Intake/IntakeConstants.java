@@ -6,7 +6,8 @@ import frc.robot.utility.LoggedTunableNumber;
 public class IntakeConstants {
     // Shared constants (same for sim and real)
     public static final int extensionMotorId = 13;
-    public static final int rollerMotorId = 14;
+    public static final int rollerMotor1Id = 14;
+    public static final int rollerMotor2Id = 16;
 
     public static final double extensionHomingDutyCycle = -0.6;  // Positive = toward stowed
     public static final double extensionHomingTimeoutSeconds = 0.5;  // Time to run toward hard stop
@@ -50,9 +51,7 @@ public class IntakeConstants {
     public static final LoggedTunableNumber extensionkG = 
         new LoggedTunableNumber("Intake/Extension/kG");
 
-    // Game piece detection
-    public static final LoggedTunableNumber gamePieceCurrentThreshold = 
-        new LoggedTunableNumber("Intake/GamePieceCurrentThreshold");
+
 
     // ===================== Crash / stall detection =====================
     public static final LoggedTunableNumber extensionCrashCurrentAmps = 
@@ -94,8 +93,7 @@ public class IntakeConstants {
                 extensionkV.initDefault(0.0);
                 extensionkG.initDefault(0.0);
 
-                // Game piece detection
-                gamePieceCurrentThreshold.initDefault(25);
+
 
                 // Crash detection
                 extensionCrashCurrentAmps.initDefault(50);
@@ -127,8 +125,7 @@ public class IntakeConstants {
                 extensionkV.initDefault(0);
                 extensionkG.initDefault(4);
 
-                // Game piece detection
-                gamePieceCurrentThreshold.initDefault(25);
+
 
                 // Crash detection
                 extensionCrashCurrentAmps.initDefault(50);  // TODO

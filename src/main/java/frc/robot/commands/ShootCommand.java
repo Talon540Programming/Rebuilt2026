@@ -13,6 +13,8 @@ import frc.robot.subsystems.Shooter.ShooterConstants;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.Constants.EmergencyModeConstants;
+import frc.robot.Constants.HeadingPID;
 import frc.robot.Robot;
 import frc.robot.Constants.ShootingConstants;
 
@@ -112,11 +114,11 @@ public class ShootCommand extends Command {
             boolean isEmergencyPassing = isEmergencyPassingModeSupplier.get();
             
             if (isEmergencyPassing) {
-                flywheelRPM = frc.robot.Constants.EmergencyModeConstants.passingRPM;
-                hoodAngleRadians = Math.toRadians(frc.robot.Constants.EmergencyModeConstants.passingHoodAngleDegrees);
+                flywheelRPM = EmergencyModeConstants.passingRPM;
+                hoodAngleRadians = Math.toRadians(EmergencyModeConstants.passingHoodAngleDegrees);
             } else {
-                flywheelRPM = frc.robot.Constants.EmergencyModeConstants.shootingRPM;
-                hoodAngleRadians = Math.toRadians(frc.robot.Constants.EmergencyModeConstants.shootingHoodAngleDegrees);
+                flywheelRPM = EmergencyModeConstants.shootingRPM;
+                hoodAngleRadians = Math.toRadians(EmergencyModeConstants.shootingHoodAngleDegrees);
             }
             distanceMeters = 0.0; // Not used in emergency mode
             
@@ -262,7 +264,7 @@ public class ShootCommand extends Command {
         double verticalSpeed = velocityMPS * Math.sin(launchAngle);
         
         // Get robot heading (direction the robot is facing)
-        double shooterAngleOffset = -frc.robot.Constants.HeadingPID.shooterThetaOffset.get();
+        double shooterAngleOffset = -HeadingPID.shooterThetaOffset.get();
         double heading = robotPose.getRotation().getRadians() + shooterAngleOffset;
         
         // Split horizontal speed into X and Y based on robot heading
