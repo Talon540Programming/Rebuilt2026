@@ -4,15 +4,12 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
@@ -33,22 +30,16 @@ public class FlywheelIOKraken implements FlywheelIO {
     private final StatusSignal<Current> currentAmps;
     private final StatusSignal<Temperature> tempCelsius;
     
-    // Control requests - MA style bang-bang using motor's internal 1kHz loop
-    private final VelocityDutyCycle velocityDutyCycle = new VelocityDutyCycle(0);
-    private final VelocityTorqueCurrentFOC velocityTorqueCurrent = new VelocityTorqueCurrentFOC(0);
+    // Motion Magic Velocity control request
+    private final MotionMagicVelocityVoltage motionMagicVelocity = new MotionMagicVelocityVoltage(0);
     
-    // Bang-bang state machine
     private double targetVelocityRPM = 0.0;
-    private FlywheelState currentState = FlywheelState.COAST;
-    private Debouncer idleDebouncer;
-    private long shotCount = 0;
-    
     
     public FlywheelIOKraken() {
         leaderMotor = new TalonFX(ShooterConstants.flywheelMotor1Id, TunerConstants.kCANBus);
         followerMotor = new TalonFX(ShooterConstants.flywheelMotor2Id, TunerConstants.kCANBus);
         
-       // Configure leader motor
+        // Configure leader motor
         TalonFXConfiguration config = new TalonFXConfiguration();
         
         // Current limits
@@ -57,36 +48,34 @@ public class FlywheelIOKraken implements FlywheelIO {
         config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.flywheelSupplyCurrentLimit.get();
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         
-        // Motor direction - both spin same way, configure on robot
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; //TODO Tuned Cad
+        // Motor direction
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         
-        // MA-style bang-bang configuration
-        // Extremely high kP makes velocity control act as bang-bang
-        // Motor's internal 1kHz loop handles the on/off switching
-        config.Slot0.kP = 999999.0;
-        config.Slot0.kI = 0.0;
-        config.Slot0.kD = 0.0;
-        config.Slot0.kS = 0.0;
-        config.Slot0.kV = 0.0;
-        config.Slot0.kA = 0.0;
-        
-        // Limit peak outputs for bang-bang behavior
-        // Duty cycle mode: full forward, no reverse
+        // Flywheel can only spin forward, no reverse
         config.MotorOutput.PeakForwardDutyCycle = 1.0;
         config.MotorOutput.PeakReverseDutyCycle = 0.0;
         
-        // Torque current mode: limited forward current, no reverse
-        config.TorqueCurrent.PeakForwardTorqueCurrent = ShooterConstants.flywheelBangBangTorqueCurrent.get();
-        config.TorqueCurrent.PeakReverseTorqueCurrent = 0.0;
+        // Motion Magic Velocity PID gains (Slot 0)
+        // kS: Static friction - voltage to overcome friction at 0 velocity
+        // kV: Velocity feedforward - voltage per rotation per second
+        // kP: Proportional gain - correction for velocity error
+        // kI, kD: Usually 0 for flywheels
+        config.Slot0.kS = ShooterConstants.flywheelkS.get();
+        config.Slot0.kV = ShooterConstants.flywheelkV.get();
+        config.Slot0.kP = ShooterConstants.flywheelkP.get();
+        config.Slot0.kI = 0.0;
+        config.Slot0.kD = 0.0;
+        config.Slot0.kA = 0.0;
+        
+        // Motion Magic Velocity configuration
+        // Acceleration: How fast flywheel can change velocity (rot/s^2)
+        // Set very high for maximum acceleration (as fast as possible)
+        config.MotionMagic.MotionMagicAcceleration = ShooterConstants.flywheelMMAccelRotPerSec2.get();
+        // Jerk: 0 = no jerk limit (trapezoidal profile)
+        config.MotionMagic.MotionMagicJerk = 0;
         
         leaderMotor.getConfigurator().apply(config);
-        
-        // Initialize debouncer for state transitions to IDLE
-        idleDebouncer = new Debouncer(
-            ShooterConstants.flywheelBangBangDebounceSeconds.get(),
-            DebounceType.kRising
-        );
         
         // Configure follower - same direction as leader
         TalonFXConfiguration followerConfig = new TalonFXConfiguration();
@@ -94,14 +83,18 @@ public class FlywheelIOKraken implements FlywheelIO {
         followerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         followerConfig.CurrentLimits.SupplyCurrentLimit = ShooterConstants.flywheelSupplyCurrentLimit.get();
         followerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        followerConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;  // Same direction
+        followerConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         followerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         
         followerMotor.getConfigurator().apply(followerConfig);
         
         // Set follower to follow leader (Aligned = same direction)
-        followerMotor.setControl(new Follower(ShooterConstants.flywheelMotor1Id, MotorAlignmentValue.Aligned));  // false = same direction
-
+        followerMotor.setControl(new Follower(ShooterConstants.flywheelMotor1Id, MotorAlignmentValue.Aligned));
+        
+        // Configure Motion Magic Velocity request
+        // EnableFOC: true for better performance (~15% more power)
+        motionMagicVelocity.EnableFOC = true;
+        motionMagicVelocity.Slot = 0;
         
         // Get status signals from leader
         velocityRotPerSec = leaderMotor.getVelocity();
@@ -139,8 +132,6 @@ public class FlywheelIOKraken implements FlywheelIO {
         inputs.tempCelsius = tempCelsius.getValueAsDouble();
         inputs.targetVelocityRPM = targetVelocityRPM;
         inputs.atSetpoint = Math.abs(inputs.velocityRPM - targetVelocityRPM) < ShooterConstants.flywheelVelToleranceRPM.get();
-        inputs.state = currentState;
-        inputs.shotCount = shotCount;
     }
     
     @Override
@@ -154,69 +145,18 @@ public class FlywheelIOKraken implements FlywheelIO {
     public void stop() {
         leaderMotor.stopMotor();
         targetVelocityRPM = 0.0;
-        currentState = FlywheelState.COAST;
     }
     
     @Override
-    public void runBangBang(double velocityRPM) {
+    public void runVelocity(double velocityRPM) {
         targetVelocityRPM = velocityRPM;
         double velocityRotPerSecTarget = velocityRPM / 60.0;
         
-        // Calculate if we're within tolerance
-        double currentRPM = velocityRotPerSec.getValueAsDouble() * 60.0;
-        double error = Math.abs(currentRPM - velocityRPM);
-        boolean inTolerance = error <= ShooterConstants.flywheelTorqueCurrentTolerance.get();
-        boolean readyForIdle = idleDebouncer.calculate(inTolerance);
-                
-        switch (currentState) {
-            case COAST:
-                if (velocityRPM > 0) {
-                    currentState = FlywheelState.STARTUP;
-                }
-                break;
-                
-            case STARTUP:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (readyForIdle) {
-                    currentState = FlywheelState.IDLE;
-                }
-                break;
-                
-            case IDLE:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (!inTolerance) {
-                    currentState = FlywheelState.RECOVERY;
-                    shotCount++;
-                }
-                break;
-                
-            case RECOVERY:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (readyForIdle) {
-                    currentState = FlywheelState.IDLE;
-                }
-                break;
-        }
-        
-        // Apply control based on current state
-        switch (currentState) {
-            case COAST:
-                leaderMotor.stopMotor();
-                break;
-                
-            case STARTUP:
-            case RECOVERY:
-                // Max duty cycle for fastest spinup/recovery
-                leaderMotor.setControl(velocityDutyCycle.withVelocity(velocityRotPerSecTarget));
-                break;
-                
-            case IDLE:
-                // Constant torque current for consistent ball exit velocity
-                leaderMotor.setControl(velocityTorqueCurrent.withVelocity(velocityRotPerSecTarget));
-                break;
+        if (velocityRPM <= 0) {
+            leaderMotor.stopMotor();
+        } else {
+            // Use Motion Magic Velocity for smooth acceleration to target
+            leaderMotor.setControl(motionMagicVelocity.withVelocity(velocityRotPerSecTarget));
         }
     }
 }

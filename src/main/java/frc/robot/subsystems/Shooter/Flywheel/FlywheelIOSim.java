@@ -3,8 +3,6 @@ package frc.robot.subsystems.Shooter.Flywheel;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.subsystems.Shooter.ShooterConstants;
@@ -31,25 +29,12 @@ public class FlywheelIOSim implements FlywheelIO {
     );
     
     private double appliedVolts = 0.0;
-    private double torqueCurrentAmps = 0.0;
     private double targetVelocityRPM = 0.0;
-    private FlywheelState currentState = FlywheelState.COAST;
-    private long shotCount = 0;
-    
-    // Bang-bang state machine
-    private Debouncer idleDebouncer;
     
     // Velocity tolerance for "at setpoint" check (RPM)
     private static final double kVelocityTolerance = 50.0;
     
-    // Motor model for torque current simulation
-    private static final DCMotor kMotorModel = DCMotor.getKrakenX60(2);
-    
     public FlywheelIOSim() {
-        idleDebouncer = new Debouncer(
-            ShooterConstants.flywheelBangBangDebounceSeconds.get(),
-            DebounceType.kRising
-        );
     }
 
     @Override
@@ -61,20 +46,15 @@ public class FlywheelIOSim implements FlywheelIO {
         inputs.velocityRPM = sim.getAngularVelocityRPM();
         inputs.appliedVolts = appliedVolts;
         inputs.currentAmps = sim.getCurrentDrawAmps();
-        inputs.torqueCurrentAmps = torqueCurrentAmps;
         inputs.tempCelsius = 25.0;
         inputs.targetVelocityRPM = targetVelocityRPM;
         inputs.atSetpoint = Math.abs(inputs.velocityRPM - targetVelocityRPM) < kVelocityTolerance;
-        inputs.state = currentState;
-        inputs.shotCount = shotCount;
     }
     
-   @Override
+    @Override
     public void stop() {
         targetVelocityRPM = 0.0;
         appliedVolts = 0.0;
-        torqueCurrentAmps = 0.0;
-        currentState = FlywheelState.COAST;
     }
     
     @Override
@@ -83,82 +63,35 @@ public class FlywheelIOSim implements FlywheelIO {
     }
     
     @Override
-    public void runBangBang(double velocityRPM) {
+    public void runVelocity(double velocityRPM) {
         targetVelocityRPM = velocityRPM;
         
-        // Calculate if we're within tolerance
+        if (velocityRPM <= 0) {
+            appliedVolts = 0.0;
+            return;
+        }
+        
+        // Simulate Motion Magic Velocity with feedforward + P control
         double currentRPM = sim.getAngularVelocityRPM();
-        double error = Math.abs(currentRPM - velocityRPM);
-        boolean inTolerance = error <= ShooterConstants.flywheelTorqueCurrentTolerance.get();
-        boolean readyForIdle = idleDebouncer.calculate(inTolerance);
+        double targetRotPerSec = velocityRPM / 60.0;
+        double currentRotPerSec = currentRPM / 60.0;
         
-        // State machine transitions
-        switch (currentState) {
-            case COAST:
-                if (velocityRPM > 0) {
-                    currentState = FlywheelState.STARTUP;
-                }
-                break;
-                
-            case STARTUP:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (readyForIdle) {
-                    currentState = FlywheelState.IDLE;
-                }
-                break;
-                
-            case IDLE:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (!inTolerance) {
-                    currentState = FlywheelState.RECOVERY;
-                    shotCount++;
-                }
-                break;
-                
-            case RECOVERY:
-                if (velocityRPM <= 0) {
-                    currentState = FlywheelState.COAST;
-                } else if (readyForIdle) {
-                    currentState = FlywheelState.IDLE;
-                }
-                break;
-        }
+        // Feedforward: V = kS + kV * velocity
+        double kS = ShooterConstants.flywheelkS.get();
+        double kV = ShooterConstants.flywheelkV.get();
+        double kP = ShooterConstants.flywheelkP.get();
         
-        // Apply control based on current state
-        switch (currentState) {
-            case COAST:
-                appliedVolts = 0.0;
-                torqueCurrentAmps = 0.0;
-                break;
-                
-            case STARTUP:
-            case RECOVERY:
-                // Max duty cycle for fastest spinup/recovery
-                torqueCurrentAmps = 0.0;
-                if (currentRPM < velocityRPM) {
-                    appliedVolts = 12.0;
-                } else {
-                    appliedVolts = 0.0;
-                }
-                break;
-                
-            case IDLE:
-                // Constant torque current for consistent ball exit velocity
-                if (currentRPM < velocityRPM) {
-                    torqueCurrentAmps = ShooterConstants.flywheelBangBangTorqueCurrent.get();
-                    // Convert torque current to voltage: V = I * R + omega / Kv
-                    double omegaRadPerSec = currentRPM * 2.0 * Math.PI / 60.0;
-                    appliedVolts = (torqueCurrentAmps * kMotorModel.rOhms) 
-                        + (omegaRadPerSec / kMotorModel.KvRadPerSecPerVolt);
-                    appliedVolts = Math.min(appliedVolts, 12.0);
-                } else {
-                    appliedVolts = 0.0;
-                    torqueCurrentAmps = 0.0;
-                }
-                break;
-        }
+        double feedforward = kS + kV * targetRotPerSec;
+        
+        // P control for error correction
+        double error = targetRotPerSec - currentRotPerSec;
+        double feedback = kP * error;
+        
+        // Total voltage
+        appliedVolts = feedforward + feedback;
+        
+        // Clamp to valid range
+        appliedVolts = Math.max(0.0, Math.min(12.0, appliedVolts));
     }
 
     @Override

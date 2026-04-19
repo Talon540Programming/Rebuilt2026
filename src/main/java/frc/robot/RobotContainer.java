@@ -25,9 +25,7 @@ import frc.robot.subsystems.Intake.Extension.ExtensionIOKraken;
 import frc.robot.subsystems.Intake.Extension.ExtensionIOSim;
 import frc.robot.subsystems.Intake.Roller.RollerIOKraken;
 import frc.robot.subsystems.Intake.Roller.RollerIOSim;
-import frc.robot.subsystems.LED.LEDBase;
 import frc.robot.subsystems.Shooter.ShooterBase;
-import frc.robot.subsystems.Shooter.ShooterBase.ShooterState;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIOKraken;
 import frc.robot.subsystems.Shooter.Flywheel.FlywheelIOSim;
 import frc.robot.subsystems.Shooter.Hood.HoodIOKraken;
@@ -88,8 +86,6 @@ public class RobotContainer {
     private final IntakeBase intake;
     private final ShooterBase shooter;
     private final IndexBase index;
-    @SuppressWarnings("unused")
-    private final LEDBase LEDs;
 
     private final SendableChooser<Command> autoChooser;
 
@@ -133,15 +129,6 @@ public class RobotContainer {
         shooter = new ShooterBase(flywheelIOKraken, hoodIOKraken, kickupIOKraken);
         index = new IndexBase(indexIOKraken);
         }
-
-        LEDs = new LEDBase(
-
-                () -> intake.getRollerVolts() > 0,  // isIntaking
-                () -> shooter.getState() == ShooterState.SHOOTING 
-                    || shooter.getState() == ShooterState.SPINNING_UP,  // isShooting
-                () -> shooter.isFlywheelAtSetpoint(),         // isFlywheelReady
-                () -> autoHeading.isEmergencyModeEnabled()    // isEmergencyMode
-            );
 
         configureNamedCommands();
         configureBindings();

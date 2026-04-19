@@ -74,8 +74,6 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Flywheel/TempCelsius", flywheelInputs.tempCelsius);
         Logger.recordOutput("Shooter/Flywheel/TargetVelocityRPM", flywheelInputs.targetVelocityRPM);
         Logger.recordOutput("Shooter/Flywheel/AtSetpoint", flywheelInputs.atSetpoint);
-        Logger.recordOutput("Shooter/Flywheel/State", flywheelInputs.state.toString());        Logger.recordOutput("Shooter/Flywheel/TorqueCurrentAmps", flywheelInputs.torqueCurrentAmps);
-        Logger.recordOutput("Shooter/Flywheel/ShotCount", flywheelInputs.shotCount);
        
         // Manual logging - Hood
         Logger.recordOutput("Shooter/Hood/Homed", hoodHomed);
@@ -118,9 +116,8 @@ public class ShooterBase extends SubsystemBase {
         
     // ==================== FLYWHEEL CONTROL ====================
     
-/**
-     * Set flywheel to target velocity using MA-style bang-bang control.
-     * Mode switching (duty cycle vs torque current) is handled in the IO layer.
+    /**
+     * Set flywheel to target velocity using Motion Magic Velocity control.
      * @param velocityRPM target velocity in RPM
      * @param distanceMeters distance to hub in meters (used to select scalar)
      * @param applyScalar whether to apply the velocity scalar (false for emergency mode)
@@ -158,7 +155,7 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Flywheel/ScalarValue", scalar);
         Logger.recordOutput("Shooter/Flywheel/ScaledRPM", finalVelocity);
         
-        flywheelIO.runBangBang(finalVelocity);
+        flywheelIO.runVelocity(finalVelocity);
     }
     
     /**
@@ -182,7 +179,7 @@ public class ShooterBase extends SubsystemBase {
         Logger.recordOutput("Shooter/Flywheel/ScalarZone", "None");
         Logger.recordOutput("Shooter/Flywheel/ScalarValue", 1.0);
         Logger.recordOutput("Shooter/Flywheel/ScaledRPM", velocityRPM);
-        flywheelIO.runBangBang(velocityRPM);
+        flywheelIO.runVelocity(velocityRPM);
     }
     
     /**
