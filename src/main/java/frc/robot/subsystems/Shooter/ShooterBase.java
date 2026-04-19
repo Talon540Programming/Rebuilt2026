@@ -141,7 +141,7 @@ public class ShooterBase extends SubsystemBase {
                 // Use exponential function: scalar = 1.72221 * 1.07112^distance
                 // scalar = 1.72221 * Math.pow(1.07112, distanceMeters);
                 //scalar = (0.247235 * distanceMeters) + 1.3; //1.42105 this is old scalar method linear 
-                double baseConstant = 1.36;
+                double baseConstant = 1.42;
                 double adjustedConstant = baseConstant + flywheelScalarOffset;
                 scalar = adjustedConstant + 0.346582 * Math.log(distanceMeters);
                 Logger.recordOutput("Shooter/Flywheel/ScalarBaseConstant", baseConstant);

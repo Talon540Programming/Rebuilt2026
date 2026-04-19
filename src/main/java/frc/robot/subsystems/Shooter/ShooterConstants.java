@@ -172,11 +172,11 @@ public class ShooterConstants {
             }
             case COMPBOT -> {
                 // ===== Flywheel Comp Defaults =====
-                flywheelVelToleranceRPM.initDefault(50);
+                flywheelVelToleranceRPM.initDefault(20);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
                 flywheelBangBangTorqueCurrent.initDefault(40);  // TODO: tune
-                flywheelTorqueCurrentTolerance.initDefault(25);  // TODO: tune
+                flywheelTorqueCurrentTolerance.initDefault(10);  // TODO: tune
                 flywheelBangBangDebounceSeconds.initDefault(0.025);
                 flywheelVelocityScalarTest.initDefault(0.0);  // 0 = use exponential function
                 

@@ -60,12 +60,12 @@ public class RollerIOKraken implements RollerIO {
         followerConfig.CurrentLimits.SupplyCurrentLimit = 40.0;
         followerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         followerConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        followerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        followerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         
         rollerFollower.getConfigurator().apply(followerConfig);
         
         // Set follower to strictly follow the leader (same direction since both spin clockwise)
-        rollerFollower.setControl(new Follower(IntakeConstants.rollerMotor1Id, MotorAlignmentValue.Aligned));
+        rollerFollower.setControl(new Follower(IntakeConstants.rollerMotor1Id, MotorAlignmentValue.Opposed));
         
         // Get leader status signals
         velocity = rollerLeader.getVelocity();

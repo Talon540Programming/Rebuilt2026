@@ -121,9 +121,9 @@ public final class Constants {
     public static final double hoodMaxAngle = Math.toRadians(55);     // 54 degrees
 
     public static final LoggedTunableNumber compensationFactorX = 
-        new LoggedTunableNumber("Shooting/CompensationFactorX", 2.5);
+        new LoggedTunableNumber("Shooting/CompensationFactorX", 2.3);
     public static final LoggedTunableNumber compensationFactorY = 
-        new LoggedTunableNumber("Shooting/CompensationFactorY", 2.5);
+        new LoggedTunableNumber("Shooting/CompensationFactorY", 2.3);
 
     // Shooter position offset from robot center (in inches)
     // Positive X = forward, Positive Y = left
@@ -188,12 +188,12 @@ public final class Constants {
 
   public static final class EmergencyModeConstants {
     // Emergency shooting preset (hub shot)
-    public static final double shootingRPM = 500;
+    public static final double shootingRPM = 2150;
     public static final double shootingHoodAngleDegrees = 18;
     
     // Emergency passing preset (lob shot) - TODO: Update with real values
-    public static final double passingRPM = 1700;
-    public static final double passingHoodAngleDegrees = 18;
+    public static final double passingRPM = 2350;
+    public static final double passingHoodAngleDegrees = 20;
   }
 
 }

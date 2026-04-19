@@ -7,11 +7,12 @@ public class IntakeConstants {
     // Shared constants (same for sim and real)
     public static final int extensionMotorId = 13;
     public static final int rollerMotor1Id = 14;
-    public static final int rollerMotor2Id = 16;
+    public static final int rollerMotor2Id = 20;
 
     public static final double extensionHomingDutyCycle = -0.6;  // Positive = toward stowed
-    public static final double extensionHomingTimeoutSeconds = 0.5;  // Time to run toward hard stop
-
+    public static final double extensionHomingTimeoutSeconds = 0.3;  // Time to run toward hard stop
+ //-.6
+ //.5
     public static final double dployDutyCycle = 0.5;
     public static final double rollerIntakeDutyCycle = 1;
     public static final double rollerEjectDutyCycle = -0.5;
@@ -113,8 +114,8 @@ public class IntakeConstants {
                 extensionVelToleranceRotPerSec.initDefault(0.5);
 
                 // Motion Magic constraints
-                extensionMMCruiseVelRotPerSec.initDefault(65);  // TODO: tune
-                extensionMMAccelRotPerSec2.initDefault(150);  // TODO: tune
+                extensionMMCruiseVelRotPerSec.initDefault(70);  // TODO: tune
+                extensionMMAccelRotPerSec2.initDefault(200);  // TODO: tune
                 extensionMMJerkRotPerSec3.initDefault(0);
 
                 // PID
