@@ -178,18 +178,18 @@ public class ShooterConstants {
             }
             case COMPBOT -> {
                 // ===== Flywheel Comp Defaults =====
-                flywheelVelToleranceRPM.initDefault(20);
+                flywheelVelToleranceRPM.initDefault(50);
                 flywheelStatorCurrentLimit.initDefault(80);
                 flywheelSupplyCurrentLimit.initDefault(60);
                 flywheelVelocityScalarTest.initDefault(0.0);  // 0 = use exponential function
                 
                 // Motion Magic Velocity PID gains (estimated values - TUNE ON ROBOT)
                 // kS: Static friction voltage
-                flywheelkS.initDefault(0.15);  // TODO: tune with SysId or manual testing
+                flywheelkS.initDefault(0.3);  // TODO: tune with SysId or manual testing
                 // kV: Velocity feedforward (V per rot/s)
-                flywheelkV.initDefault(0.011);  // TODO: tune - calculate from free speed test
+                flywheelkV.initDefault(0.4);  // TODO: tune - calculate from free speed test
                 // kP: Proportional gain
-                flywheelkP.initDefault(0.3);  // TODO: tune - start low, increase until responsive
+                flywheelkP.initDefault(1.5);  // TODO: tune - start low, increase until responsive
                 // Acceleration: Very high for maximum acceleration
                 flywheelMMAccelRotPerSec2.initDefault(1000);  // TODO: tune - can go higher if no brownouts
                 
