@@ -192,8 +192,8 @@ public final class Constants {
     public static final double shootingHoodAngleDegrees = 18;
     
     // Emergency passing preset (lob shot) - TODO: Update with real values
-    public static final double passingRPM = 2350;
-    public static final double passingHoodAngleDegrees = 20;
+    public static final double passingRPM = 3750;
+    public static final double passingHoodAngleDegrees = 35;
   }
 
 }
